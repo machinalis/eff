@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
+import os
+import os.path
+import time
+import string
+import tempfile
+import csv
 
-from django import forms
+from urllib import quote
+from subprocess import Popen
+from datetime import date, timedelta, datetime
+
 from django.db.models import Q
 from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -8,36 +17,27 @@ from django.template import RequestContext, loader, Context
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.utils import simplejson
 from django.contrib.auth.models import User
+from django.conf import settings
+from django import forms
 
-from models import AvgHours, Wage, TimeLog, Project, Client, UserProfile
-from models import ExternalId, ExternalSource, Dump
-from sitio import settings
-from utils import overtime_period, previous_week, week, month, period
-from utils import Data, DataTotal, debug, ERROR, load_dump, _date_fmts, \
-    validate_header
-
-from datetime import date, timedelta, datetime
 from dateutil.relativedelta import relativedelta
-from subprocess import Popen
-import os.path
-import time
-import string
-import tempfile
 
 from relatorio.templates.opendocument import Template
-
-import os
-cur_dir = os.path.dirname(os.path.abspath(__file__))
-
 from reports import format_report_data, format_invoice_period
 from reports import format_report_data_user, FixedPriceClientReverseBilling
 
-from django.forms import ModelForm
-from django.core.exceptions import ObjectDoesNotExist
+from eff.models import AvgHours, Wage, TimeLog, Project, Client, UserProfile
+from eff.models import ExternalId, ExternalSource, Dump
 
-import csv
+from eff.utils import overtime_period, previous_week, week, month, period
+from eff.utils import Data, DataTotal, debug, ERROR, load_dump, _date_fmts
+from eff.utils import validate_header
 
-from urllib import quote
+from eff.forms import AvgHoursForm, EffQueryForm, UserProfileForm
+from eff.forms import UsersChangeProfileForm, UserPassChangeForm
+from eff.forms import UserAddForm, ClientReportForm, DumpUploadForm
+
+cur_dir = os.path.dirname(os.path.abspath(__file__))
 
 # ==================== internals ====================
 
@@ -215,116 +215,6 @@ def chart_values(username_list, from_date, to_date, request_user):
 
     return values
 
-# ==================== Forms ====================
-
-class AvgHoursForm (forms.Form):
-    ah_date = forms.DateField(required=True)
-    hours = forms.IntegerField(required=True)
-
-class EffQueryForm (forms.Form):
-    from_date = forms.DateField(required=True, widget=forms.DateTimeInput,
-                                label='Desde')
-    to_date = forms.DateField(required=True, widget=forms.DateTimeInput,
-                              label='Hasta')
-
-class UserProfileForm (ModelForm):
-    """ Combines data from UserProfile """
-
-    def __init__(self, *args, **kwargs):
-        super(UserProfileForm, self).__init__(*args, **kwargs)
-        try:
-            self.fields['first_name'].initial = self.instance.user.first_name
-            self.fields['last_name'].initial = self.instance.user.last_name
-        except User.DoesNotExist:
-            pass
-
-    def save(self, *args, **kwargs):
-        u = self.instance.user
-        u.first_name = self.cleaned_data['first_name']
-        u.last_name = self.cleaned_data['last_name']
-        u.save()
-        profile = super(UserProfileForm, self).save(*args,**kwargs)
-        return profile
-
-    class Meta:
-        model = UserProfile
-        fields = ('first_name', 'last_name', 'personal_email', 'address',
-                  'city', 'state', 'country', 'phone_number', )
-
-    first_name = forms.CharField(required=False, label='Nombre')
-    last_name = forms.CharField(required=False, label='Apellido')
-
-    personal_email = forms.EmailField(required=False, label='Email Personal')
-    address = forms.CharField(required=False, label='Dirección')
-    city = forms.CharField(required=False, label='Ciudad')
-    state = forms.CharField(required=False, label='Provincia')
-    country = forms.CharField(required=False, label='Pais')
-    phone_number = forms.IntegerField(required=False, label='Telefono')
-
-
-class UsersChangeProfileForm (UserProfileForm):
-    """ Users profile change  """
-
-    user = forms.ModelChoiceField(queryset=User.objects.all(), empty_label="----")
-
-    class Meta:
-        model = UserProfile
-        fields = ('user', 'first_name', 'last_name', 'personal_email', 'address',
-                  'city', 'state', 'country', 'phone_number', )
-
-
-class UserPassChangeForm(forms.Form):
-    """ Users password change """
-    user = forms.ModelChoiceField(queryset=User.objects.all(), empty_label="----")
-    password = forms.CharField(max_length=100, widget=forms.PasswordInput,
-                               label='New password', required=False)
-    password2 = forms.CharField(max_length=100, widget=forms.PasswordInput,
-                                label='Confirm password', required=False)
-    def clean(self):
-        password2 = self.cleaned_data.get('password2')
-        password = self.cleaned_data.get('password')
-        if password is None and password2 is None:
-            return self.cleaned_data
-        if password is not None and password2 != password:
-            raise forms.ValidationError('The two passwords do not match.')
-        return self.cleaned_data
-
-class UserAddForm(forms.Form):
-    """ Add user """
-    username = forms.CharField(max_length=100, label='Username')
-    password = forms.CharField(max_length=100, widget=forms.PasswordInput, label='Password')
-    password2 = forms.CharField(max_length=100, widget=forms.PasswordInput,
-                                label='Password confirmation')
-    def clean(self):
-        password2 = self.cleaned_data.get('password2')
-        password = self.cleaned_data.get('password')
-        if password is None and password2 is None:
-            return self.cleaned_data
-        if password is not None and password2 != password:
-            raise forms.ValidationError('The two passwords do not match.')
-
-        try:
-            if User.objects.get(username=self.cleaned_data.get('username')):
-                raise forms.ValidationError('User already exists.')
-        except ObjectDoesNotExist:
-            pass
-        return self.cleaned_data
-
-class ClientReportForm(EffQueryForm):
-    """ Admin to generate client reports """
-    client = forms.ModelChoiceField(queryset=Client.objects.all(), empty_label="----")
-
-class DumpUploadForm(forms.Form):
-    csv_file = forms.FileField()
-
-    def clean(self):
-        csv_file = self.cleaned_data.get('csv_file')
-        if not csv_file:
-            return self.cleaned_data
-        if csv_file.content_type != 'text/csv':
-            raise forms.ValidationError('Only CSV files are allowed.')
-        return self.cleaned_data
-
 # ==================== Views ====================
 
 def index(request):
@@ -444,14 +334,11 @@ def update_hours(request, username):
             for i in range(0,size):
                 if wage_form.cleaned_data['w_date%d' % i] != None and\
                     wage_form.cleaned_data['amount%d' % i] != None:
-                    #debug("wage %s %s", wage_form.cleaned_data['w_date%d' % i],
-                    #                    wage_form.cleaned_data['amount%d' % i])
                     try:
                         w = Wage(user=user,
                                  date=wage_form.cleaned_data['w_date%d' % i],
                                  amount_per_hour=wage_form.cleaned_data['amount%d' % i])
                         w.save()
-                        # debug("saved %s", w)
                         context['notices'] = ['Update sucessful!']
 
                     except ValueError, e:
