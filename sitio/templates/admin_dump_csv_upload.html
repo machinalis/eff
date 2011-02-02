@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div id="wrapper">
+        <div class="title">
+            <p><b>{{ title }}</b></p>
+        </div>
+	  <div id="csv-format-info" style="margin-left: auto ; margin-right: auto; width:630px; text-align: left; border:1px solid gray; padding:1em;">
+	    El Csv a importar debe tener el siguiente formato:<br /><br />
+	    Una unica cabecera de la forma:<br />
+	    # ExternalSource: &#060;nombre&#062;<br />
+	    # Client: &#060;nombre&#062<br />
+	    # Author: &#060;nombre&#062<br />
+	    # From date: &#060;fecha&#062<br />
+	    # To date: &#060;fecha&#062<br />
+	    Por ejemplo:<br />
+	    # ExternalSource: Tutos<br />
+	    # Client: Someclient<br />
+	    # Author: Alejandro<br />
+	    # From date: 2010-07-01<br />
+	    # To date: 2010-07-22<br /><br />
+	    Las filas deben contener 6 items:<br />
+            Fecha, Projecto, Usuario, Horas, Nombre Tarea, Descripcion Tarea<br />
+	    Por ejemplo:<br />
+	    "2010-07-01","862BKD08","alejandro.peralta","2.0","Una tarea","Descripcion de la tarea"<br /><br />
+	    <strong>IMPORTANTE:</strong> Todos los logs para el ExternalSource entre las fechas dadas van a ser reemplazados.
+	  </div>
+        <div id="content">
+	  <form id="dump-csv-form" method="post" action="." enctype="multipart/form-data">
+            <table class="extra-data">
+	      {{ form.as_table }}
+	      <tr>
+		<td colspan="2">
+		  <input id="dump-csv-upload" type="submit" value="Upload" />
+		</td>
+	      </tr>
+	    </table>
+	  </form>
+	</div>
+    </div>
+{% endblock %}

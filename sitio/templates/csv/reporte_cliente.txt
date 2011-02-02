@@ -1,0 +1,2 @@
+{% for d in data %}{% for u in d.users %}"{{ d.project_name|addslashes }}","{{ u.full_name|addslashes }}","{{ u.hs }}"
+{% endfor %}{% endfor %}

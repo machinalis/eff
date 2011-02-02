@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block style %}
+  tr { background: #e7e7e7 }
+  td { text-align: right }
+{% endblock %}
+
+{% block title %}{{ block.super }} -- Profile Details {% endblock %}
+
+{% block content %}
+    <div id="wrapper">
+        <div class="title">
+            <p><b>{{ profile.user.first_name }}'s Profile</b> </p>
+        </div>
+
+        <div id="content">
+            <table class="sortable report">
+                <tbody>
+                <tr> <td> Nombre: </td> <td> {{ profile.user.first_name }} </td> </tr>
+                <tr> <td> Apellido: </td> <td> {{ profile.user.last_name }} </td> </tr>
+                <tr> <td> Email Personal: </td> <td> {{ profile.personal_email }} </td> </tr>
+                <tr> <td> Direccion: </td> <td> {{ profile.address }} </td> </tr> 
+                <tr> <td> Ciudad: </td> <td> {{ profile.city }} </td> </tr>
+                <tr> <td> Provincia: </td> <td> {{ profile.state }} </td> </tr>
+                <tr> <td> Pais: </td> <td> {{ profile.country }} </td> </tr>
+                <tr> <td> Telefono: </td> <td> {{ profile.phone_number }} </tds> </tr> 
+                <tr> <td> Tutos/Jira Login: </td> <td> {{ profile.prot_login }} </td> </tr>
+                <tr> <td> Tutos/Jira name: </td> <td> {{ profile.prot_name }} </td> </tr>
+                <tbody>
+            </table>
+            <p> <b>Cambios de Horas de Trabajo:</b> <br/> <small>(ordenado por fecha)</small> </p>
+            <table class="extra-data">
+                {% for object in profile.user.avghours_set.all %}
+                <tr>    
+                    <td> {{ object.date }} </td>
+                    <td> {{ object.hours }} </td>
+                <tr>
+                {% endfor %}
+            </table>
+
+            {% if perms.eff.view_wage %}
+            <p> <b> Wage Changes: </b> </p>
+            <table class="extra-data">
+                {% for object in profile.user.wage_set.all %}
+                <tr>
+                    <td> {{ object.date }} </td>
+                    <td> {{ object.amount_per_hour }} </td>
+                <tr>
+                {% endfor %}
+            </table>
+            {% endif %}
+        </div>
+
+    </div>    
+{% endblock %}

@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block jsscript %}
+    
+  function toggle_visibility(id) {
+      $("#" + id).slideToggle("slow");
+      $("#" + id + "-arrow").toggleClass("expand");
+  }
+
+  $(document).ready(function() {
+      $('#project_filter').change(function(){
+          selected_val = $(this).val();
+          redirect_to = window.location.pathname + '?from_date={{ from_date }}&to_date={{ to_date }}';
+          if(selected_val!='all')
+              redirect_to += '&project=' + selected_val;
+          redirect_to += '#project_select';
+          window.location = redirect_to;
+      });
+  });
+
+{% endblock %}
+
+{% block title %}{{ block.super }} -- Reporte de horas {% endblock %}
+
+{% block content %}
+    <div id="wrapper">
+        <div class="title">
+            {% ifequal from_date to_date  %} <p>Día {{ from_date }}</p>
+            {% else %} <p>Período: {{ from_date }} al {{ to_date }}</p> {% endifequal %}
+            <p>Usuario: {{ username }}</p>
+
+        </div>
+
+	<div id="nav-links" style="width: 90%; margin:auto; display: inline-block;">
+          {% for nav,nav_title,nav_symbol in navs %}
+          <p id="{{nav}}">
+            {% if forloop.counter0|divisibleby:"2" %}
+            <a href="/efi/{{nav}}/?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">{{nav_symbol}}</a>
+            {% endif %}
+            <small> {% if monthly_nav %} mes {% else %} período{% if overtime_nav %} de horas extras{% endif %}
+	      {% endif %} {{nav_title}} </small>
+            {% if not forloop.counter0|divisibleby:"2" %}
+            <a href="/efi/{{nav}}/?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">{{nav_symbol}}</a>
+            {% endif %}
+          </p>
+          {% endfor %}
+	</div>
+
+        <div class="collapsable">
+            <div id="project-report-arrow" class="collapse" onclick="toggle_visibility('project-report')"></div>
+            <p><b>Reporte de horas logueadas</b><br/><small>(agrupadas por proyecto)</small></p>
+        </div>
+
+        <div id="project-report">
+        {% if report_by_project %}
+        <table class="sortable report" id="project-report-table">
+            <thead>
+                <tr>
+                    <th class="source"> <abbr title="Source de los proyectos">Source</abbr> </th>
+                    <th class="proyecto"> <abbr title="Nombre del proyecto">Proyecto</abbr> </th>
+                    <th class="horas"> <abbr title="Cantidad de horas logueadas">Horas</abbr> </th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for row in report_by_project %}
+                {% if forloop.counter0|divisibleby:"2" %}
+                <tr class="even"> {% else %} <tr class="odd">
+                {% endif %}
+                    <td class="source"> {% if row.2 %} <b> {% endif %} {{ row.0 }} {% if row.2 %} </b> {% endif %} </td>
+                    <td class="proyecto"> {{ row.1 }} </td>
+                    <td class="horas">{{ row.3 }} </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td> </td>
+                    <td> </td>
+                    <td> <b>Total:</b> {{ TotalHrs }} </td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="text-align: right;">{% if export_allowed %}Export as: <a href="/efi/reporte/{{ username }}/?from_date={{from_date}}&to_date={{to_date}}&export=odt">ODT</a> | <a href="/efi/reporte/{{ username }}/?from_date={{from_date}}&to_date={{to_date}}&export=csv">CSV</a>{% endif %}</td>
+                </tr>
+            </tfoot>
+        </table>
+        {% else %}
+        <p><i>No data available for report grouped by project.</i></p>
+        {% endif %}
+        </div>
+
+        <div class="collapsable">
+            <div id="detailed-report-arrow" class="collapse" onclick="toggle_visibility('detailed-report')"></div>
+            <p><b>Reporte de horas logueadas</b><br/><small>(detalladas por tarea)</small></p>
+        </div>
+
+        <div id="detailed-report">
+        {% if report %}
+	<div style="width: 90%; margin:auto; text-align:left;">
+	  <a name="project_select"></a>
+	  <b>Filtrar por proyecto</b> 
+	  <select id="project_filter">
+	    <option value="all" {% ifequal project 'all' %}selected="selected"{% endifequal %}>Todos</option>
+	    {% for p in projects %}
+	      <option value="{{ p }}" {% ifequal project p %}selected="selected"{% endifequal %}>{{ p }}</option>
+	    {% endfor %}
+	  </select>
+          {% if export_allowed %} Export as: <a href="/efi/reporte/{{ username }}/?from_date={{from_date}}&to_date={{to_date}}{% if project %}&project={{ project }}{% endif %}&export=odt&detailed">ODT</a> | <a href="/efi/reporte/{{ username }}/?from_date={{from_date}}&to_date={{to_date}}{% if project %}&project={{ project }}{% endif %}&export=csv&detailed">CSV</a>{% endif %}
+	</div>
+        <table class="sortable report" id="detailed-report-table">
+            <thead>
+                <tr>
+                    <th class="fecha"> <abbr title="Fecha de reporte">Fecha</abbr> </th>
+                    <th class="proyecto"> <abbr title="Nombre del proyecto">Proyecto</abbr> </th>
+                    <th class="tarea"> <abbr title="Nombre de la tarea">Tarea</abbr> </th>
+                    <th class="descripcion"> <abbr title="Descripción Logueada">Descripción</abbr> </th>
+                    <th class="horas"> <abbr title="Cantidad de horas logueadas">Horas</abbr> </th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for row in report %}
+                {% if forloop.counter0|divisibleby:"2" %}
+                <tr class="even"> {% else %} <tr class="odd">
+                {% endif %}
+                    <td class="fecha"> {{ row.4 }}</td>
+                    <td class="proyecto"> {{ row.0 }} </td>
+                    <td class="tarea"> {{ row.1 }} </td>
+                    <td class="descripcion"> {{ row.2|safe }} </td>
+                    <td class="horas"> {{ row.3 }} </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td> </td>
+                    <td> </td>
+                    <td> </td>
+                    <td> </td>
+                    <td> <b>Total:</b> {{ TotalHrsDetailed }} </td>
+                </tr>
+            </tfoot>
+        </table>
+        {% else %}
+        <p><i>No data available for the detailed report.</i></p>
+        {% endif %}
+        </div>
+
+        <br /><a href="/efi/?from_date={{from_date}}&to_date={{to_date}}"> Volver a efficiency </a><br />
+    </div>
+{% endblock %}
