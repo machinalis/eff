@@ -1,0 +1,9 @@
+#
+# Used in scripts/dotproject.py and eff/migrations/0007_dump_migration.py
+#
+DOTPROJECT_DB_NAME = ''
+DOTPROJECT_DB_USER = ''
+DOTPROJECT_DB_PASSWD = ''
+DOTPROJECT_DB_HOST = 'localhost'
+DOTPROJECT_DB_PORT = 3306
+DOTPROJECT_DB_CHARSET = 'latin1'
