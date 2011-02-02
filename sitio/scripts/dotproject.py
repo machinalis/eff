@@ -3,6 +3,8 @@ from datetime import datetime
 import MySQLdb
 
 from sitio.eff.utils import EffCsvWriter
+from django.conf import settings
+
 
 class DotProject(object):
     _connection = None
@@ -45,18 +47,20 @@ class DotProject(object):
         return cls._cursor.fetchall()
     
 
-class Machinalis(DotProject):
+class DotProjectSource(DotProject):
     """
     This defines the data needed to access the dotproject database.
-    You need to configure this if you want to use it (First you
-    need to create an ExternalSource with type DotprojectMachinalis)
+    You need to configure this from settings.py or creating a
+    local_settings.py if you want to use it (First you
+    need to create an ExternalSource with name Dotproject or whatever
+    is configured in scripts/config.py)
     """
-    DB = ''
-    DB_USER = ''
-    PASSWD = ''
-    HOST = 'localhost'
-    PORT = 3306
-    CHARSET = 'latin1'
+    DB = settings.DOTPROJECT_DB_NAME
+    DB_USER = settings.DOTPROJECT_DB_USER
+    PASSWD = settings.DOTPROJECT_DB_PASSWD
+    HOST = settings.DOTPROJECT_DB_HOST
+    PORT = settings.DOTPROJECT_DB_PORT
+    CHARSET = settings.DOTPROJECT_DB_CHARSET
 
 
 def fetch_all(source, client, author, from_date, to_date, _file):
@@ -65,6 +69,8 @@ def fetch_all(source, client, author, from_date, to_date, _file):
                           from_date=from_date,
                           to_date=to_date)
 
-    for row in Machinalis().get_logs(client.external_id, from_date, to_date):
+    for row in DotProjectSource().get_logs(client.external_id,
+                                           from_date,
+                                           to_date):
         writer.write(row)
 

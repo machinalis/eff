@@ -1,2 +1,6 @@
 *.pyc
+*.*~
+updatedb.debug     # this file is created when sources are fetched
 local_settings.py
+scripts/sources_csv/*   # in this directory fetched data is dumped
+!.gitignore

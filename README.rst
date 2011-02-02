@@ -14,6 +14,7 @@ Install Procedure
 ================
 
  * configure settings.py: (or you can setup local_settings.py)
+
    DATABASE_NAME = ''           # Or path to database file if using sqlite3.
    DATABASE_USER = ''           # Not used with sqlite3.
    DATABASE_PASSWORD = ''       # Not used with sqlite3.
@@ -21,18 +22,14 @@ Install Procedure
    SECRET_KEY = ''
 
 
- * if you use a DotProject source, add the credentials to mysql database in scripts/dotproject.py
-    DB = ''
-    DB_USER = ''
-    PASSWD = ''
+ * if you use a DotProject source, add the credentials to mysql in settings.py:
 
- * In migration 0007_dump_migration.py 
- connection = MySQLdb.connect(db='',
-                              user='',
-                              passwd='',
-                              host='localhost',
-                              port=3306, charset = "latin1")
-
+   DOTPROJECT_DB_NAME = ''
+   DOTPROJECT_DB_USER = ''
+   DOTPROJECT_DB_PASSWD = ''
+   DOTPROJECT_DB_HOST = 'localhost'
+   DOTPROJECT_DB_PORT = 3306
+   DOTPROJECT_DB_CHARSET = 'latin1'
 
  * comment in settings.py the AUTH_PROFILE_MODULE = 'eff.userprofile' line
 

@@ -1,5 +1,7 @@
 # encoding: utf-8
 import datetime
+from django.conf import settings
+
 from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
@@ -61,11 +63,12 @@ class Migration(SchemaMigration):
         dP_dump = Dump.objects.create(date=datetime.date.today(), creator="SystemMigration",
                                       source=dP_source)
         # Migrate DotprojectMachinalis hours
-        connection = MySQLdb.connect(db='',
-                                     user='',
-                                     passwd='',
-                                     host='localhost',
-                                     port=3306, charset = "latin1")
+        connection = MySQLdb.connect(db=settings.DOTPROJECT_DB_NAME,
+                                     user=settings.DOTPROJECT_DB_USER,
+                                     passwd=settings.DOTPROJECT_DB_PASSWD,
+                                     host=settings.DOTPROJECT_DB_HOST,
+                                     port=settings.DOTPROJECT_DB_PORT,
+                                     charset=settings.DOTPROJECT_DB_CHARSET)
         cursor = connection.cursor()
         f_date = datetime.date.fromordinal(datetime.date(1900, 01, 01).toordinal())
         t_date = datetime.date.fromordinal(datetime.date.today().toordinal())
