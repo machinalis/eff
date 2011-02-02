@@ -1,0 +1,136 @@
+# -*- coding: utf-8 -*-
+from django import forms
+from django.forms import ModelForm
+from django.contrib.auth.models import User
+
+from eff.models import UserProfile, Client
+
+class AvgHoursForm(forms.Form):
+    ah_date = forms.DateField(required=True)
+    hours = forms.IntegerField(required=True)
+
+
+class EffQueryForm(forms.Form):
+    from_date = forms.DateField(required=True,
+                                widget=forms.DateTimeInput,
+                                label='Desde')
+    to_date = forms.DateField(required=True,
+                              widget=forms.DateTimeInput,
+                              label='Hasta')
+
+
+class UserProfileForm(ModelForm):
+    """ Combines data from UserProfile """
+
+    def __init__(self, *args, **kwargs):
+        super(UserProfileForm, self).__init__(*args, **kwargs)
+        try:
+            self.fields['first_name'].initial = self.instance.user.first_name
+            self.fields['last_name'].initial = self.instance.user.last_name
+        except User.DoesNotExist:
+            pass
+
+    def save(self, *args, **kwargs):
+        u = self.instance.user
+        u.first_name = self.cleaned_data['first_name']
+        u.last_name = self.cleaned_data['last_name']
+        u.save()
+        profile = super(UserProfileForm, self).save(*args,**kwargs)
+        return profile
+
+    class Meta:
+        model = UserProfile
+        fields = ('first_name', 'last_name', 'personal_email', 'address',
+                  'city', 'state', 'country', 'phone_number', )
+
+    first_name = forms.CharField(required=False, label='Nombre')
+    last_name = forms.CharField(required=False, label='Apellido')
+
+    personal_email = forms.EmailField(required=False, label='Email Personal')
+    address = forms.CharField(required=False, label='Dirección')
+    city = forms.CharField(required=False, label='Ciudad')
+    state = forms.CharField(required=False, label='Provincia')
+    country = forms.CharField(required=False, label='Pais')
+    phone_number = forms.IntegerField(required=False, label='Telefono')
+
+
+class UsersChangeProfileForm (UserProfileForm):
+    """ Users profile change  """
+    user = forms.ModelChoiceField(queryset=User.objects.all(),
+                                  empty_label="----")
+
+    class Meta:
+        model = UserProfile
+        fields = ('user', 'first_name', 'last_name', 'personal_email',
+                  'address', 'city', 'state', 'country', 'phone_number',)
+
+
+class UserPassChangeForm(forms.Form):
+    """ Users password change """
+    user = forms.ModelChoiceField(queryset=User.objects.all(),
+                                  empty_label="----")
+    password = forms.CharField(max_length=100,
+                               widget=forms.PasswordInput,
+                               label='New password',
+                               required=False)
+    password2 = forms.CharField(max_length=100,
+                                widget=forms.PasswordInput,
+                                label='Confirm password',
+                                required=False)
+    
+    def clean(self):
+        password2 = self.cleaned_data.get('password2')
+        password = self.cleaned_data.get('password')
+
+        if password is None and password2 is None:
+            return self.cleaned_data
+
+        if password is not None and password2 != password:
+            raise forms.ValidationError('The two passwords do not match.')
+
+        return self.cleaned_data
+
+
+class UserAddForm(forms.Form):
+    """ Add user """
+    username = forms.CharField(max_length=100, label='Username')
+    password = forms.CharField(max_length=100,
+                               widget=forms.PasswordInput,
+                               label='Password')
+    password2 = forms.CharField(max_length=100,
+                                widget=forms.PasswordInput,
+                                label='Password confirmation')
+    def clean(self):
+        password2 = self.cleaned_data.get('password2')
+        password = self.cleaned_data.get('password')
+
+        if password is None and password2 is None:
+            return self.cleaned_data
+
+        if password is not None and password2 != password:
+            raise forms.ValidationError('The two passwords do not match.')
+
+        try:
+            if User.objects.get(username=self.cleaned_data.get('username')):
+                raise forms.ValidationError('User already exists.')
+        except User.DoesNotExist:
+            pass
+        return self.cleaned_data
+
+
+class ClientReportForm(EffQueryForm):
+    """ Admin to generate client reports """
+    client = forms.ModelChoiceField(queryset=Client.objects.all(),
+                                    empty_label="----")
+
+
+class DumpUploadForm(forms.Form):
+    csv_file = forms.FileField()
+
+    def clean(self):
+        csv_file = self.cleaned_data.get('csv_file')
+        if not csv_file:
+            return self.cleaned_data
+        if csv_file.content_type != 'text/csv':
+            raise forms.ValidationError('Only CSV files are allowed.')
+        return self.cleaned_data
