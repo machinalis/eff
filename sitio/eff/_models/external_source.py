@@ -1,4 +1,4 @@
-# Copyright 2011 Machinalis: http://www.machinalis.com/
+# Copyright 2009 - 2011 Machinalis: http://www.machinalis.com/
 #
 # This file is part of Eff.
 #
