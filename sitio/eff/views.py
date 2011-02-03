@@ -1,12 +1,31 @@
 # -*- coding: utf-8 -*-
+# Copyright 2009 - 2011 Machinalis: http://www.machinalis.com/
+#
+# This file is part of Eff.
+#
+# Eff is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Eff is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Eff.  If not, see <http://www.gnu.org/licenses/>.
+
 import os
 import os.path
 import time
 import string
 import tempfile
 import csv
+import urlparse
+import operator
 
-from urllib import quote
+from urllib import quote, urlencode
 from subprocess import Popen
 from datetime import date, timedelta, datetime
 
@@ -70,7 +89,7 @@ def __process_dates(request):
             context['from_date'] = from_date
             context['to_date'] = to_date
 
-    assert(context.has_key('from_date') and context.has_key('to_date'))
+    assert('from_date' in context and 'to_date' in context)
     return context
 
 def __process_period(request, is_prev):
@@ -80,39 +99,45 @@ def __process_period(request, is_prev):
 
     if is_prev:
         reference_date = context['from_date'] - relativedelta(days=1)
-        op = lambda x,y: x - y
+        op = operator.sub
     else:
         reference_date = context['to_date'] + relativedelta(days=1)
-        op = lambda x,y: x + y
+        op = operator.add
 
-    aux = '&%s=True'
+    aux = None
     if OVERTIME_FLAG in request.GET:
         (from_date, to_date) = overtime_period(reference_date)
-        aux = aux % OVERTIME_FLAG
+        aux = OVERTIME_FLAG
     elif MONTHLY_FLAG in request.GET:
         (from_date, to_date) = month(reference_date)
-        aux = aux % MONTHLY_FLAG
+        aux = MONTHLY_FLAG
     else:
         (from_date, to_date) = period(context['from_date'],
                                       context['to_date'],
                                       op)
-        aux = ''
 
-    referer = '/'.join(request.META['HTTP_REFERER'].split('/')[3:-1])
+    # grab the path from the referer
+    parsed_result = urlparse.urlparse(request.META['HTTP_REFERER'])
+    path = parsed_result.path  
+    parsed_query = urlparse.parse_qs(parsed_result.query)
 
-    if referer != 'efi/charts':
-        redirect_to = '/%s/?from_date=%s&to_date=%s%s' % (referer,
-                                                          from_date,
-                                                          to_date,
-                                                          aux)
+    # add other options, if available
+    if aux:
+        parsed_query[aux] = True
+
+    # the format of the date arguments in the query depends on the referer
+    if path != '/efi/charts/':
+        # change the date in the query
+        parsed_query['from_date'] = from_date
+        parsed_query['to_date'] = to_date
+
+        qstring = urlencode(parsed_query, True)
+        redirect_to = '%s?%s' % (path, qstring)
     else:
-        qstring = '&%s' % '&'.join(request.META['HTTP_REFERER'].
-                                   split('/').pop().split('&')[1:])
-        redirect_to = '/%s/?dates=%s,%s%s%s' % (referer,
-                                                from_date,
-                                                to_date,
-                                                qstring,
-                                                aux)
+        # change the dates from the query
+        parsed_query['dates'] = '%s,%s' % (from_date, to_date)
+        qstring = urlencode(parsed_query, True)
+        redirect_to = '%s?%s' % (path, qstring)
 
     return HttpResponseRedirect(redirect_to)
 
@@ -127,7 +152,6 @@ def __enough_perms(u):
     return (u.has_perm('eff.view_billable') and u.has_perm('eff.view_wage'))
 
 def chart_values(username_list, from_date, to_date, request_user):
-
     values = {}
     monthdict = {1:'Ene', 2:'Feb', 3:'Mar', 4:'Abr', 5:'May', 6:'Jun',
                  7:'Jul', 8:'Ago', 9:'Sep', 10:'Oct', 11:'Nov', 12:'Dic'}
@@ -231,7 +255,7 @@ def update_hours(request, username):
 
     context['errors'] = []
 
-    data = dict()
+    data = {}
 
     data['address'] = profile.address
     data['phone_number'] = profile.phone_number
@@ -327,9 +351,7 @@ def update_hours(request, username):
         if wage_form.is_valid():
             size = context['wage_form_size']
 
-            # remove from the data base all data
-            for w in user.wage_set.all():
-                w.delete()
+            user.wage_set.all().delete()
 
             for i in range(0,size):
                 if wage_form.cleaned_data['w_date%d' % i] != None and\
@@ -349,9 +371,8 @@ def update_hours(request, username):
         avghours_form = NAvgHoursForm(post)
         if avghours_form.is_valid():
             size = context['avghours_form_size']
-            # remove from the data base all data
-            for w in user.avghours_set.all():
-                w.delete()
+ 
+            user.avghours_set.all().delete()
 
             # there are at most "size" number of filled fields
             for i in range(0,size):
@@ -362,9 +383,10 @@ def update_hours(request, username):
                     amount_of_hours = avghours_form.cleaned_data['amount_of_hours%d' % i]
                     try:
                         user.get_profile().add_avg_hours(new_date,
-                                                                    amount_of_hours)
+                                                         amount_of_hours)
                     except ValueError, e:
-                        context['errors'].append("Error guardando datos de horario.")#: %s." % e)
+                        context['errors'].append("Error guardando datos"
+                                                 " de horario.")
         else:
             context['errors'].append('Invalid Avg Hours Form')
 

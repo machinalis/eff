@@ -1,4 +1,21 @@
 # -*- coding: utf-8 -*-
+# Copyright 2009 - 2011 Machinalis: http://www.machinalis.com/
+#
+# This file is part of Eff.
+#
+# Eff is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Eff is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Eff.  If not, see <http://www.gnu.org/licenses/>.
+
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -351,20 +368,29 @@ class TimeLog(models.Model):
     def get_client_task_log_summary_per_project(self, client, from_date, to_date):
         projects = client.project_set.all()
         projects_users_hours = {}
+
         for p in projects:
             project_hours = TimeLog.project_tasks_hours_log(p, from_date, to_date)
+
             if project_hours:
                 projects_users_hours[p.external_id]={}
+
                 for i in project_hours:
-                    try:
-                        projects_users_hours[p.external_id][i.user.username].append(
-                            (i.date, i.description, round(i.hours_booked,2)))
-                    except KeyError:
-                        projects_users_hours[p.external_id][i.user.username] = [(i.date, i.description, round(i.hours_booked,2))]
+                    name = i.user.username
+                    user_data = projects_users_hours[p.external_id]
+                    info = (i.date, i.description, round(i.hours_booked,2))
+
+                    if name in user_data:
+                        user_data[name].append(info)
+                    else:
+                        user_data[name] = [info]
+
         return projects_users_hours
 
 def join_dups(l):
-    """ Helper function to join consecutive project associations with same rate """
+    """
+    Helper function to join consecutive project associations with same rate
+    """
     if not l:
         return l
     
