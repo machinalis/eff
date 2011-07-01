@@ -1,0 +1,6 @@
+django-profiles 
+python-dateutil
+south 
+relatorio  
+pyyaml 
+pycha
