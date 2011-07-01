@@ -72,8 +72,6 @@ class Migration(SchemaMigration):
         db.create_table('eff_userprofile', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], unique=True)),
-            ('prot_login', self.gf('django.db.models.fields.CharField')(max_length=30, blank=True)),
-            ('prot_name', self.gf('django.db.models.fields.CharField')(max_length=200, blank=True)),
             ('personal_email', self.gf('django.db.models.fields.EmailField')(max_length=75, blank=True)),
             ('city', self.gf('django.db.models.fields.CharField')(max_length=100)),
             ('state', self.gf('django.db.models.fields.CharField')(max_length=100)),
@@ -254,8 +252,6 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'personal_email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
             'phone_number': ('django.db.models.fields.CharField', [], {'max_length': '40', 'null': 'True', 'blank': 'True'}),
-            'prot_login': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'prot_name': ('django.db.models.fields.CharField', [], {'max_length': '200', 'blank': 'True'}),
             'state': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'unique': 'True'})
         },

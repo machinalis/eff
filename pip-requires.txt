@@ -1,4 +1,5 @@
 django-profiles 
+django==1.2
 python-dateutil
 south 
 relatorio  

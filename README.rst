@@ -9,9 +9,14 @@ Dependencies
     * python-yaml
     * python-pycha 
 
+    All of these are in the pip-requires file, you can install them by running:
+    * pip install -r pip-requires.txt
 
 Install Procedure
 ================
+
+ Beware, this does not work with SQlite engine, since drop columns is not suuuported
+ and therefore south fails.
 
  * configure settings.py: (or you can setup local_settings.py)
 

@@ -40,12 +40,6 @@ class Migration(SchemaMigration):
         except ExternalSource.DoesNotExist:
             return
 
-        for up in UserProfile.objects.all():
-            prot_login = db.execute("select prot_login from eff_userprofile where id=%s" % up.id)[0][0]
-            if prot_login:
-                ExternalId.objects.create(login=prot_login,
-                                          source=prot_external_source,
-                                          userprofile=up)
                 
 
         # DP users, just guessing
@@ -59,13 +53,7 @@ class Migration(SchemaMigration):
             if username not in IGNORE_USERS:
                 ExternalId.objects.create(login=username,
                                           source=dp_source,
-                                          userprofile=up)
-        
-        # Deleting field 'UserProfile.prot_login'
-        db.delete_column('eff_userprofile', 'prot_login')
-
-        # Deleting field 'UserProfile.prot_name'
-        db.delete_column('eff_userprofile', 'prot_name')
+                                          userprofile=up)       
 
         ###### Uncomment these lines to generate test TimeLog #######
         """
@@ -267,8 +255,6 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'personal_email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
             'phone_number': ('django.db.models.fields.CharField', [], {'max_length': '40', 'null': 'True', 'blank': 'True'}),
-            'prot_login': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'prot_name': ('django.db.models.fields.CharField', [], {'max_length': '200', 'blank': 'True'}),
             'state': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'unique': 'True'})
         },
