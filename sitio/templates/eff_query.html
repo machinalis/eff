@@ -24,7 +24,7 @@
           {% for nav,nav_title,nav_symbol in navs %}
           <p id="{{nav}}">
             {% if forloop.counter0|divisibleby:"2" %}
-            <a href="/efi/{{nav}}/?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">{{nav_symbol}}</a>
+            <a href="{% url sitio.eff.views.eff_prev %}?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">{{nav_symbol}}</a>
             {% endif %}
             <small>
             {% if monthly_nav %} mes {% else %}
@@ -32,13 +32,13 @@
             {% endif %} {{nav_title}}
             </small>
             {% if not forloop.counter0|divisibleby:"2" %}
-            <a href="/efi/{{nav}}/?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">{{nav_symbol}}</a>
+            <a href="{% url sitio.eff.views.eff_next %}?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">{{nav_symbol}}</a>
             {% endif %}
           </p>
           {% endfor %}
 
           {% if object_list %}
-          <form method="get" action="/efi/charts/">
+          <form method="get" action="{% url sitio.eff.views.eff_charts %}">
             <input type="hidden" name="dates" value={{from_date}},{{to_date}} />
 
 	    {% if monthly_nav %}
@@ -73,7 +73,7 @@
                     <tr class="odd {{ object.efficiency_class }}">
                         <td class="name">
                           {% if perms.eff.view_billable %}
-                            <a title="detalle del profile" href="/checkperms/{{ object.username }}/">{{ object.name }}</a>
+                            <a title="detalle del profile" href="{% url sitio.eff.views.eff_check_perms object.username %}">{{ object.name }}</a>
 			  {% else %}
                             {{ object.name }}
 			  {% endif %}
@@ -81,13 +81,13 @@
                         <td class="logged">
                           {% if perms.eff.view_billable %}
                             <a title="reporte detallado de horas"
-                                   href="/efi/reporte/{{ object.username }}/?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">
+                                   href="{% url sitio.eff.views.eff_report object.username %}?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">
                                     {{ object.worked_hours }}
                             </a>
 			  {% else %}
 			    {% ifequal object.username user.username %}
                               <a title="reporte detallado de horas"
-                                 href="/efi/reporte/{{ object.username }}/?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">
+                                 href="{% url sitio.eff.views.eff_report object.username %}?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">
                                 {{ object.worked_hours }}
                               </a>
 			    {% else %}
@@ -105,7 +105,7 @@
                         {% endif %}
                         <td style="width:50em;"> {{ object.projects|join:" | " }} </td>
                         <td class="graficoso">
-                            <a href="/efi/chart/{{ object.username }}/?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}"
+                            <a href="{% url sitio.eff.views.eff_chart object.username %}?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}"
                                title="reporte graficoso"><img border=0 src="/templates/images/chart.png"/></a>
                         </td>
                         <td><input type="checkbox" name={{ object.username }} value=checked></td>
@@ -149,7 +149,7 @@
           {% else %}
           <p>No profiles found</p>
           {% endif %}
-    
+
           <form method="get" action="">
             <table id="dates" class="extra-data">
               {{ form.as_table }}
@@ -161,10 +161,10 @@
 
     <div id="footer">
         Hacete un <i xml:lang="en">bookmark</i> para el reporte de
-        <a href="/efi/semanaactual/">la semana en curso</a>, o
-        <a href="/efi/semanaanterior/">la semana anterior</a>.
+        <a href="{% url sitio.eff.views.eff_current_week %}">la semana en curso</a>, o
+        <a href="{% url sitio.eff.views.eff_previous_week %}">la semana anterior</a>.
         <br />
-        También podes consultar el período de <a href="/efi/horasextras/">horas extras en curso</a>, 
-        <a href="/efi/mesactual/">el mes actual</a>, o <a href="/efi/mespasado/">el mes pasado</a>
+        También podes consultar el período de <a href="{% url sitio.eff.views.eff_horas_extras %}">horas extras en curso</a>,
+        <a href="{% url sitio.eff.views.eff_current_month %}">el mes actual</a>, o <a href="{% url sitio.eff.views.eff_last_month %}">el mes pasado</a>
     </div>
 {% endblock %}

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block jsscript %}
-    
+
   function toggle_visibility(id) {
       $("#" + id).slideToggle("slow");
       $("#" + id + "-arrow").toggleClass("expand");
@@ -35,12 +35,12 @@
           {% for nav,nav_title,nav_symbol in navs %}
           <p id="{{nav}}">
             {% if forloop.counter0|divisibleby:"2" %}
-            <a href="/efi/{{nav}}/?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">{{nav_symbol}}</a>
+            <a href="{% url sitio.eff.views.eff_prev %}?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">{{nav_symbol}}</a>
             {% endif %}
             <small> {% if monthly_nav %} mes {% else %} período{% if overtime_nav %} de horas extras{% endif %}
 	      {% endif %} {{nav_title}} </small>
             {% if not forloop.counter0|divisibleby:"2" %}
-            <a href="/efi/{{nav}}/?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">{{nav_symbol}}</a>
+            <a href="{% url sitio.eff.views.eff_next %}?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">{{nav_symbol}}</a>
             {% endif %}
           </p>
           {% endfor %}
@@ -79,7 +79,7 @@
                     <td> <b>Total:</b> {{ TotalHrs }} </td>
                 </tr>
                 <tr>
-                    <td colspan="3" style="text-align: right;">{% if export_allowed %}Export as: <a href="/efi/reporte/{{ username }}/?from_date={{from_date}}&to_date={{to_date}}&export=odt">ODT</a> | <a href="/efi/reporte/{{ username }}/?from_date={{from_date}}&to_date={{to_date}}&export=csv">CSV</a>{% endif %}</td>
+                    <td colspan="3" style="text-align: right;">{% if export_allowed %}Export as: <a href="{% url sitio.eff.views.eff_report %}?from_date={{from_date}}&to_date={{to_date}}&export=odt">ODT</a> | <a href="{% url sitio.eff.views.eff_report %}?from_date={{from_date}}&to_date={{to_date}}&export=csv">CSV</a>{% endif %}</td>
                 </tr>
             </tfoot>
         </table>
@@ -97,14 +97,14 @@
         {% if report %}
 	<div style="width: 90%; margin:auto; text-align:left;">
 	  <a name="project_select"></a>
-	  <b>Filtrar por proyecto</b> 
+	  <b>Filtrar por proyecto</b>
 	  <select id="project_filter">
 	    <option value="all" {% ifequal project 'all' %}selected="selected"{% endifequal %}>Todos</option>
 	    {% for p in projects %}
 	      <option value="{{ p }}" {% ifequal project p %}selected="selected"{% endifequal %}>{{ p }}</option>
 	    {% endfor %}
 	  </select>
-          {% if export_allowed %} Export as: <a href="/efi/reporte/{{ username }}/?from_date={{from_date}}&to_date={{to_date}}{% if project %}&project={{ project }}{% endif %}&export=odt&detailed">ODT</a> | <a href="/efi/reporte/{{ username }}/?from_date={{from_date}}&to_date={{to_date}}{% if project %}&project={{ project }}{% endif %}&export=csv&detailed">CSV</a>{% endif %}
+          {% if export_allowed %} Export as: <a href="{% url sitio.eff.views.eff_report %}?from_date={{from_date}}&to_date={{to_date}}{% if project %}&project={{ project }}{% endif %}&export=odt&detailed">ODT</a> | <a href="{% url sitio.eff.views.eff_report %}?from_date={{from_date}}&to_date={{to_date}}{% if project %}&project={{ project }}{% endif %}&export=csv&detailed">CSV</a>{% endif %}
 	</div>
         <table class="sortable report" id="detailed-report-table">
             <thead>
@@ -144,6 +144,6 @@
         {% endif %}
         </div>
 
-        <br /><a href="/efi/?from_date={{from_date}}&to_date={{to_date}}"> Volver a efficiency </a><br />
+        <br /><a href="{% url sitio.eff.views.eff %}?from_date={{from_date}}&to_date={{to_date}}"> Volver a efficiency </a><br />
     </div>
 {% endblock %}

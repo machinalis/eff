@@ -113,7 +113,7 @@
 	#main-menu li a:hover, #main-menu li a:active {
 	    background-color: #DDDDDD;
 	}
-	
+
 
         {% block style %} {% endblock %}
     </style>
@@ -121,13 +121,13 @@
     <!-- calendar stylesheet -->
     <link rel="stylesheet" type="text/css" media="all" href="/js/flora.datepicker.css" />
 
-    <script type="text/javascript" src="/js/jquery.js"></script> 
+    <script type="text/javascript" src="/js/jquery.js"></script>
     <script type="text/javascript" src="/sortable/sortable.js"></script>
 
     <script type="text/javascript">
     <!--
         function update_db() {
-            $.getJSON("/efi/update-db/",function(json){
+            $.getJSON("{% url sitio.eff.views.eff_update_db %}",function(json){
                 if (json.status == 'ok') {
                     alert('Por favor espere, se está procesando el pedido');
                 } else {
@@ -136,15 +136,15 @@
             });
         }
 
-      $(document).ready(function() { 
-	  $('ul li:has(ul)').hover( 
-	      function(e){ 
+      $(document).ready(function() {
+	  $('ul li:has(ul)').hover(
+	      function(e){
 		  $(this).find('ul').fadeIn();
-	      }, 
-	      function(e){ 
+	      },
+	      function(e){
 		  $(this).find('ul').fadeOut();
-	      } 
-	  ); 
+	      }
+	  );
       });
         {% block jsscript %} {% endblock %}
     //-->
@@ -155,13 +155,13 @@
   <body>
       {% block footer %}
         <div class="toolbar">
-          {% if user.is_authenticated %} 
+          {% if user.is_authenticated %}
 
 
           <ul class="main-menu-ul" id="main-menu">
 
           <li style="width: 260px; background-color: #FFFFFF;line-height:22px;">Logged as: {{ user }}@{{ hostname|default:"localhost" }}</li>
-          <li><a href="/profiles/edit/">edit your profile</a></li>
+          <li><a href="{% url profiles_edit %}">edit your profile</a></li>
 
 	  {% if perms.eff.view_billable and perms.eff.view_wage %}
 
@@ -169,31 +169,31 @@
 
 
 	  <li> <a href="javascript:void(0)">administration</a>
-	    <ul class="main-menu-ul" style="display: none;"> 
-	      <li><a href="/efi/administration/client_reports/">client reports</a></li> 
-	      <li><a href="/efi/administration/fixed_price_client_reports/">fixed price reports</a></li> 
-	      <li><a href="/efi/administration/add_user/">add user</a></li> 
-	      <li><a href="/efi/administration/users_profile/">users profile</a></li> 
-	      <li><a href="/efi/administration/users_password/">users password</a></li> 
-	      <li><a href="/efi/administration/dump-csv-upload/">csv dump upload</a></li> 
+	    <ul class="main-menu-ul" style="display: none;">
+	      <li><a href="{% url sitio.eff.views.eff_client_reports_admin %}">client reports</a></li>
+	      <li><a href="{% url sitio.eff.views.eff_fixed_price_client_reports %}">fixed price reports</a></li>
+	      <li><a href="{% url sitio.eff.views.eff_admin_add_user %}">add user</a></li>
+	      <li><a href="{% url sitio.eff.views.eff_admin_change_profile %}">users profile</a></li>
+	      <li><a href="{% url sitio.eff.views.eff_administration %}">users password</a></li>
+	      <li><a href="{% url sitio.eff.views.eff_dump_csv_upload %}">csv dump upload</a></li>
 	    </ul>
 	  </li>
 
 	  {% endif %}
 
-          <li><a href="/logout/">logout</a></li>
+          <li><a href="{% url logout %}">logout</a></li>
 	  </ul>
 
 
-          {% else %} 
-          <a href="/login/">login</a>
-          {% endif %} 
+          {% else %}
+          <a href="{% url login %}">login</a>
+          {% endif %}
 
         </div>
         <hr>
       {% endblock %}
       <br />
-      <h1><a href="/">Efficiency</a></h1>
+      <h1><a href="{% url sitio.eff.views.eff %}">Efficiency</a></h1>
 
       {% if notices or errors %}
       <!-- messages -->

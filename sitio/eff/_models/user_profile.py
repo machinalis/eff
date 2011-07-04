@@ -51,7 +51,7 @@ class UserProfile(models.Model):
     def get_avg_hours_for(self, ndate):
         try:
             hours = self.user.avghours_set.filter(date__lte=ndate).latest().hours
-        except AttributeError:
+        except AvgHours.DoesNotExist:
             hours = 0
         return hours
 
