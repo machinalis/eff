@@ -1065,10 +1065,7 @@ def eff_admin_users_association(request):
             for row in rows:
                 user = UserProfile.objects.filter(externalid__login=row[2])[0].user
                 d = _date_fmts(row[0])
-                try:
-                    t_proj = Project.objects.get(external_id=row[1])
-                except:
-                    continue
+                t_proj = Project.objects.get(external_id=row[1])
 
                 tl_dict = {'date' : d,
                            'project' : t_proj,

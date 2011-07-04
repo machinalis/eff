@@ -32,34 +32,26 @@ def aux_mk_time(date_string):
 @register.filter(name='totalhours')
 def totalhours(profile, date_string):
     dates = date_string.split()
-    try:
-        return profile.num_loggable_hours(aux_mk_time(dates[0]), aux_mk_time(dates[1]))
-    except:
-        raise
-        pass # filters should fail silently
+    #There was an inconditional try/except with code in the except having
+    #Broken code, I therefore assumed it was not required
+    #It had a comment saying that the filters should fail silently
+    return profile.num_loggable_hours(aux_mk_time(dates[0]), aux_mk_time(dates[1]))
 
 @register.filter(name='workedhours')
 def workedhours(profile, date_string):
     dates = date_string.split()
-    try:
-        return profile.get_worked_hours(aux_mk_time(dates[0]), aux_mk_time(dates[1]))
-    except:
-        raise
-        pass # filters should fail silently
+    #Same as totalhours
+    return profile.get_worked_hours(aux_mk_time(dates[0]), aux_mk_time(dates[1]))
+
 
 @register.filter(name='percentage')
 def percentage(profile, date_string):
     dates = date_string.split()
-    try:
-        return profile.percentage_hours_worked(aux_mk_time(dates[0]), aux_mk_time(dates[1]))
-    except:
-        raise
-        pass # filters should fail silently
+    #Same as totalhours
+    return profile.percentage_hours_worked(aux_mk_time(dates[0]), aux_mk_time(dates[1]))
 
 @register.filter(name='odd')
 def odd(num):
-    try:
-        return int(num) % 2
-    except:
-        raise
-        pass # filters should fail silently
+    #Same as totalhours
+    return int(num) % 2
+

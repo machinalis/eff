@@ -20,6 +20,7 @@ from django.contrib.auth.models import User
 from datetime import date, timedelta, datetime
 from avg_hours import AvgHours
 from django.db.models import permalink, signals
+from django.core.exceptions import MultipleObjectsReturned
 
 from project import Project, ProjectAssoc
 from log import TimeLog
@@ -46,11 +47,11 @@ class UserProfile(models.Model):
 
     def __unicode__(self):
         return u'%s (%s)' % (self.user.get_full_name(), self.user.username)
-    
+
     def get_avg_hours_for(self, ndate):
         try:
             hours = self.user.avghours_set.filter(date__lte=ndate).latest().hours
-        except:
+        except AttributeError:
             hours = 0
         return hours
 
@@ -85,7 +86,7 @@ class UserProfile(models.Model):
         if hours >= 0:
             try:
                 update_date = self.user.avghours_set.get(date=udate)
-            except:
+            except (AvgHours.DoesNotExist, MultipleObjectsReturned):
                 raise ValueError, "AvgHour inexistent"
             else:
                 update_date.hours = hours
@@ -135,10 +136,10 @@ class UserProfile(models.Model):
 
     def _wrap_user(self, *args):
         # I <3 dynamic typing :-D
-        # ToDo: Fix this. 
+        # ToDo: Fix this.
         self.user.login = self.user.username
         return self.user
-                
+
 
     def report(self, from_date, to_date, project=None):
         report = list(TimeLog.report(self, from_date, to_date, project))

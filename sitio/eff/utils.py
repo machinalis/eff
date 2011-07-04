@@ -91,10 +91,7 @@ ERROR = "ERROR"
 FATAL = "FATAL"
 
 def debug(msg, *args, **kwargs):
-    try:
-        level = kwargs['level']
-    except:
-        level = INFO
+    level = kwargs.get('level', INFO)
     if getattr(settings, 'DEBUG', True):
         print '%s: %s: %s' % (basename(__file__), level, args and (msg % args) or msg)
 
@@ -124,14 +121,14 @@ class Data (object):
         try:
             self.percentage_billable_hours =\
                 profile.percentage_billable_hours(from_date, to_date)
-        except:
+        except ValueError:
             self.percentage_billable_hours = 0
 
         try:
             self.percentage_hours_worked =\
                 profile.percentage_hours_worked(from_date, to_date)
 
-        except:
+        except ValueError:
             self.percentage_hours_worked = 0
 
         self.projects = profile.projects(from_date, to_date)
