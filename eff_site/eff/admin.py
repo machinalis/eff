@@ -16,10 +16,10 @@
 # along with Eff.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.contrib import admin
-from sitio.eff.models import Project, Client, ExternalSource, Wage
-from sitio.eff.models import AvgHours, Currency, ProjectAssoc, TimeLog
+from eff_site.eff.models import Project, Client, ExternalSource, Wage
+from eff_site.eff.models import AvgHours, Currency, ProjectAssoc, TimeLog
 from _models.user_profile import *
-from sitio.eff._models.external_source import ExternalId
+from eff_site.eff._models.external_source import ExternalId
 
 class TimeLogAdmin(admin.ModelAdmin):
     list_display = ('date', 'user', 'hours_booked', 'project', 'task_name', 'description')

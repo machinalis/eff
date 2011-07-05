@@ -127,7 +127,7 @@
     <script type="text/javascript">
     <!--
         function update_db() {
-            $.getJSON("{% url sitio.eff.views.eff_update_db %}",function(json){
+            $.getJSON("{% url eff_site.eff.views.eff_update_db %}",function(json){
                 if (json.status == 'ok') {
                     alert('Por favor espere, se está procesando el pedido');
                 } else {
@@ -170,12 +170,12 @@
 
 	  <li> <a href="javascript:void(0)">administration</a>
 	    <ul class="main-menu-ul" style="display: none;">
-	      <li><a href="{% url sitio.eff.views.eff_client_reports_admin %}">client reports</a></li>
-	      <li><a href="{% url sitio.eff.views.eff_fixed_price_client_reports %}">fixed price reports</a></li>
-	      <li><a href="{% url sitio.eff.views.eff_admin_add_user %}">add user</a></li>
-	      <li><a href="{% url sitio.eff.views.eff_admin_change_profile %}">users profile</a></li>
-	      <li><a href="{% url sitio.eff.views.eff_administration %}">users password</a></li>
-	      <li><a href="{% url sitio.eff.views.eff_dump_csv_upload %}">csv dump upload</a></li>
+	      <li><a href="{% url eff_site.eff.views.eff_client_reports_admin %}">client reports</a></li>
+	      <li><a href="{% url eff_site.eff.views.eff_fixed_price_client_reports %}">fixed price reports</a></li>
+	      <li><a href="{% url eff_site.eff.views.eff_admin_add_user %}">add user</a></li>
+	      <li><a href="{% url eff_site.eff.views.eff_admin_change_profile %}">users profile</a></li>
+	      <li><a href="{% url eff_site.eff.views.eff_administration %}">users password</a></li>
+	      <li><a href="{% url eff_site.eff.views.eff_dump_csv_upload %}">csv dump upload</a></li>
 	    </ul>
 	  </li>
 
@@ -193,7 +193,7 @@
         <hr>
       {% endblock %}
       <br />
-      <h1><a href="{% url sitio.eff.views.eff %}">Efficiency</a></h1>
+      <h1><a href="{% url eff_site.eff.views.eff %}">Efficiency</a></h1>
 
       {% if notices or errors %}
       <!-- messages -->

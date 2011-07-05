@@ -22,11 +22,11 @@ from django.conf import settings
 from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
-from sitio.eff._models.user_profile import UserProfile
-from sitio.eff._models.external_source import ExternalSource, ExternalId
-from sitio.eff._models.log import TimeLog
-from sitio.eff._models.dump import Dump
-from sitio.eff._models.project import Project
+from eff_site.eff._models.user_profile import UserProfile
+from eff_site.eff._models.external_source import ExternalSource, ExternalId
+from eff_site.eff._models.log import TimeLog
+from eff_site.eff._models.dump import Dump
+from eff_site.eff._models.project import Project
 import MySQLdb
 
 IGNORE_USERS = ('god', 'Hduran', 'machinalis', 'admin')

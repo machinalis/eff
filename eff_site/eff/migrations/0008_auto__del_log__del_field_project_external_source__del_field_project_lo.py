@@ -21,9 +21,9 @@ from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
 
-from sitio.eff._models.client import Client
-from sitio.eff._models.project import Project
-from sitio.eff._models.external_source import ExternalSource
+from eff_site.eff._models.client import Client
+from eff_site.eff._models.project import Project
+from eff_site.eff._models.external_source import ExternalSource
 
 class Migration(SchemaMigration):
 

@@ -19,8 +19,8 @@ import time
 from datetime import date
 
 from django import template
-from sitio.eff._models.user_profile import UserProfile
-#from sitio.settings import DATE_FORMAT
+from eff_site.eff._models.user_profile import UserProfile
+#from eff_site.settings import DATE_FORMAT
 
 register = template.Library()
 

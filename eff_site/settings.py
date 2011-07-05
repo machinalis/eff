@@ -89,7 +89,7 @@ MIDDLEWARE_CLASSES = (
     #'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
 
-ROOT_URLCONF = 'sitio.urls'
+ROOT_URLCONF = 'eff_site.urls'
 
 TEMPLATE_DIRS = (
     join(CURRENT_ABS_DIR, 'templates'),  # use from os.path import dirname, 
@@ -105,7 +105,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.admin',
-    'sitio.eff',
+    'eff_site.eff',
     'profiles',
     'south',
     #'debug_toolbar',

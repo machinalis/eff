@@ -20,8 +20,8 @@ import datetime
 from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
-from sitio.eff._models.user_profile import UserProfile
-from sitio.eff._models.project import Project, ProjectAssoc
+from eff_site.eff._models.user_profile import UserProfile
+from eff_site.eff._models.project import Project, ProjectAssoc
 from django.db.models import Min
 
 class Migration(SchemaMigration):

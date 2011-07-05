@@ -39,11 +39,11 @@
           {% for nav,nav_title,nav_symbol in navs %}
           <p id="{{nav}}">
             {% if forloop.counter0|divisibleby:"2" %}
-            <a href="{% url sitio.eff.views.eff_prev %}?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">{{nav_symbol}}</a>
+            <a href="{% url eff_site.eff.views.eff_prev %}?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">{{nav_symbol}}</a>
             {% endif %}
             <small> {% if monthly_nav %} mes {% else %} período {% endif %} {{nav_title}} </small>
             {% if not forloop.counter0|divisibleby:"2" %}
-            <a href="{% url sitio.eff.views.eff_next %}?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">{{nav_symbol}}</a>
+            <a href="{% url eff_site.eff.views.eff_next %}?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">{{nav_symbol}}</a>
             {% endif %}
           </p>
           {% endfor %}
@@ -118,6 +118,6 @@
         {% endif %}
         </div>
 
-        <br /><a href="{% url sitio.eff.views.eff_client_reports_admin %"> Volver a Client Reports </a><br />
+        <br /><a href="{% url eff_site.eff.views.eff_client_reports_admin %"> Volver a Client Reports </a><br />
     </div>
 {% endblock %}

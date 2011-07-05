@@ -20,7 +20,7 @@ import datetime
 from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
-from sitio.eff._models.client import Currency
+from eff_site.eff._models.client import Currency
 
 class Migration(SchemaMigration):
 

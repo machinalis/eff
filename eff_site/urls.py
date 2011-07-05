@@ -23,8 +23,8 @@ from django.views.static import serve
 from django.contrib import admin
 admin.autodiscover()
 
-from sitio.settings import CURRENT_ABS_DIR
-from sitio.eff.views import update_hours, eff, eff_check_perms,\
+from eff_site.settings import CURRENT_ABS_DIR
+from eff_site.eff.views import update_hours, eff, eff_check_perms,\
     eff_previous_week, eff_current_week, eff_current_month, eff_horas_extras,\
     eff_chart, eff_next, eff_prev, eff_charts, eff_report, eff_update_db,\
     eff_administration, eff_client_report, eff_client_reports_admin, UserProfileForm,\

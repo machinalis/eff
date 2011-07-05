@@ -35,14 +35,14 @@ Requisitos para crear un script de migración de una fuente X a Eff
   
   :Parámetros: 
   
-  1. source: de tipo sitio.eff._models.external_source.ExternalSource (un source existente en la base de datos)
-  2. client: de tipo sitio.eff._models.client.Client (Un cliente existente en la base de datos)
+  1. source: de tipo eff_site.eff._models.external_source.ExternalSource (un source existente en la base de datos)
+  2. client: de tipo eff_site.eff._models.client.Client (Un cliente existente en la base de datos)
   3. author: de tipo str que será el identificador de usuario para el dump de los logs importados al sistema.
   4. from_date: de tipo datetime.datetime que corresponde a la fecha de inicio de los logs importados al sistema.
   5. to_date: de tipo datetime.datetime que corresponde a la fecha de fin de los logs importados al sistema.
   6. _file: de tipo file object, donde se guardaran los logs recuperados de la fuente externa antes de ser importados.
 
-  :Cuerpo de la función (IMPORTANTE): Debe incluirse funcionalidad particular para recuperar los logs de la fuente X y luego utilizar la clase sitio.eff.utils.EffCsvWriter sobre _file para generar el csv con formato de Eff, ya que el mismo debe tener la estructura csv requerida para importar a Eff.
+  :Cuerpo de la función (IMPORTANTE): Debe incluirse funcionalidad particular para recuperar los logs de la fuente X y luego utilizar la clase eff_site.eff.utils.EffCsvWriter sobre _file para generar el csv con formato de Eff, ya que el mismo debe tener la estructura csv requerida para importar a Eff.
 
 - Incluir la asociación con la fuente externa en sitio/scripts/config.py en el diccionario EXT_SRC_ASSOC.
   Por ejemplo si nuestra instancia de ExternalSource tiene nombre "FuenteX" y nuestro script se llama "fuentex.py" agregaríamos "'FuenteX' : 'fuentex'" al diccionario antes mencionado.

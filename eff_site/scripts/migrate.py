@@ -24,7 +24,7 @@ import sqlite3
 from django.template.defaultfilters import slugify
 
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), '../..'))
-os.environ['DJANGO_SETTINGS_MODULE'] = 'sitio.settings'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'eff_site.settings'
 
 from django.conf import settings
 
@@ -40,7 +40,7 @@ conn = sqlite3.connect(db_name)
 try:
     print "Migrating Client slugs...", 
     conn.execute('ALTER TABLE eff_client ADD COLUMN "slug" varchar(50)')
-    from sitio.eff.models import Client
+    from eff_site.eff.models import Client
     for cli in Client.objects.all():
         cli.slug=slugify(cli.name)
         cli.save()

@@ -23,12 +23,12 @@ import os
 
 path = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.insert(1, path)
-os.environ['DJANGO_SETTINGS_MODULE'] = 'sitio.settings'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'eff_site.settings'
 
 from datetime import datetime
 from tutos import fetch_all
 
-from sitio.eff.models import ExternalSource, Project, TimeLog, Client
+from eff_site.eff.models import ExternalSource, Project, TimeLog, Client
 
 if __name__ == '__main__':
 

@@ -23,13 +23,13 @@ import os
 
 path = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.insert(1, path)
-os.environ['DJANGO_SETTINGS_MODULE'] = 'sitio.settings'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'eff_site.settings'
 
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-from sitio.eff.utils import EffCsvWriter, load_dump
-from sitio.eff.models import ExternalSource, Project, TimeLog, Client
+from eff_site.eff.utils import EffCsvWriter, load_dump
+from eff_site.eff.models import ExternalSource, Project, TimeLog, Client
 from sitio import settings
 
 from config import EXT_SRC_ASSOC
@@ -75,7 +75,7 @@ def run():
         src_clients = Client.objects.filter(external_source=source)
 
         src_mod_name = EXT_SRC_ASSOC[source.name]
-        src_mod = __import__('sitio.scripts.%s' % src_mod_name, fromlist=['sitio.scripts'])
+        src_mod = __import__('eff_site.scripts.%s' % src_mod_name, fromlist=['eff_site.scripts'])
 
         for client in src_clients:
 

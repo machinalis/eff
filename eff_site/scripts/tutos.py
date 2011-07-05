@@ -22,7 +22,7 @@ from StringIO import StringIO
 from datetime import datetime
 
 from zope.testbrowser.browser import Browser
-from sitio.eff.utils import EffCsvWriter
+from eff_site.eff.utils import EffCsvWriter
 
 
 class Tutos(object):

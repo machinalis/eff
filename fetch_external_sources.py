@@ -18,14 +18,14 @@
 
 
 from os import environ, remove
-environ['DJANGO_SETTINGS_MODULE'] = 'sitio.settings'
+environ['DJANGO_SETTINGS_MODULE'] = 'eff_site.settings'
 import os.path
 
-from sitio.eff.models import TimeLog
-from sitio.eff.utils import debug
+from eff_site.eff.models import TimeLog
+from eff_site.eff.utils import debug
 from sitio import settings
 
-from sitio.scripts.fetch_all import run
+from eff_site.scripts.fetch_all import run
 
 def do_all():
     if not os.path.exists(settings.LOCK_FILE):

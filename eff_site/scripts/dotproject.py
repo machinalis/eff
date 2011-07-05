@@ -19,7 +19,7 @@
 from datetime import datetime
 import MySQLdb
 
-from sitio.eff.utils import EffCsvWriter
+from eff_site.eff.utils import EffCsvWriter
 from django.conf import settings
 
 

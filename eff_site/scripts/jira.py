@@ -154,7 +154,7 @@ class Jira(object):
             csv_writer.writerow(row)
 
 def fetch_all(source, client, author, from_date, to_date, _file):   
-    from sitio.eff.utils import EffCsvWriter
+    from eff_site.eff.utils import EffCsvWriter
 
     if not (source.fetch_url and source.username and source.password):
         # This error is raised because the ExternalSource was created

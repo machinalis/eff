@@ -23,7 +23,7 @@ import doctest
 import reports
 from _models import log, client
 
-from sitio.scripts import jira
+from eff_site.scripts import jira
 
 from testing import testUtils
 from testing import testModels
