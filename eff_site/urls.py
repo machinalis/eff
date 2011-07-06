@@ -44,8 +44,8 @@ images_dir = join(CURRENT_ABS_DIR, 'templates/images/')
 urlpatterns = patterns('',
     (r'^$', redirect_to, {'url' : '/efi/semanaactual/'}),
     # django-profiles
-    (r'^accounts/login/$',  login, {'template_name': 'login.html'}, name='login'),
-    (r'^accounts/logout/$', logout, {'template_name': 'logout.html'}, name='logout'),
+    url(r'^accounts/login/$',  login, {'template_name': 'login.html'}, name='login'),
+    url(r'^accounts/logout/$', logout, {'template_name': 'logout.html'}, name='logout'),
     (r'^accounts/profile/$', redirect_to, {'url' : '/efi/semanaactual/'}),
     (r'^login/$', redirect_to, {'url': '/accounts/login/'}),
     (r'^logout/$', redirect_to, {'url': '/accounts/logout/'}),

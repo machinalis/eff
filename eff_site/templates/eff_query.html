@@ -51,20 +51,20 @@
             <table class="sortable" id="queryTable">
                 <thead>
                     <tr>
-                        <th class="name"><abbr title="detalle del profile">Nombre</abbr></th>
-                        <th class="logged"><abbr title="número de horas logueadas">#</abbr></th>
+                        <th class="name"><abbr title="profile detail">Nombre</abbr></th>
+                        <th class="logged"><abbr title="ammount of logged hours">#</abbr></th>
                         {% if perms.eff.view_billable %}
-                        <th class="billable"><abbr title="número de horas cobrables">#$</abbr></th>
+                        <th class="billable"><abbr title="ammount of billable hours">#$</abbr></th>
                         {% endif %}
-                        <th class="loggable"><abbr title="número de horas trabajadas (nominal)">n</abbr></th>
-                        <th class="percent"><abbr title="porcentaje de horas trabajadas que fueron logueadas"> % </abbr></th>
+                        <th class="loggable"><abbr title="ammount of loggable hours">n</abbr></th>
+                        <th class="percent"><abbr title="percent of logged hours in realtion to loggable"> % </abbr></th>
                         {% if perms.eff.view_billable %}
-                        <th class="qbill"><abbr title="porcentaje de horas cobrables">%$</abbr></th>
+                        <th class="qbill"><abbr title="percentage of billable hours">%$</abbr></th>
                         {% endif %}
-                        <th style="width:50em;"><abbr title="proyectos en los que participa">Proyectos</abbr></th>
-                        <th class="graficoso unsortable"><abbr title="reporte graficoso">G</abbr></th>
-                        <th class="unsortable"><abbr title="selección para el gráfico múltiple o acumulativo">S</abbr></th>
-                        <th class="delta unsortable"><abbr title="con respecto a la semana anterior">&#8710;</abbr></th>
+                        <th style="width:50em;"><abbr title="projects involved">Proyectos</abbr></th>
+                        <th class="graphical unsortable"><abbr title="graphical report">G</abbr></th>
+                        <th class="unsortable"><abbr title="checkbox for cumulative oor multiple graphical report">S</abbr></th>
+                        <th class="delta unsortable"><abbr title="compared to last week">&#8710;</abbr></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -80,13 +80,13 @@
                         </td>
                         <td class="logged">
                           {% if perms.eff.view_billable %}
-                            <a title="reporte detallado de horas"
+                            <a title="detailed hours report"
                                    href="{% url eff_site.eff.views.eff_report object.username %}?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">
                                     {{ object.worked_hours }}
                             </a>
 			  {% else %}
 			    {% ifequal object.username user.username %}
-                              <a title="reporte detallado de horas"
+                              <a title="detailed hours report"
                                  href="{% url eff_site.eff.views.eff_report object.username %}?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">
                                 {{ object.worked_hours }}
                               </a>
@@ -104,9 +104,9 @@
                         <td class="qbill"> {{ object.percentage_billable_hours }} </td>
                         {% endif %}
                         <td style="width:50em;"> {{ object.projects|join:" | " }} </td>
-                        <td class="graficoso">
+                        <td class="graphical">
                             <a href="{% url eff_site.eff.views.eff_chart object.username %}?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}"
-                               title="reporte graficoso"><img border=0 src="/templates/images/chart.png"/></a>
+                               title="reporte graphical"><img border=0 src="/templates/images/chart.png"/></a>
                         </td>
                         <td><input type="checkbox" name={{ object.username }} value=checked></td>
                         <td class="delta">
@@ -137,11 +137,11 @@
                     </tr>
                 </tfoot>
             </table>
-            <div class="graficosLeft">
+            <div class="graphicsLeft">
                 Gráfico acumulativo
                 <input type="image" name="SumGraph" value="sum" border=0 src="/templates/images/chart.png"/>
             </div>
-            <div class="graficosRight">
+            <div class="graphicsRight">
                 Gráficos Múltiples
                 <input type="image" name="MultGraph" value="multi" border=0 src="/templates/images/chart.png"/>
             </div>
