@@ -118,7 +118,7 @@ def __process_period(request, is_prev):
 
     # grab the path from the referer
     parsed_result = urlparse.urlparse(request.META['HTTP_REFERER'])
-    path = parsed_result.path  
+    path = parsed_result.path
     parsed_query = urlparse.parse_qs(parsed_result.query)
 
     # add other options, if available
@@ -371,7 +371,7 @@ def update_hours(request, username):
         avghours_form = NAvgHoursForm(post)
         if avghours_form.is_valid():
             size = context['avghours_form_size']
- 
+
             user.avghours_set.all().delete()
 
             # there are at most "size" number of filled fields
@@ -470,7 +470,8 @@ def eff_prev(request):
 @login_required
 def eff(request):
     """
-    Sin parámetros esta vista entra directamente a la semana en curso.
+    When no parameters are provided this view will go directly to the current
+    week.
     """
     context = __get_context(request)
     eff_query_form = EffQueryForm()
@@ -553,15 +554,15 @@ def eff_charts(request):
         if get_data.has_key('monthly_nav'): del get_data['monthly_nav']
         if get_data.has_key('overtime_nav'): del get_data['overtime_nav']
 
-        # Detecto el tipo de gráfico pedido y limpio el diccionario
+        # Find out what graph has been requested and clean the dictionary accordingly
         if get_data.has_key('MultGraph'):
-            # Gráficos Multiples
+            # Multiple graphs
             get_data.pop('MultGraph')
             get_data.pop('MultGraph.x')
             get_data.pop('MultGraph.y')
             get_type = 'multi'
         elif get_data.has_key('SumGraph'):
-            # Gáficos de sumas
+            # Totalization Graphs
             get_data.pop('SumGraph')
             get_data.pop('SumGraph.x')
             get_data.pop('SumGraph.y')
@@ -711,7 +712,7 @@ def eff_update_db(request):
     if not os.path.exists(settings.FLAG_FILE):
         fd = open(settings.FLAG_FILE, 'w')
         fd.write('%s' % date.today().strftime(settings.DATE_FORMAT + ' %H:%M'))
-        fd.close()      
+        fd.close()
 
         # We use a cron job to run the code below now
         # args = (settings.PYTHON_BINARY, settings.FETCH_EXTERNALS_PATH)

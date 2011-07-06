@@ -54,7 +54,7 @@ def month(a_date):
 
 def period(start_date, end_date, op):
     """
-        Calcula el periodo entre start_date y end_date utilizando `op'
+        Calculates period between start_date and end_date using 'op'
     """
     rdelta = relativedelta(end_date, start_date) + relativedelta(days=1)
     from_date = op(start_date, rdelta)
