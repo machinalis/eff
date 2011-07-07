@@ -57,10 +57,10 @@ class HelperTest(TestCase):
         for ah in AvgHours.objects.all(): ah.delete()
         self.usr.delete()
 
-class ConsultasTest(HelperTest):
+class QueriesTest(HelperTest):
 
     def test_has_attributes(self):
-        for attr in ('address', 'phone_number', 'personal_email', 
+        for attr in ('address', 'phone_number', 'personal_email',
                      'city', 'state', 'country'):
             self.assert_(hasattr(self.usr.get_profile(), attr))
 
@@ -270,11 +270,11 @@ class PageTest(HelperTest):
 
         self.assert_(self.client.login(username='test1', password='test1'))
 
-        context = { 'address' : 'Montevido 728', 'phone_number' : '5557271', 
-                    'first_name' : 'Test First Name', 
+        context = { 'address' : 'Montevido 728', 'phone_number' : '5557271',
+                    'first_name' : 'Test First Name',
                     'last_name' : 'Test Last Name',
                     'city' : 'Test City', 'state' : 'Test State',
-                    'country' : 'Test Country', 
+                    'country' : 'Test Country',
                     'personal_email' : 'dont@know.com'
                     }
 
@@ -493,9 +493,9 @@ class ProjectsTest(TestCase):
 
     def setUp(self):
         source, is_done = ExternalSource.objects.get_or_create(name='Example')
-        client = EffClient(name='client_test', slug='client_test_slug', 
+        client = EffClient(name='client_test', slug='client_test_slug',
                            address='test123', city='test123',
-                           country='test123', 
+                           country='test123',
                            billing_email_address='test123@test.com',
                            external_source=source)
         client.save()
@@ -506,7 +506,7 @@ class ProjectsTest(TestCase):
         self.project.delete()
 
     def test_has_attributes(self):
-        for attr in ('name', 'billable', 'external_id', 'members', 
+        for attr in ('name', 'billable', 'external_id', 'members',
                      'billing_type', 'fixed_price', 'get_external_source'):
             self.assert_(hasattr(self.project, attr))
 
@@ -516,10 +516,10 @@ class TimeLogsAttributesTest(TestCase):
     def setUp(self):
         source, is_done = ExternalSource.objects.get_or_create(name='Example')
         client = EffClient.objects.create(name='client_test',
-                                          slug='client_test_slug', 
+                                          slug='client_test_slug',
                                           address='test123',
                                           city='test123',
-                                          country='test123', 
+                                          country='test123',
                                           billing_email_address=\
                                           'test123@test.com',
                                           external_source=source)
@@ -533,7 +533,7 @@ class TimeLogsAttributesTest(TestCase):
         self.log = TimeLog(date=date.today(), project=project, user=usr, hours_booked=0.0, dump=dump)
 
     def test_has_attributes(self):
-        for attr in ('date', 'project', 'task_name', 'user', 
+        for attr in ('date', 'project', 'task_name', 'user',
                      'hours_booked', 'description', 'dump'):
             self.assert_(hasattr(self.log, attr))
 

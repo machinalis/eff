@@ -23,91 +23,91 @@ from eff.utils import overtime_period, period
 from unittest import TestSuite, makeSuite
 from datetime import date
 
-periodo_siguiente = lambda d1, d2: period(d1, d2, lambda d1, d2: d1 + d2)
-periodo_anterior  = lambda d1, d2: period(d1, d2, lambda d1, d2: d1 - d2)
+next_period = lambda d1, d2: period(d1, d2, lambda d1, d2: d1 + d2)
+previous_period  = lambda d1, d2: period(d1, d2, lambda d1, d2: d1 - d2)
 
 class TestNextPeriod(TestCase):
 
     # next
 
-    def test_periodo_siguiente_semana(self):
+    def test_next_period_week(self):
         f_date = date(2008,5,11)
         t_date = date(2008,5,18)
-        self.assertEqual(periodo_siguiente(f_date, t_date), (date(2008,5,19), date(2008,5,26)))
+        self.assertEqual(next_period(f_date, t_date), (date(2008,5,19), date(2008,5,26)))
 
-    def test_periodo_siguiente_semana_1(self):
+    def test_next_period_week_1(self):
         f_date = date(2008,5,25)
         t_date = date(2008,6,1)
-        self.assertEqual(periodo_siguiente(f_date, t_date), (date(2008,6,2), date(2008,6,9)))
+        self.assertEqual(next_period(f_date, t_date), (date(2008,6,2), date(2008,6,9)))
 
-    def test_periodo_siguiente_dos_semanas(self):
+    def test_next_period_dos_weeks(self):
         f_date = date(2008,5,4)
         t_date = date(2008,5,17)
-        self.assertEqual(periodo_siguiente(f_date, t_date), (date(2008,5,18), date(2008,5,31)))
+        self.assertEqual(next_period(f_date, t_date), (date(2008,5,18), date(2008,5,31)))
 
-    def test_periodo_siguiente_15_al_15(self):
+    def test_next_period_15_al_15(self):
         f_date = date(2008,5,15)
         t_date = date(2008,6,14)
-        self.assertEqual(periodo_siguiente(f_date, t_date), (date(2008,6,15), date(2008,7,15)))
+        self.assertEqual(next_period(f_date, t_date), (date(2008,6,15), date(2008,7,15)))
 
-    def test_periodo_siguiente_semana_fin_de_anio(self):
+    def test_next_period_week_fin_de_anio(self):
         f_date = date(2008,12,28)
         t_date = date(2009,1,4)
-        self.assertEqual(periodo_siguiente(f_date, t_date), (date(2009,1,5), date(2009,1,12)))
+        self.assertEqual(next_period(f_date, t_date), (date(2009,1,5), date(2009,1,12)))
 
-    def test_periodo_siguiente_anio(self):
+    def test_next_period_anio(self):
         f_date = date(2008,5,21)
         t_date = date(2009,5,20)
-        self.assertEqual(periodo_siguiente(f_date, t_date), (date(2009,5,21), date(2010,5,20)))
+        self.assertEqual(next_period(f_date, t_date), (date(2009,5,21), date(2010,5,20)))
 
-    def test_periodo_siguiente_anio_1(self):
+    def test_next_period_anio_1(self):
         f_date = date(2008,1,1)
         t_date = date(2008,12,31)
-        self.assertEqual(periodo_siguiente(f_date, t_date), (date(2009,1,1), date(2009,12,31)))
+        self.assertEqual(next_period(f_date, t_date), (date(2009,1,1), date(2009,12,31)))
 
 class TestPreviousPeriod(TestCase):
 
     # previous
 
-    def test_periodo_anterior_semana(self):
+    def test_previous_period_week(self):
         f_date = date(2008,5,11)
         t_date = date(2008,5,17)
-        self.assertEqual(periodo_anterior(f_date, t_date), (date(2008,5,4), date(2008,5,10)))
+        self.assertEqual(previous_period(f_date, t_date), (date(2008,5,4), date(2008,5,10)))
 
-    def test_periodo_anterior_semana_1(self):
+    def test_previous_period_week_1(self):
         f_date = date(2008,5,25)
         t_date = date(2008,6,1)
-        self.assertEqual(periodo_anterior(f_date, t_date), (date(2008,5,17), date(2008,5,24)))
+        self.assertEqual(previous_period(f_date, t_date), (date(2008,5,17), date(2008,5,24)))
 
-    def test_periodo_anterior_dos_semanas(self):
+    def test_previous_period_dos_weeks(self):
         f_date = date(2008,5,4)
         t_date = date(2008,5,18)
-        self.assertEqual(periodo_anterior(f_date, t_date), (date(2008,4,19), date(2008,5,3)))
+        self.assertEqual(previous_period(f_date, t_date), (date(2008,4,19), date(2008,5,3)))
 
-    def test_periodo_anterior_mes(self):
+    def test_previous_period_mes(self):
         f_date = date(2008,5,1)
         t_date = date(2008,5,31)
-        self.assertEqual(periodo_anterior(f_date, t_date), (date(2008,3,31), date(2008,4,30)))
+        self.assertEqual(previous_period(f_date, t_date), (date(2008,3,31), date(2008,4,30)))
 
-    def test_periodo_anterior_15_al_15(self):
+    def test_previous_period_15_al_15(self):
         f_date = date(2008,5,15)
         t_date = date(2008,6,14)
-        self.assertEqual(periodo_anterior(f_date, t_date), (date(2008,4,14), date(2008,5,14)))
+        self.assertEqual(previous_period(f_date, t_date), (date(2008,4,14), date(2008,5,14)))
 
-    def test_periodo_anterior_semana_fin_de_anio(self):
+    def test_previous_period_week_fin_de_anio(self):
         f_date = date(2008,12,28)
         t_date = date(2009,1,4)
-        self.assertEqual(periodo_anterior(f_date, t_date), (date(2008,12,20), date(2008,12,27)))
+        self.assertEqual(previous_period(f_date, t_date), (date(2008,12,20), date(2008,12,27)))
 
-    def test_periodo_anterior_anio(self):
+    def test_previous_period_anio(self):
         f_date = date(2008,5,20)
         t_date = date(2009,5,20)
-        self.assertEqual(periodo_anterior(f_date, t_date), (date(2007,5,19), date(2008,5,19)))
+        self.assertEqual(previous_period(f_date, t_date), (date(2007,5,19), date(2008,5,19)))
 
-    def test_periodo_anterior_anio_1(self):
+    def test_previous_period_anio_1(self):
         f_date = date(2008,1,1)
         t_date = date(2008,12,31)
-        self.assertEqual(periodo_anterior(f_date, t_date), (date(2007,1,1), date(2007,12,31)))
+        self.assertEqual(previous_period(f_date, t_date), (date(2007,1,1), date(2007,12,31)))
 
 class TestOvertimePeriod(TestCase):
 
