@@ -492,7 +492,11 @@ def eff(request):
             context['form'] = EffQueryForm({'from_date': from_date,
                                             'to_date': to_date})
 
-        object_list = UserProfile.objects.all()
+        if not request.user.is_superuser:
+            #Less elegant yet nicer in the db, I presume
+            object_list = UserProfile.objects.filter(user=request.user)
+        else:
+            object_list = UserProfile.objects.all()
 
         data_list = [Data(o,from_date,to_date) for o in object_list]
 
