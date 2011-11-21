@@ -45,16 +45,16 @@ from relatorio.templates.opendocument import Template
 from reports import format_report_data, format_invoice_period
 from reports import format_report_data_user, FixedPriceClientReverseBilling
 
-from eff.models import AvgHours, Wage, TimeLog, Project, Client, UserProfile
-from eff.models import ExternalId, ExternalSource, Dump
+from eff_site.eff.models import AvgHours, Wage, TimeLog, Project, Client, UserProfile
+from eff_site.eff.models import ExternalId, ExternalSource, Dump
 
-from eff.utils import overtime_period, previous_week, week, month, period
-from eff.utils import Data, DataTotal, debug, ERROR, load_dump, _date_fmts
-from eff.utils import validate_header
+from eff_site.eff.utils import overtime_period, previous_week, week, month, period
+from eff_site.eff.utils import Data, DataTotal, debug, ERROR, load_dump, _date_fmts
+from eff_site.eff.utils import validate_header
 
-from eff.forms import AvgHoursForm, EffQueryForm, UserProfileForm
-from eff.forms import UsersChangeProfileForm, UserPassChangeForm
-from eff.forms import UserAddForm, ClientReportForm, DumpUploadForm
+from eff_site.eff.forms import AvgHoursForm, EffQueryForm, UserProfileForm
+from eff_site.eff.forms import UsersChangeProfileForm, UserPassChangeForm
+from eff_site.eff.forms import UserAddForm, ClientReportForm, DumpUploadForm
 
 cur_dir = os.path.dirname(os.path.abspath(__file__))
 

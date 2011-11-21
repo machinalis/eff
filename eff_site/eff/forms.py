@@ -20,7 +20,7 @@ from django import forms
 from django.forms import ModelForm
 from django.contrib.auth.models import User
 
-from eff.models import UserProfile, Client
+from eff_site.eff.models import UserProfile, Client
 
 class AvgHoursForm(forms.Form):
     ah_date = forms.DateField(required=True)
