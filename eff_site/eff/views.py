@@ -976,10 +976,12 @@ def eff_fixed_price_client_reports(request):
                            'state_and_country' : state_and_country,
                            'currency' : client.currency.ccy_symbol or client.currency.ccy_code,
                            }
+            today = datetime.now()
             reverse_billing = FixedPriceClientReverseBilling(
                 project_data = {'name' : project.name, 'price' : "%.2f" % project.fixed_price},
                 client_data = client_data,
-                today = datetime.now().strftime("%A, %d %B %Y")
+                today = today.strftime("%A, %d %B %Y"),
+                reference = "%s%s%s" % (client.name.lower(), today.year, today.strftime("%m") )
                 )
 
             basic = Template(source=None, filepath=os.path.join(cur_dir, '../templates/reporte_cliente_precio_fijo.odt'))
