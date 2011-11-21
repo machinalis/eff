@@ -11,6 +11,8 @@
       $('#project_filter').change(function(){
           selected_val = $(this).val();
           redirect_to = window.location.pathname + '?from_date={{ from_date }}&to_date={{ to_date }}';
+          if(window.location.search.indexOf("monthly_nav=True") != -1)
+                redirect_to += '&monthly_nav=True';
           if(selected_val!='all')
               redirect_to += '&project=' + selected_val;
           redirect_to += '#project_select';
