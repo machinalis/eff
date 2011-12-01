@@ -21,6 +21,7 @@ from datetime import datetime
 from django.contrib.auth.models import User
 import itertools
 from django.contrib.humanize.templatetags import humanize
+from decimal import Decimal
 
 # For further usage i.e. to calculate totals
 class ClientReverseBilling(dict):
@@ -44,6 +45,7 @@ def format_invoice_period(from_date, to_date):
 
 def format_report_data(rep, client, from_date, to_date, detailed=False):
     report_list = []
+    total_sum = Decimal('0.00')
     for p, users in rep.iteritems():
         user_list = []
         for user in users:
@@ -53,8 +55,10 @@ def format_report_data(rep, client, from_date, to_date, detailed=False):
                           'hs' : "%.2f" % user[1]}
                 # Include rates in report
                 if len(user)>2:
+                    user_total = (Decimal(str(user[1])) * Decimal(str(user[2])))
+                    total_sum += user_total
                     user_d.update({'rate' : "%.2f" % user[2],
-                                   'total' : "%.2f" % (round(user[1], 2)*round(user[2], 2))})
+                                   'total' : "%.2f" % user_total})
                 user_list.append(user_d)
             else:
                 user_list.append({'full_name' : du.first_name + " " + du.last_name, 'hs': "%.2f" % user[1],
@@ -75,7 +79,8 @@ def format_report_data(rep, client, from_date, to_date, detailed=False):
                                            client_data = client_data,
                                            invoice_period = format_invoice_period(from_date, to_date),
                                            reference = "%s%s%s" % (client.name.lower(), from_date.year, from_date.strftime("%m"), ),
-                                           today = datetime.now().strftime("%A, %d %B %Y"))
+                                           today = datetime.now().strftime("%A, %d %B %Y"),
+                                           total = "%.2f" % total_sum)
     return reverse_billing
 
 def format_report_data_user(rep, user, from_date, to_date, detailed=False):
