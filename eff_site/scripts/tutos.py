@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright 2009 - 2011 Machinalis: http://www.machinalis.com/
 #
 # This file is part of Eff.
@@ -42,7 +43,7 @@ class Tutos(object):
 
         login_url = '/tutos/php/bookinginserter/login.php'
         showteamhours_url = '/tutos/php/bookinginserter/showteamhours.php'
-        
+
         browser = Browser(url)
 
         browser.getControl(name='username').value = username
@@ -68,11 +69,11 @@ class Tutos(object):
     def _process_data(self):
         contents = self._data.decode('latin1').encode('utf-8')
 
-        # Tutos doesn't escape quotes from the data that can contain 
+        # Tutos doesn't escape quotes from the data that can contain
         # quotes (such as the log description), so you can't read it as a csv :(
         # We made a case-by-case cleanup. Stupid, but effective.
         old = '"Set error:"is gereserveerd, niet met onderstreepteken zou mo"'
-        new = '"Set error: is gereserveerd, niet met onderstreepteken zou mo"' 
+        new = '"Set error: is gereserveerd, niet met onderstreepteken zou mo"'
         contents = contents.replace(old, new)
 
         readable_csv = csv.reader(StringIO(contents))
@@ -87,9 +88,9 @@ class Tutos(object):
                     continue
                 project_external_id = line['project_name'].split()[0]
                 t_proj = project_external_id
-                
+
                 if self._projects and (t_proj not in self._projects):
-                    continue 
+                    continue
 
                 t_line = (t_date, t_proj, line['person_loginname'],
                           float(line['timetrack_volume']),
@@ -102,13 +103,13 @@ class Tutos(object):
 
         if not hasattr(self, '_data'):
             return None
-        
+
         if writer:
             csv_writer = writer
         else:
             fd = open('tutos_output.csv', 'w')
             csv_writer = csv.writer(fd)
-        
+
         for row in self._process_data():
             csv_writer.writerow(row)
 
@@ -123,7 +124,7 @@ def fetch_all(source, client, author, from_date, to_date, _file):
 
     from_date = datetime.strptime(f, "%Y%m%d%H%M%S")
     to_date = datetime.strptime(t, "%Y%m%d%H%M%S")
-    
+
     writer = EffCsvWriter(source, client, author, _file,
                           from_date=from_date,
                           to_date=to_date)
@@ -134,9 +135,9 @@ if __name__ == '__main__':
     """
     This is just for testing
     """
-    
+
     args = sys.argv[1:]
-    
+
     if len(args) != 3:
         print "Usage: $ tutos.py <url> <username> <password>"
         sys.exit(0)

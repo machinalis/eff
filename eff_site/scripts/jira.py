@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright 2009 - 2011 Machinalis: http://www.machinalis.com/
 #
 # This file is part of Eff.
@@ -49,7 +50,7 @@ class Jira(object):
     def _calculate_date_range(self, from_date, to_date):
         """
         >>> from jira import Jira
-        >>> url, username, password = "", "", ""  # Doesn't matter for this test
+        >>> url, username, password = "", "", ""
         >>> from datetime import datetime
         >>> f = datetime(2009, 9, 1)
         >>> t = datetime(2010, 10, 14)
@@ -82,12 +83,12 @@ class Jira(object):
         else:
             enddate = startdate + relativedelta(months=2)
 
-        return (startdate, enddate) 
+        return (startdate, enddate)
 
 
     def fetch_data(self):
         url, username, password = self._url, self._username, self._password
-        
+
         br = mechanize.Browser()
         br.add_password(url, username, password)
         br.set_handle_robots(False)
@@ -96,7 +97,7 @@ class Jira(object):
 
         startdate, enddate = self._calculate_date_range(self._from_date,
                                                         self._to_date)
-        
+
         from_date = startdate.strftime("%Y%m%d%H%M%S")
         to_date = enddate.strftime("%Y%m%d%H%M%S")
 
@@ -104,12 +105,12 @@ class Jira(object):
         # values accepted are for example:
         # 20060101000000
         # 20070901000000
-        # 20090601000000 
+        # 20090601000000
         br["startdate"] = (from_date,)
         br["enddate"] = (to_date,)
         r = br.submit()
         self._data = r.read()
- 
+
     def set_dates(self, from_date, to_date):
         self._from_date = from_date
         self._to_date = to_date
@@ -128,9 +129,9 @@ class Jira(object):
                     continue
                 project_external_id = line['project_name'].split()[0]
                 t_proj = project_external_id
-                
+
                 if self._projects and (t_proj not in self._projects):
-                    continue 
+                    continue
 
                 t_line = (t_date, t_proj, line['person_loginname'],
                           float(line['timetrack_volume']),
@@ -143,24 +144,24 @@ class Jira(object):
 
         if not hasattr(self, '_data'):
             return None
-        
+
         if writer:
             csv_writer = writer
         else:
             fd = open('tutos_output.csv', 'w')
             csv_writer = csv.writer(fd)
-        
+
         for row in self._process_data():
             csv_writer.writerow(row)
 
-def fetch_all(source, client, author, from_date, to_date, _file):   
+def fetch_all(source, client, author, from_date, to_date, _file):
     from eff_site.eff.utils import EffCsvWriter
 
     if not (source.fetch_url and source.username and source.password):
         # This error is raised because the ExternalSource was created
         # without the relevant information needed to fetch the data
         raise ValueError("The source in the db is missing information")
-    
+
     j = Jira(source.fetch_url, source.username, source.password,
              from_date, to_date)
     j.fetch_data()
@@ -177,8 +178,8 @@ if __name__ == '__main__':
     import doctest
     doctest.testmod()
 
-    url, username, password = "", "", ""  # Put real data here to test.
-    j = Jira(url, username, password, 
-             datetime(2011, 1, 1), datetime(2011, 1, 31))
+    url, username, password = "", "", ""
+    j = Jira(url, username, password,
+             datetime(2010, 8, 1), datetime(2010, 10, 31))
     j.fetch_data()
     j.write_csv()

@@ -30,7 +30,8 @@ from dateutil.relativedelta import relativedelta
 
 from eff_site.eff.utils import EffCsvWriter, load_dump
 from eff_site.eff.models import ExternalSource, Project, TimeLog, Client
-from sitio import settings
+from eff_site import settings
+from django.utils.encoding import force_unicode
 
 from config import EXT_SRC_ASSOC
 
@@ -55,7 +56,7 @@ def run():
         today = datetime.today()
         to_date = datetime(today.year, today.month, today.day)
         from_date = datetime(to_date.year, to_date.month, 1) - relativedelta(months=1)
-    
+
     if source_name=="ALL":
         sources = ExternalSource.objects.all()
     else:
@@ -64,7 +65,7 @@ def run():
     if not sources:
         print 'Source with name: %s does not exist' % source_name
         sys.exit(1)
-    
+
     if not os.path.exists(settings.FETCH_EXTERNALS_CSV_DIR):
         os.makedirs(settings.FETCH_EXTERNALS_CSV_DIR)
 
@@ -79,7 +80,7 @@ def run():
 
         for client in src_clients:
 
-            filename = "%s_%s_%s_%s.csv" % (source.name, client.name, from_date.strftime("%Y%m%d"), 
+            filename = "%s_%s_%s_%s.csv" % (source.name, client.name, from_date.strftime("%Y%m%d"),
                                             to_date.strftime("%Y%m%d"), )
             filename = os.path.join(settings.FETCH_EXTERNALS_CSV_DIR, filename.replace(' ', '_'))
             _file = open(filename, 'w')

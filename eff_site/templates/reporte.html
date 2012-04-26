@@ -81,7 +81,7 @@
                     <td> <b>Total:</b> {{ TotalHrs }} </td>
                 </tr>
                 <tr>
-                    <td colspan="3" style="text-align: right;">{% if export_allowed %}Export as: <a href="{% url eff_site.eff.views.eff_report %}?from_date={{from_date}}&to_date={{to_date}}&export=odt">ODT</a> | <a href="{% url eff_site.eff.views.eff_report %}?from_date={{from_date}}&to_date={{to_date}}&export=csv">CSV</a>{% endif %}</td>
+                    <td colspan="3" style="text-align: right;">{% if export_allowed %}Export as: <a href="{% url eff_site.eff.views.eff_report username %}?from_date={{from_date}}&to_date={{to_date}}&export=odt">ODT</a> | <a href="{% url eff_site.eff.views.eff_report username %}?from_date={{from_date}}&to_date={{to_date}}&export=csv">CSV</a>{% endif %}</td>
                 </tr>
             </tfoot>
         </table>
@@ -106,7 +106,7 @@
 	      <option value="{{ p }}" {% ifequal project p %}selected="selected"{% endifequal %}>{{ p }}</option>
 	    {% endfor %}
 	  </select>
-          {% if export_allowed %} Export as: <a href="{% url eff_site.eff.views.eff_report %}?from_date={{from_date}}&to_date={{to_date}}{% if project %}&project={{ project }}{% endif %}&export=odt&detailed">ODT</a> | <a href="{% url eff_site.eff.views.eff_report %}?from_date={{from_date}}&to_date={{to_date}}{% if project %}&project={{ project }}{% endif %}&export=csv&detailed">CSV</a>{% endif %}
+          {% if export_allowed %} Export as: <a href="{% url eff_site.eff.views.eff_report username %}?from_date={{from_date}}&to_date={{to_date}}{% if project %}&project={{ project }}{% endif %}&export=odt&detailed">ODT</a> | <a href="{% url eff_site.eff.views.eff_report username %}?from_date={{from_date}}&to_date={{to_date}}{% if project %}&project={{ project }}{% endif %}&export=csv&detailed">CSV</a>{% endif %}
 	</div>
         <table class="sortable report" id="detailed-report-table">
             <thead>

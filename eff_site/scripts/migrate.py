@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # Copyright 2009 - 2011 Machinalis: http://www.machinalis.com/
 #
 # This file is part of Eff.
@@ -38,22 +39,22 @@ conn = sqlite3.connect(db_name)
 
 # Try client slugs migration
 try:
-    print "Migrating Client slugs...", 
+    print "Migrating Client slugs...",
     conn.execute('ALTER TABLE eff_client ADD COLUMN "slug" varchar(50)')
     from eff_site.eff.models import Client
     for cli in Client.objects.all():
         cli.slug=slugify(cli.name)
         cli.save()
-    print "DONE", 
-except sqlite3.OperationalError as (message, ):
+    print "DONE",
+except sqlite3.OperationalError, message:
     if message == 'duplicate column name: slug':
         print "Client slugs already exists."
 
 # Add state column to eff_client table
 try:
-    print "Adding state to Client...", 
+    print "Adding state to Client...",
     conn.execute('ALTER TABLE eff_client ADD COLUMN "state" varchar(100)')
-    print "DONE", 
+    print "DONE",
 except sqlite3.OperationalError, message:
     if message == 'duplicate column name: state':
         print "Client state field already exists."

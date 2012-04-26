@@ -23,7 +23,7 @@ import os.path
 
 from eff_site.eff.models import TimeLog
 from eff_site.eff.utils import debug
-from sitio import settings
+from eff_site import settings
 
 from eff_site.scripts.fetch_all import run
 

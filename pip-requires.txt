@@ -5,3 +5,5 @@ south
 relatorio  
 pyyaml 
 pycha
+zope.interface
+zope.testbrowser
