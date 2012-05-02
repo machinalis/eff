@@ -32,9 +32,9 @@ MANAGERS = ADMINS
 # DATABASE_ENGINE = 'sqlite3'   # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
 # DATABASE_NAME = 'eff.db'      # Or path to database file if using sqlite3.
 DATABASE_ENGINE = 'postgresql_psycopg2'  # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-DATABASE_NAME = ''           # Or path to database file if using sqlite3.
-DATABASE_USER = ''           # Not used with sqlite3.
-DATABASE_PASSWORD = ''          # Not used with sqlite3.
+DATABASE_NAME = 'machinalis_eff'           # Or path to database file if using sqlite3.
+DATABASE_USER = 'machinalis_eff'           # Not used with sqlite3.
+DATABASE_PASSWORD = 'machinalis_eff'          # Not used with sqlite3.
 DATABASE_HOST = ''              # Set to empty string for localhost. Not used with sqlite3.
 DATABASE_PORT = ''              # Set to empty string for default. Not used with sqlite3.
 
@@ -116,7 +116,12 @@ AUTH_PROFILE_MODULE = 'eff.userprofile'
 FLAG_FILE = join(CURRENT_ABS_DIR, 'updatedb.flag')
 LOCK_FILE = join(CURRENT_ABS_DIR, 'updatedb.lock')
 DEBUG_FILE = join(CURRENT_ABS_DIR, 'updatedb.debug')
-DATE_FORMAT = '%Y-%m-%d'
+
+# Formatting to use for displaying date fields.
+DATE_FORMAT = 'Y-m-d'
+
+# Format that will be accepted when inputting date data.
+EFF_DATE_INPUT_FORMAT = '%Y-%m-%d'
 
 SOUTH_TESTS_MIGRATE = False
 

@@ -540,7 +540,7 @@ class TimeLogsAttributesTest(TestCase):
 
 def suite():
     suite = TestSuite()
-    suite.addTest(makeSuite(ConsultasTest))
+    suite.addTest(makeSuite(QueriesTest))
     suite.addTest(makeSuite(PageTest))
     suite.addTest(makeSuite(UserProfileCreationTest))
     suite.addTest(makeSuite(ActiveTest))

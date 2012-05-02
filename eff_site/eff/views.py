@@ -70,11 +70,12 @@ def __get_context(request):
     return context
 
 def __aux_mk_time(date_string):
-    _date = time.mktime(time.strptime(date_string, settings.DATE_FORMAT))
-    _date = date.fromtimestamp(_date)
+    _date = datetime.strptime(date_string, settings.EFF_DATE_INPUT_FORMAT).date()
+    # _date = time.mktime(time.strptime(date_string, settings.EFF_DATE_INPUT_FORMAT))
+    # _date = date.fromtimestamp(_date)
     return _date
 
-default_date = __aux_mk_time(date.today().strftime(settings.DATE_FORMAT))
+default_date = __aux_mk_time(date.today().strftime(settings.EFF_DATE_INPUT_FORMAT))
 def __process_dates(request):
     context = __get_context(request)
     if request.method == 'GET':
@@ -715,7 +716,7 @@ def eff_update_db(request):
 
     if not os.path.exists(settings.FLAG_FILE):
         fd = open(settings.FLAG_FILE, 'w')
-        fd.write('%s' % date.today().strftime(settings.DATE_FORMAT + ' %H:%M'))
+        fd.write('%s' % date.today().strftime(settings.EFF_DATE_INPUT_FORMAT + ' %H:%M'))
         fd.close()
 
         # We use a cron job to run the code below now
