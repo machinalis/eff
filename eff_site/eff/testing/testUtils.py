@@ -21,7 +21,7 @@ from django.test import TestCase
 from eff.utils import overtime_period, period
 
 from unittest import TestSuite, makeSuite
-from datetime import date, datetime
+from datetime import date
 import time
 
 from eff.views import __aux_mk_time as aux_mk_time  # change name to be testeable
@@ -139,26 +139,24 @@ class TestDateFormat(TestCase):
 
     # date_format
 
-    def test_date_format_parsing(self):
-        from django.conf import settings
-        import time
-        try:
-            datetime.strptime('2012-4-7', settings.EFF_DATE_INPUT_FORMAT)
-        except ValueError:
-            self.fail("Didn't parse the date correctly")
-
-    def test_date_format_structure(self):
-        date_string = '2012-4-7'
-        try:
-            result = datetime.strptime(date_string, settings.EFF_DATE_INPUT_FORMAT).date()
-        except ValueError:
-            self.fail("Didn't make the correct structure")
-        self.assertEqual(result, date(2012, 4, 7))
+    def test_date_format_aux_mk_time_error(self):
+        self.assertRaises(ValueError, aux_mk_time, 'trash')
+        self.assertRaises(ValueError, aux_mk_time, '2012-02-31')
 
     def test_date_format_aux_mk_time(self):
+        date_string = '2012-4-7'
+        try:
+            result = aux_mk_time(date_string)
+        except ValueError:
+            self.fail("Didn't parse the date correctly")
+        self.assertEqual(result, date(2012, 4, 7))
+
+    def test_date_format_aux_mk_time_old_version(self):
+        # Tests the new implementation of aux_mk_time against the old version.
         date_string = '2012-03-28'
         aux_date = aux_mk_time(date_string)
-        _date = datetime.strptime(date_string, settings.EFF_DATE_INPUT_FORMAT).date()
+        _date = time.mktime(time.strptime(date_string, settings.EFF_DATE_INPUT_FORMAT))
+        _date = date.fromtimestamp(_date)
         self.assertEqual(aux_date, _date)
 
 def suite():

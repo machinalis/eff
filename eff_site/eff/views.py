@@ -18,7 +18,6 @@
 
 import os
 import os.path
-import time
 import string
 import tempfile
 import csv
@@ -70,9 +69,8 @@ def __get_context(request):
     return context
 
 def __aux_mk_time(date_string):
-    _date = datetime.strptime(date_string, settings.EFF_DATE_INPUT_FORMAT).date()
-    # _date = time.mktime(time.strptime(date_string, settings.EFF_DATE_INPUT_FORMAT))
-    # _date = date.fromtimestamp(_date)
+    _date = datetime.strptime(date_string, settings.EFF_DATE_INPUT_FORMAT)
+    _date = _date.date()
     return _date
 
 default_date = __aux_mk_time(date.today().strftime(settings.EFF_DATE_INPUT_FORMAT))
