@@ -16,12 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with Eff.  If not, see <http://www.gnu.org/licenses/>.
 
-
+from django.conf import settings
 from django.test import TestCase
 from eff.utils import overtime_period, period
 
 from unittest import TestSuite, makeSuite
 from datetime import date
+import time
+
+from eff.views import __aux_mk_time as aux_mk_time  # change name to be testeable
 
 next_period = lambda d1, d2: period(d1, d2, lambda d1, d2: d1 + d2)
 previous_period  = lambda d1, d2: period(d1, d2, lambda d1, d2: d1 - d2)
@@ -132,9 +135,34 @@ class TestOvertimePeriod(TestCase):
         self.assertEqual(overtime_period(date(2008,7,19)), (date(2008,6,15), date(2008,7,19)))
         self.assertEqual(overtime_period(date(2008,7,20)), (date(2008,7,20), date(2008,8,16)))
 
+class TestDateFormat(TestCase):
+
+    # date_format
+
+    def test_date_format_aux_mk_time_error(self):
+        self.assertRaises(ValueError, aux_mk_time, 'trash')
+        self.assertRaises(ValueError, aux_mk_time, '2012-02-31')
+
+    def test_date_format_aux_mk_time(self):
+        date_string = '2012-4-7'
+        try:
+            result = aux_mk_time(date_string)
+        except ValueError:
+            self.fail("Didn't parse the date correctly")
+        self.assertEqual(result, date(2012, 4, 7))
+
+    def test_date_format_aux_mk_time_old_version(self):
+        # Tests the new implementation of aux_mk_time against the old version.
+        date_string = '2012-03-28'
+        aux_date = aux_mk_time(date_string)
+        _date = time.mktime(time.strptime(date_string, settings.EFF_DATE_INPUT_FORMAT))
+        _date = date.fromtimestamp(_date)
+        self.assertEqual(aux_date, _date)
+
 def suite():
     suite = TestSuite()
     suite.addTest(makeSuite(TestNextPeriod))
     suite.addTest(makeSuite(TestPreviousPeriod))
     suite.addTest(makeSuite(TestOvertimePeriod))
+    suite.addTest(makeSuite(TestDateFormat))
     return suite
