@@ -44,6 +44,7 @@ class UserProfile(models.Model):
                         'Can view the percetage of billable hours'),
                        ('view_wage',
                         'Can view the salary per hour of a user'),)
+        ordering = ['user__first_name']
 
     def __unicode__(self):
         return u'%s (%s)' % (self.user.get_full_name(), self.user.username)
