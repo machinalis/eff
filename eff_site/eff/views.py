@@ -273,43 +273,49 @@ def update_hours(request, username):
     #######################################
     # Auxiliary functions which generate forms
 
-    def navghours_form_generator (size):
+    def navghours_form_generator(size):
         d = dict()
         for i in xrange(size):
             d['ah_date%d' % i] = forms.DateField(required=False, label='Fecha:')
-            d['amount_of_hours%d' % i] = forms.FloatField(required=False,
-                                                            label='Cantidad de horas por día:')
+#            d['amount_of_hours%d' % i] = forms.FloatField(required=False,
+#                label='Cantidad de horas por día:')
+            d['amount_of_hours%d' % i] = forms.DecimalField(required=False,
+                label='Cantidad de horas por día:')
         return type('NAvgHoursForm', (forms.Form,), d)
 
-    def nwage_form_generator (size):
+    def nwage_form_generator(size):
         d = dict()
         for i in xrange(size):
             d['w_date%d' % i] = forms.DateField(required=False, label='Fecha:')
-            d['amount%d' % i] = forms.FloatField(required=False, label='Monto por hora:')
+#            d['amount%d' % i] = forms.FloatField(required=False,
+#                label='Monto por hora:')
+            d['amount%d' % i] = forms.DecimalField(required=False,
+                label='Monto por hora:')
         return type('NWageForm', (forms.Form,), d)
 
     #######################################
     # Create form and fill it with data
 
-    def initialize_form (queryset, context, generator,
+    def initialize_form(queryset, context, generator,
                          form_name, arg_name_1, arg_name_2,
                          attr_name_1, attr_name_2):
         length = queryset.count()
-        form_class = generator(length+1)
+        form_class = generator(length + 1)
 
         data = dict()
         for i in xrange(length):
-            data[(arg_name_1+'%d') % i] = getattr(qs[i], attr_name_1)
-            data[(arg_name_2+'%d') % i] = getattr(qs[i], attr_name_2)
+            data[(arg_name_1 + '%d') % i] = getattr(qs[i], attr_name_1)
+            data[(arg_name_2 + '%d') % i] = getattr(qs[i], attr_name_2)
 
         context[form_name] = form_class(data)
-        context[form_name+'_size'] = length + 1
+        context[form_name + '_size'] = length + 1
         return form_class
 
     # Constructs form for introducing data on hours worked per day.
     qs = user.avghours_set.all()
     NAvgHoursForm = initialize_form(qs, context, navghours_form_generator,
-                                    'avghours_form', 'ah_date', 'amount_of_hours',
+                                    'avghours_form', 'ah_date',
+                                    'amount_of_hours',
                                     'date', 'hours')
 
     # Constructs form for introducing "wage" data.
@@ -353,13 +359,13 @@ def update_hours(request, username):
 
             user.wage_set.all().delete()
 
-            for i in range(0,size):
+            for i in range(0, size):
                 if wage_form.cleaned_data['w_date%d' % i] != None and\
                     wage_form.cleaned_data['amount%d' % i] != None:
                     try:
                         w = Wage(user=user,
-                                 date=wage_form.cleaned_data['w_date%d' % i],
-                                 amount_per_hour=wage_form.cleaned_data['amount%d' % i])
+                            date=wage_form.cleaned_data['w_date%d' % i],
+                            amount_per_hour=wage_form.cleaned_data['amount%d' % i])
                         w.save()
                         context['notices'] = ['Update sucessful!']
 
@@ -375,7 +381,7 @@ def update_hours(request, username):
             user.avghours_set.all().delete()
 
             # there are at most "size" number of filled fields
-            for i in range(0,size):
+            for i in range(0, size):
                 if avghours_form.cleaned_data['ah_date%d' % i] != None and\
                     avghours_form.cleaned_data['amount_of_hours%d' % i] != None:
 
@@ -390,7 +396,7 @@ def update_hours(request, username):
         else:
             context['errors'].append('Invalid Avg Hours Form')
 
-    else: # request.method != 'POST'
+    else:  # request.method != 'POST'
         pass
 
     # Recontrusct the form with new data
@@ -412,13 +418,11 @@ def update_hours(request, username):
     # Constructs form for introducing data on hours worked per day.
     qs = user.avghours_set.all()
     NAvgHoursForm = initialize_form(qs, context, navghours_form_generator,
-                                    'avghours_form', 'ah_date', 'amount_of_hours',
-                                    'date', 'hours')
+        'avghours_form', 'ah_date', 'amount_of_hours', 'date', 'hours')
     # Constructs form for introducing "wage" data.
     qs = user.wage_set.all()
     NWageForm = initialize_form(qs, context, nwage_form_generator,
-                                'wage_form', 'w_date', 'amount',
-                                'date', 'amount_per_hour')
+        'wage_form', 'w_date', 'amount', 'date', 'amount_per_hour')
 
     return render_to_response('update_hours.html', context)
 
@@ -436,36 +440,44 @@ def eff_check_perms(request, username):
     else:
         return HttpResponseRedirect('/updatehours/%s/' % _user.username)
 
+
 @login_required
 def eff_previous_week(request):
     return HttpResponseRedirect('/efi/?from_date=%s&to_date=%s' % previous_week(date.today()))
 
+
 @login_required
 def eff_current_week(request):
     return HttpResponseRedirect('/efi/?from_date=%s&to_date=%s' % week(date.today()))
+
 
 @login_required
 def eff_current_month(request):
     from_date, to_date = month(date.today())
     return HttpResponseRedirect('/efi/?from_date=%s&to_date=%s&%s=True' % (from_date, to_date, MONTHLY_FLAG))
 
+
 @login_required
 def eff_last_month(request):
     from_date, to_date = month(month(date.today())[0]-timedelta(days=1))
     return HttpResponseRedirect('/efi/?from_date=%s&to_date=%s&%s=True' % (from_date, to_date, MONTHLY_FLAG))
+
 
 @login_required
 def eff_horas_extras(request):
     from_date, to_date = overtime_period(date.today())
     return HttpResponseRedirect('/efi/?from_date=%s&to_date=%s&%s=True' % (from_date, to_date, OVERTIME_FLAG))
 
+
 @login_required
 def eff_next(request):
     return __process_period(request, is_prev=False)
 
+
 @login_required
 def eff_prev(request):
     return __process_period(request, is_prev=True)
+
 
 @login_required
 def eff(request):
@@ -498,14 +510,14 @@ def eff(request):
         else:
             object_list = UserProfile.objects.all()
 
-        data_list = [Data(o,from_date,to_date) for o in object_list]
+        data_list = [Data(o, from_date, to_date) for o in object_list]
 
         wh, lh, bh = 0, 0, 0
         for d in data_list:
             wh += d.worked_hours
             lh += d.loggable_hours
             bh += d.billable_hours
-        context['total'] = DataTotal(wh,lh,bh)
+        context['total'] = DataTotal(wh, lh, bh)
         context['object_list'] = data_list
         context['from_date'] = from_date
         context['to_date'] = to_date
@@ -518,7 +530,7 @@ def eff(request):
         if from_date == to_date:
             aux = "el %s" % from_date
         elif MONTHLY_FLAG in context:
-            aux = "durante el mes de %s" % from_date.strftime('%B de %Y') # month name
+            aux = "durante el mes de %s" % from_date.strftime('%B de %Y')  # month name
         elif OVERTIME_FLAG in context:
             aux = "durante el período de horas extras [%s, %s]" % (from_date, to_date)
         else:
@@ -527,15 +539,19 @@ def eff(request):
 
     return render_to_response('eff_query.html', context)
 
+
 @login_required
 def eff_chart(request, username):
 
-    if not (request.user.has_perm('eff.view_billable') and request.user.has_perm('eff.view_wage')) and \
+    if not (request.user.has_perm('eff.view_billable') and \
+            request.user.has_perm('eff.view_wage')) and \
             request.user.username != username:
-        return HttpResponseRedirect('/accounts/login/?next=%s' % quote(request.get_full_path()))
+        return HttpResponseRedirect('/accounts/login/?next=%s' % quote(
+            request.get_full_path()))
 
     context = __process_dates(request)
-    values = chart_values([username], context['from_date'], context['to_date'], request.user)
+    values = chart_values([username], context['from_date'], context['to_date'],
+        request.user)
     context['users_graph_values'] = [values]
 
     for flag in (OVERTIME_FLAG, MONTHLY_FLAG):
@@ -546,6 +562,7 @@ def eff_chart(request, username):
 
     return render_to_response('profiles/eff_charts.html', context)
 
+
 @login_required
 @user_passes_test(__enough_perms, login_url='/accounts/login/')
 def eff_charts(request):
@@ -555,10 +572,13 @@ def eff_charts(request):
     if request.method == 'GET':
         get_data = request.GET.copy()
 
-        if get_data.has_key('monthly_nav'): del get_data['monthly_nav']
-        if get_data.has_key('overtime_nav'): del get_data['overtime_nav']
+        if get_data.has_key('monthly_nav'):
+            del get_data['monthly_nav']
+        if get_data.has_key('overtime_nav'):
+            del get_data['overtime_nav']
 
         # Find out what graph has been requested and clean the dictionary accordingly
+        # FIXME http://docs.python.org/library/stdtypes.html#dict.has_key
         if get_data.has_key('MultGraph'):
             # Multiple graphs
             get_data.pop('MultGraph')
@@ -591,12 +611,15 @@ def eff_charts(request):
             context['from_date'] = from_date
             context['to_date'] = to_date
             if get_type == 'multi':
-                values = [chart_values([u], context['from_date'], context['to_date'], request.user) for u in users]
+                values = [chart_values([u], context['from_date'],
+                    context['to_date'], request.user) for u in users]
             else:
                 if len(users) != 0:
-                    values.append(chart_values(users, from_date, to_date, request.user))
+                    values.append(chart_values(users, from_date, to_date,
+                        request.user))
 
-    if values == []: context['notices'] = ['No user/s selected.']
+    if values == []:
+        context['notices'] = ['No user/s selected.']
     context['users_graph_values'] = values
 
     for flag in (OVERTIME_FLAG, MONTHLY_FLAG):
@@ -607,12 +630,14 @@ def eff_charts(request):
 
     return render_to_response('profiles/eff_charts.html', context)
 
+
 @login_required
 def eff_report(request, user_name):
 
     context = __process_dates(request)
     context['export_allowed'] = True
-    if not (request.user.has_perm('eff.view_billable') and request.user.has_perm('eff.view_wage')):
+    if not (request.user.has_perm('eff.view_billable') and \
+            request.user.has_perm('eff.view_wage')):
         if request.user.username != user_name:
             return HttpResponseRedirect('/accounts/login/?next=%s' % quote(request.get_full_path()))
         else:
@@ -636,20 +661,24 @@ def eff_report(request, user_name):
     if 'export' in request.GET:
         if request.GET['export'] == 'odt':
             if 'detailed' in request.GET:
-                basic = Template(source=None, filepath=os.path.join(cur_dir, '../templates/reporte_usuario_detallado.odt'))
-                report_data = format_report_data_user(context['report'], user, from_date, to_date, True)
+                basic = Template(source=None, filepath=os.path.join(cur_dir,
+                    '../templates/reporte_usuario_detallado.odt'))
+                report_data = format_report_data_user(context['report'], user,
+                    from_date, to_date, True)
                 basic_generated = basic.generate(o=report_data).render()
-                resp = HttpResponse(basic_generated.getvalue(), mimetype='application/vnd.oasis.opendocument.text')
+                resp = HttpResponse(basic_generated.getvalue(),
+                    mimetype='application/vnd.oasis.opendocument.text')
                 cd = 'filename=reverse_billing-%s-%s-logs.odt' % (from_date.year, from_date.strftime("%m"), )
                 resp['Content-Disposition'] = cd
                 return resp
             else:
-                basic = Template(source=None, filepath=os.path.join(cur_dir, '../templates/reporte_usuario.odt'))
+                basic = Template(source=None, filepath=os.path.join(cur_dir,
+                    '../templates/reporte_usuario.odt'))
                 report_by_project = list(TimeLog.get_summary_per_project(user.get_profile(), from_date, to_date, True))
-                report_by_project.sort(cmp=lambda (x0,x1,x2,x3,x4), (y0,y1,y2,y3,y4) : cmp(x1,y1))
+                report_by_project.sort(cmp=lambda (x0, x1, x2, x3, x4), (y0, y1, y2, y3, y4): cmp(x1, y1))
                 rep_by_proj = []
                 for p in set(map(lambda ph: ph[1], report_by_project)):
-                    r4proj = filter(lambda ph: ph[1]==p, report_by_project)
+                    r4proj = filter(lambda ph: ph[1] == p, report_by_project)
                     rates = sorted(map(lambda ph: (ph[3], ph[4]), r4proj), reverse=True)
                     rep_by_proj.append((r4proj[0][0], r4proj[0][1], r4proj[0][2], rates))
 
