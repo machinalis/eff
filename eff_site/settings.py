@@ -116,7 +116,12 @@ AUTH_PROFILE_MODULE = 'eff.userprofile'
 FLAG_FILE = join(CURRENT_ABS_DIR, 'updatedb.flag')
 LOCK_FILE = join(CURRENT_ABS_DIR, 'updatedb.lock')
 DEBUG_FILE = join(CURRENT_ABS_DIR, 'updatedb.debug')
-DATE_FORMAT = '%Y-%m-%d'
+
+# Formatting to use for displaying date fields.
+DATE_FORMAT = 'Y-m-d'
+
+# Format that will be accepted when inputting date data.
+EFF_DATE_INPUT_FORMAT = '%Y-%m-%d'
 
 SOUTH_TESTS_MIGRATE = False
 
