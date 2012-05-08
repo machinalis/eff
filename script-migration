@@ -1,0 +1,17 @@
+#!/bin/bash
+# Excecute this script on root of django project (eg. eff_site)
+# This clean migration folder of eff app
+
+cd /home/eramirez/projects/eff/eff_site
+
+# echo "Delete the migrations .py of app"
+rm -rf eff/migrations/
+
+# echo "Reset south db registers"
+python manage.py reset south
+
+# echo "Load the South table into the database"
+python manage.py syncdb
+
+echo "Convert to south"
+python manage.py convert_to_south eff
