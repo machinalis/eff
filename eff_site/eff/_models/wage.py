@@ -17,11 +17,13 @@
 
 from django.db import models
 from django.contrib.auth.models import User
+from customfields import MoneyField
 
 
 class Wage(models.Model):
     date = models.DateField()
-    amount_per_hour = models.FloatField()
+#    amount_per_hour = models.FloatField()
+    amount_per_hour = MoneyField()
     user = models.ForeignKey(User)
 
     def __unicode__(self):
