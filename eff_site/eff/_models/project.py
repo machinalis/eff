@@ -16,12 +16,14 @@
 # along with Eff.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.db import models
+from customfields import MoneyField
+
 
 class ProjectAssoc(models.Model):
     project = models.ForeignKey('Project')
     member = models.ForeignKey('UserProfile')
-    client_rate = models.FloatField()
-    user_rate = models.FloatField()
+    client_rate = MoneyField()
+    user_rate = MoneyField()
     from_date = models.DateField()
     to_date = models.DateField(null=True, blank=True)
 
@@ -31,7 +33,7 @@ class ProjectAssoc(models.Model):
 
     def __unicode__(self):
         return u"%s in project %s, from %s %s with rate of %s and client rate %s " % \
-            (self.member, self.project, self.from_date, self.to_date and ("to %s" % self.to_date) or "until today", 
+            (self.member, self.project, self.from_date, self.to_date and ("to %s" % self.to_date) or "until today",
              self.user_rate, self.client_rate, )
 
 
@@ -42,10 +44,11 @@ class Project(models.Model):
     client = models.ForeignKey('Client')
     members = models.ManyToManyField('UserProfile', verbose_name=u'Members', through=ProjectAssoc)
 
-    billing_type = models.CharField(max_length=8, 
-                                    choices=(('FIXED','Fixed Price'),('HOUR', 'Per Hour')), 
+    billing_type = models.CharField(max_length=8,
+                                    choices=(('FIXED','Fixed Price'),('HOUR', 'Per Hour')),
                                     default='HOUR')
-    fixed_price = models.FloatField(blank=True, null=True)
+#    fixed_price = models.FloatField(blank=True, null=True)
+    fixed_price = MoneyField(blank=True, null=True)
 
     class Meta:
         app_label = 'eff'
@@ -55,4 +58,4 @@ class Project(models.Model):
 
     def get_external_source(self):
         return self.client.external_source
-    
+
