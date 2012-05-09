@@ -276,8 +276,6 @@ def update_hours(request, username):
         d = dict()
         for i in xrange(size):
             d['ah_date%d' % i] = forms.DateField(required=False, label='Fecha:')
-#            d['amount_of_hours%d' % i] = forms.FloatField(required=False,
-#                label='Cantidad de horas por día:')
             d['amount_of_hours%d' % i] = forms.DecimalField(required=False,
                 label='Cantidad de horas por día:')
         return type('NAvgHoursForm', (forms.Form,), d)
@@ -286,8 +284,6 @@ def update_hours(request, username):
         d = dict()
         for i in xrange(size):
             d['w_date%d' % i] = forms.DateField(required=False, label='Fecha:')
-#            d['amount%d' % i] = forms.FloatField(required=False,
-#                label='Monto por hora:')
             d['amount%d' % i] = forms.DecimalField(required=False,
                 label='Monto por hora:')
         return type('NWageForm', (forms.Form,), d)

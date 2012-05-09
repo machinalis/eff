@@ -47,7 +47,6 @@ class Project(models.Model):
     billing_type = models.CharField(max_length=8,
                                     choices=(('FIXED','Fixed Price'),('HOUR', 'Per Hour')),
                                     default='HOUR')
-#    fixed_price = models.FloatField(blank=True, null=True)
     fixed_price = MoneyField(blank=True, null=True)
 
     class Meta:
