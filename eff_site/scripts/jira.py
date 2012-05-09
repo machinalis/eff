@@ -134,7 +134,7 @@ class Jira(object):
                     continue
 
                 t_line = (t_date, t_proj, line['person_loginname'],
-                          float(line['timetrack_volume']),
+                          line['timetrack_volume'],
                           line['project_types'], line['timetrack_description'])
                 yield t_line
             except StopIteration:

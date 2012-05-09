@@ -538,7 +538,7 @@ def load_dump(file_obj, date_format=None,
 
             for row in a_rows:
                 row[0] = datetime.strptime(row[0], '%Y-%m-%d')
-                row[3] = float(row[3])
+                row[3] = row[3]
                 temp_writer.write(row)
 
         r_list.append(temp_path)

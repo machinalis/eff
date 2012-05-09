@@ -17,15 +17,16 @@
 
 from django.db import models
 from django.contrib.auth.models import User
+from customfields import MoneyField
 
 
 class Wage(models.Model):
     date = models.DateField()
-    amount_per_hour = models.FloatField()
+    amount_per_hour = MoneyField()
     user = models.ForeignKey(User)
 
     def __unicode__(self):
-        return u'[%s] %s : %s'% (self.id, self.date, self.amount_per_hour)
+        return u'[%s] %s : %s' % (self.id, self.date, self.amount_per_hour)
 
     def save(self):
         qs = Wage.objects.filter(date=self.date, user=self.user)
@@ -35,7 +36,7 @@ class Wage(models.Model):
                 this_id = int(self.id)
             else:
                 # self es nuevo
-                this_id = object() # marker
+                this_id = object()  # marker
             other_id = Wage.objects.get(date=self.date, user=self.user).id
             if this_id != other_id:
                 raise ValueError, "Date already exists"
