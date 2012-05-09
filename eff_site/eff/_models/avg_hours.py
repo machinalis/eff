@@ -17,14 +17,16 @@
 
 from django.db import models
 from django.contrib.auth.models import User
+from customfields import HourField
+
 
 class AvgHours(models.Model):
     date = models.DateField()
-    hours = models.FloatField()
+    hours = HourField()
     user = models.ForeignKey(User)
 
     def __unicode__(self):
-        return u'%s - %s : %s '% (self.user.get_full_name(),
+        return u'%s - %s : %s ' % (self.user.get_full_name(),
                                  self.date,
                                  self.hours)
 
@@ -36,7 +38,7 @@ class AvgHours(models.Model):
                 this_id = int(self.id)
             else:
                 # self es nuevo
-                this_id = object() # marker
+                this_id = object()  # marker
             other_id = AvgHours.objects.get(date=self.date, user=self.user).id
             if this_id != other_id:
                 raise ValueError, "Date already exists"
@@ -45,5 +47,5 @@ class AvgHours(models.Model):
     class Meta:
         app_label = 'eff'
         get_latest_by = 'date'
-        ordering = ['date','user']
-        unique_together=(('user','date'),)
+        ordering = ['date', 'user']
+        unique_together = (('user', 'date'),)
