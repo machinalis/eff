@@ -160,8 +160,8 @@ class DataTotal (Data):
         self.loggable_hours = lh
         self.billable_hours = bh
         if lh > 0:
-            self.percentage_hours_worked = round(wh/lh*100, 2)
-            self.percentage_billable_hours = round(bh/lh*100, 2)
+            self.percentage_hours_worked = wh/lh*100, 2
+            self.percentage_billable_hours = bh/lh*100, 2
         else:
             self.percentage_hours_worked = 0
             self.percentage_billable_hours = 0

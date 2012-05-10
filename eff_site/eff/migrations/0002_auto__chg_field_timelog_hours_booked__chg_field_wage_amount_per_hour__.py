@@ -8,175 +8,43 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'AvgHours'
-        db.create_table('eff_avghours', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('date', self.gf('django.db.models.fields.DateField')()),
-            ('hours', self.gf('django.db.models.fields.FloatField')()),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-        ))
-        db.send_create_signal('eff', ['AvgHours'])
 
-        # Adding unique constraint on 'AvgHours', fields ['user', 'date']
-        db.create_unique('eff_avghours', ['user_id', 'date'])
+        # Changing field 'TimeLog.hours_booked'
+        db.alter_column('eff_timelog', 'hours_booked', self.gf('django.db.models.fields.DecimalField')(max_digits=19, decimal_places=3))
 
-        # Adding model 'ProjectAssoc'
-        db.create_table('eff_projectassoc', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('project', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eff.Project'])),
-            ('member', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eff.UserProfile'])),
-            ('client_rate', self.gf('django.db.models.fields.FloatField')()),
-            ('user_rate', self.gf('django.db.models.fields.FloatField')()),
-            ('from_date', self.gf('django.db.models.fields.DateField')()),
-            ('to_date', self.gf('django.db.models.fields.DateField')(null=True, blank=True)),
-        ))
-        db.send_create_signal('eff', ['ProjectAssoc'])
+        # Changing field 'Wage.amount_per_hour'
+        db.alter_column('eff_wage', 'amount_per_hour', self.gf('django.db.models.fields.DecimalField')(max_digits=19, decimal_places=2))
 
-        # Adding model 'Project'
-        db.create_table('eff_project', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('billable', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('external_id', self.gf('django.db.models.fields.CharField')(max_length=100, blank=True)),
-            ('client', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eff.Client'])),
-            ('billing_type', self.gf('django.db.models.fields.CharField')(default='HOUR', max_length=8)),
-            ('fixed_price', self.gf('django.db.models.fields.FloatField')(null=True, blank=True)),
-        ))
-        db.send_create_signal('eff', ['Project'])
+        # Changing field 'AvgHours.hours'
+        db.alter_column('eff_avghours', 'hours', self.gf('django.db.models.fields.DecimalField')(max_digits=19, decimal_places=3))
 
-        # Adding model 'Dump'
-        db.create_table('eff_dump', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('date', self.gf('django.db.models.fields.DateField')()),
-            ('creator', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('source', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eff.ExternalSource'], null=True)),
-        ))
-        db.send_create_signal('eff', ['Dump'])
+        # Changing field 'Project.fixed_price'
+        db.alter_column('eff_project', 'fixed_price', self.gf('django.db.models.fields.DecimalField')(null=True, max_digits=19, decimal_places=2))
 
-        # Adding model 'TimeLog'
-        db.create_table('eff_timelog', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('date', self.gf('django.db.models.fields.DateField')()),
-            ('project', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eff.Project'])),
-            ('task_name', self.gf('django.db.models.fields.CharField')(max_length=500, blank=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-            ('hours_booked', self.gf('django.db.models.fields.FloatField')()),
-            ('description', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('dump', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eff.Dump'])),
-        ))
-        db.send_create_signal('eff', ['TimeLog'])
+        # Changing field 'ProjectAssoc.user_rate'
+        db.alter_column('eff_projectassoc', 'user_rate', self.gf('django.db.models.fields.DecimalField')(max_digits=19, decimal_places=2))
 
-        # Adding model 'UserProfile'
-        db.create_table('eff_userprofile', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], unique=True)),
-            ('personal_email', self.gf('django.db.models.fields.EmailField')(max_length=75, blank=True)),
-            ('city', self.gf('django.db.models.fields.CharField')(max_length=100, blank=True)),
-            ('state', self.gf('django.db.models.fields.CharField')(max_length=100, blank=True)),
-            ('country', self.gf('django.db.models.fields.CharField')(max_length=100, blank=True)),
-            ('address', self.gf('django.db.models.fields.CharField')(max_length=80, blank=True)),
-            ('phone_number', self.gf('django.db.models.fields.CharField')(max_length=40, null=True, blank=True)),
-        ))
-        db.send_create_signal('eff', ['UserProfile'])
-
-        # Adding model 'ExternalId'
-        db.create_table('eff_externalid', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('login', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('source', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eff.ExternalSource'], null=True)),
-            ('userprofile', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eff.UserProfile'])),
-        ))
-        db.send_create_signal('eff', ['ExternalId'])
-
-        # Adding model 'ExternalSource'
-        db.create_table('eff_externalsource', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('fetch_url', self.gf('django.db.models.fields.CharField')(max_length=500, blank=True)),
-            ('username', self.gf('django.db.models.fields.CharField')(max_length=50, blank=True)),
-            ('password', self.gf('django.db.models.fields.CharField')(max_length=50, blank=True)),
-            ('csv_directory', self.gf('django.db.models.fields.CharField')(max_length=100, blank=True)),
-            ('csv_filename', self.gf('django.db.models.fields.CharField')(max_length=100, blank=True)),
-            ('type', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
-        ))
-        db.send_create_signal('eff', ['ExternalSource'])
-
-        # Adding model 'Wage'
-        db.create_table('eff_wage', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('date', self.gf('django.db.models.fields.DateField')()),
-            ('amount_per_hour', self.gf('django.db.models.fields.FloatField')()),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-        ))
-        db.send_create_signal('eff', ['Wage'])
-
-        # Adding unique constraint on 'Wage', fields ['user', 'date']
-        db.create_unique('eff_wage', ['user_id', 'date'])
-
-        # Adding model 'Currency'
-        db.create_table('eff_currency', (
-            ('ccy_code', self.gf('django.db.models.fields.CharField')(max_length=3, primary_key=True)),
-            ('ccy_symbol', self.gf('django.db.models.fields.CharField')(max_length=5, null=True, blank=True)),
-        ))
-        db.send_create_signal('eff', ['Currency'])
-
-        # Adding model 'Client'
-        db.create_table('eff_client', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('slug', self.gf('django.db.models.fields.SlugField')(unique=True, max_length=50)),
-            ('address', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('city', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('state', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
-            ('country', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('billing_email_address', self.gf('django.db.models.fields.EmailField')(max_length=75)),
-            ('contact_email_address', self.gf('django.db.models.fields.EmailField')(max_length=75, blank=True)),
-            ('currency', self.gf('django.db.models.fields.related.ForeignKey')(default='USD', to=orm['eff.Currency'])),
-            ('external_source', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eff.ExternalSource'])),
-            ('external_id', self.gf('django.db.models.fields.CharField')(max_length=255)),
-        ))
-        db.send_create_signal('eff', ['Client'])
-
+        # Changing field 'ProjectAssoc.client_rate'
+        db.alter_column('eff_projectassoc', 'client_rate', self.gf('django.db.models.fields.DecimalField')(max_digits=19, decimal_places=2))
     def backwards(self, orm):
-        # Removing unique constraint on 'Wage', fields ['user', 'date']
-        db.delete_unique('eff_wage', ['user_id', 'date'])
 
-        # Removing unique constraint on 'AvgHours', fields ['user', 'date']
-        db.delete_unique('eff_avghours', ['user_id', 'date'])
+        # Changing field 'TimeLog.hours_booked'
+        db.alter_column('eff_timelog', 'hours_booked', self.gf('django.db.models.fields.FloatField')())
 
-        # Deleting model 'AvgHours'
-        db.delete_table('eff_avghours')
+        # Changing field 'Wage.amount_per_hour'
+        db.alter_column('eff_wage', 'amount_per_hour', self.gf('django.db.models.fields.FloatField')())
 
-        # Deleting model 'ProjectAssoc'
-        db.delete_table('eff_projectassoc')
+        # Changing field 'AvgHours.hours'
+        db.alter_column('eff_avghours', 'hours', self.gf('django.db.models.fields.FloatField')())
 
-        # Deleting model 'Project'
-        db.delete_table('eff_project')
+        # Changing field 'Project.fixed_price'
+        db.alter_column('eff_project', 'fixed_price', self.gf('django.db.models.fields.FloatField')(null=True))
 
-        # Deleting model 'Dump'
-        db.delete_table('eff_dump')
+        # Changing field 'ProjectAssoc.user_rate'
+        db.alter_column('eff_projectassoc', 'user_rate', self.gf('django.db.models.fields.FloatField')())
 
-        # Deleting model 'TimeLog'
-        db.delete_table('eff_timelog')
-
-        # Deleting model 'UserProfile'
-        db.delete_table('eff_userprofile')
-
-        # Deleting model 'ExternalId'
-        db.delete_table('eff_externalid')
-
-        # Deleting model 'ExternalSource'
-        db.delete_table('eff_externalsource')
-
-        # Deleting model 'Wage'
-        db.delete_table('eff_wage')
-
-        # Deleting model 'Currency'
-        db.delete_table('eff_currency')
-
-        # Deleting model 'Client'
-        db.delete_table('eff_client')
-
+        # Changing field 'ProjectAssoc.client_rate'
+        db.alter_column('eff_projectassoc', 'client_rate', self.gf('django.db.models.fields.FloatField')())
     models = {
         'auth.group': {
             'Meta': {'object_name': 'Group'},
@@ -217,7 +85,7 @@ class Migration(SchemaMigration):
         'eff.avghours': {
             'Meta': {'ordering': "['date', 'user']", 'unique_together': "(('user', 'date'),)", 'object_name': 'AvgHours'},
             'date': ('django.db.models.fields.DateField', [], {}),
-            'hours': ('django.db.models.fields.FloatField', [], {}),
+            'hours': ('django.db.models.fields.DecimalField', [], {'max_digits': '19', 'decimal_places': '3'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
         },
@@ -272,27 +140,27 @@ class Migration(SchemaMigration):
             'billing_type': ('django.db.models.fields.CharField', [], {'default': "'HOUR'", 'max_length': '8'}),
             'client': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eff.Client']"}),
             'external_id': ('django.db.models.fields.CharField', [], {'max_length': '100', 'blank': 'True'}),
-            'fixed_price': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
+            'fixed_price': ('django.db.models.fields.DecimalField', [], {'null': 'True', 'max_digits': '19', 'decimal_places': '2', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'members': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['eff.UserProfile']", 'through': "orm['eff.ProjectAssoc']", 'symmetrical': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '200'})
         },
         'eff.projectassoc': {
             'Meta': {'object_name': 'ProjectAssoc'},
-            'client_rate': ('django.db.models.fields.FloatField', [], {}),
+            'client_rate': ('django.db.models.fields.DecimalField', [], {'max_digits': '19', 'decimal_places': '2'}),
             'from_date': ('django.db.models.fields.DateField', [], {}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'member': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eff.UserProfile']"}),
             'project': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eff.Project']"}),
             'to_date': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
-            'user_rate': ('django.db.models.fields.FloatField', [], {})
+            'user_rate': ('django.db.models.fields.DecimalField', [], {'max_digits': '19', 'decimal_places': '2'})
         },
         'eff.timelog': {
             'Meta': {'object_name': 'TimeLog'},
             'date': ('django.db.models.fields.DateField', [], {}),
             'description': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'dump': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eff.Dump']"}),
-            'hours_booked': ('django.db.models.fields.FloatField', [], {}),
+            'hours_booked': ('django.db.models.fields.DecimalField', [], {'max_digits': '19', 'decimal_places': '3'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'project': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eff.Project']"}),
             'task_name': ('django.db.models.fields.CharField', [], {'max_length': '500', 'blank': 'True'}),
@@ -311,7 +179,7 @@ class Migration(SchemaMigration):
         },
         'eff.wage': {
             'Meta': {'ordering': "['date', 'user']", 'unique_together': "(('user', 'date'),)", 'object_name': 'Wage'},
-            'amount_per_hour': ('django.db.models.fields.FloatField', [], {}),
+            'amount_per_hour': ('django.db.models.fields.DecimalField', [], {'max_digits': '19', 'decimal_places': '2'}),
             'date': ('django.db.models.fields.DateField', [], {}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})

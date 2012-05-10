@@ -57,6 +57,7 @@ from eff_site.eff.forms import UserAddForm, ClientReportForm, DumpUploadForm
 
 cur_dir = os.path.dirname(os.path.abspath(__file__))
 
+
 # ==================== internals ====================
 
 OVERTIME_FLAG = 'overtime_nav'
@@ -142,7 +143,7 @@ def __process_period(request, is_prev):
 
 def __encFloat(lof, maxval):
     simpleEncoding =  string.uppercase + string.lowercase + string.digits
-    return "".join([simpleEncoding[min(int(round(i*61/maxval,1)), 61)] for i in lof])
+    return "".join([simpleEncoding[min(int(i*61/maxval), 61)] for i in lof])
 
 def __encList(llof, maxval):
     return ",".join([__encFloat(i, maxval) for i in llof])

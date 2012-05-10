@@ -1,5 +1,7 @@
 #!/bin/bash
 # This clean migration folder of an app give in param
+# param $1 - Path to the django project
+# param $2 - Name of the django app
 
 if [ $# -eq 2 ] ; then
     cd $1
