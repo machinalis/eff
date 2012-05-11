@@ -1003,7 +1003,7 @@ def eff_fixed_price_client_reports(request):
                            }
             today = datetime.now()
             reverse_billing = FixedPriceClientReverseBilling(
-                project_data = {'name' : project.name, 'price' : "%.2f" % project.fixed_price},
+                project_data = {'name' : project.name, 'price' : "%" % project.fixed_price},
                 client_data = client_data,
                 today = today.strftime("%A, %d %B %Y"),
                 reference = "%s%s%s" % (client.name.lower(), today.year, today.strftime("%m") )

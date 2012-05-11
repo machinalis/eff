@@ -128,8 +128,9 @@ class UserProfile(models.Model):
         if th == 0:
             raise ValueError, 'No loggable hours'
         else:
-            phw = (wh/th)*100
-            assert type(phw) == Decimal, "phw variable is not a Decimal"
+            # For total values of this, see eff.utils.DataTotal
+            # phw must be a Decimal
+            phw = ((wh/th)*100).quantize(Decimal('.00'))
             return phw
 
     def percentage_billable_hours (self, from_date, to_date):
@@ -138,8 +139,9 @@ class UserProfile(models.Model):
         if th == 0:
             raise ValueError, 'No loggable hours'
         else:
-            pbh = (bh/th)*100
-            assert type(pbh) == Decimal, "pbh variable is not a Decimal"
+            # For total values of this, see eff.utils.DataTotal
+            # pbh must be a Decimal
+            pbh = ((bh/th)*100).quantize(Decimal('.00'))
             return pbh
 
     def _wrap_user(self, *args):

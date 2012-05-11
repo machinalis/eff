@@ -36,6 +36,7 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils.encoding import force_unicode
 import StringIO
+from decimal import Decimal
 
 def previous_week(a_date):
     to_date = a_date - relativedelta(weekday=SA, weeks=1) # last saturday
@@ -160,8 +161,11 @@ class DataTotal (Data):
         self.loggable_hours = lh
         self.billable_hours = bh
         if lh > 0:
-            self.percentage_hours_worked = wh/lh*100, 2
-            self.percentage_billable_hours = bh/lh*100, 2
+            # Total of UserProfile.percentage_hours_worked()
+            self.percentage_hours_worked = (wh/lh*100).quantize(Decimal('.00'))
+
+            # Total of UserProfile.percentage_billable_hours()
+            self.percentage_billable_hours = (bh/lh*100).quantize(Decimal('.00'))
         else:
             self.percentage_hours_worked = 0
             self.percentage_billable_hours = 0
