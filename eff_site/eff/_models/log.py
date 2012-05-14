@@ -387,7 +387,7 @@ class TimeLog(models.Model):
                 for i in project_hours:
                     name = i.user.username
                     user_data = projects_users_hours[p.external_id]
-                    info = (i.date, i.description, round(i.hours_booked,2))
+                    info = (i.date, i.description, i.hours_booked)
 
                     if name in user_data:
                         user_data[name].append(info)

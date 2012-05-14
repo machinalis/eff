@@ -52,19 +52,19 @@ def format_report_data(rep, client, from_date, to_date, detailed=False):
             du = User.objects.get(username=user[0])
             if not detailed:
                 user_d = {'full_name' : du.first_name + " " + du.last_name,
-                          'hs' : "%.2f" % user[1]}
+                          'hs' : str(user[1].quantize(Decimal('.000')))}
                 # Include rates in report
                 if len(user)>2:
-                    user_total = (Decimal(str(user[1])) * Decimal(str(user[2])))
+                    user_total = (user[1] * user[2]).quantize(Decimal('.000'))
                     total_sum += user_total
-                    user_d.update({'rate' : "%.2f" % user[2],
-                                   'total' : "%.2f" % user_total})
+                    user_d.update({'rate' : str(user[2].quantize(Decimal('.00'))),
+                                   'total' : str(user_total)})
                 user_list.append(user_d)
             else:
-                user_list.append({'full_name' : du.first_name + " " + du.last_name, 'hs': "%.2f" % user[1],
+                user_list.append({'full_name' : du.first_name + " " + du.last_name, 'hs': str(user[1].quantize(Decimal('.000'))),
                                   'hs_detail' : map(lambda x: {'date': x[0].strftime("%d/%m/%Y"),
                                                                'desc': x[1] ,
-                                                               'hs': "%.2f" % x[2]}, user[2])})
+                                                               'hs': str(x[2].quantize(Decimal('.000')))}, user[2])})
         report_list.append({'project_name' : p, 'users' : user_list})
     state_and_country = client.state or ''
     if state_and_country.strip(): state_and_country += ' - '
@@ -80,20 +80,25 @@ def format_report_data(rep, client, from_date, to_date, detailed=False):
                                            invoice_period = format_invoice_period(from_date, to_date),
                                            reference = "%s%s%s" % (client.name.lower(), from_date.year, from_date.strftime("%m"), ),
                                            today = datetime.now().strftime("%A, %d %B %Y"),
-                                           total = "%.2f" % total_sum)
+                                           total = str(total_sum))
     return reverse_billing
 
 def format_report_data_user(rep, user, from_date, to_date, detailed=False):
     report_list = map(lambda p: {'project_name' : p[1],
-                                 'user_hs' : isinstance(p[3], Decimal)
+                                 'user_hs' : isinstance(p[3], Decimal) and ("{0}".format(p[3].quantize(Decimal('.000')))) or \
+                                     map(lambda r: {'hs' : str(r[0].quantize(Decimal('.000'))),
+                                                    'rate' : str(r[1].quantize(Decimal('.00'))),
+                                                    'total' : str((r[0]*r[1]).quantize(Decimal('.00')))
+                                                    },
+                                         p[3])
                                  },
                       rep)
 
 
     sub_total = 0.0
     if isinstance(rep[0][3], list):
-        sub_total = sum(map(lambda c: c['total']),
-                 itertools.chain(*map(lambda d: d['user_hs'], report_list)))
+        sub_total = str(sum(map(lambda c: Decimal(c['total']),
+                                     itertools.chain(*map(lambda d: d['user_hs'], report_list)))))
 
     state_and_country = user.get_profile().state.strip() or ''
     if state_and_country and user.get_profile().country.strip():
@@ -109,7 +114,7 @@ def format_report_data_user(rep, user, from_date, to_date, detailed=False):
     if detailed:
         hs_detail = {'hs_detail' : map(lambda x: {'date': x[4].strftime("%d/%m/%Y"),
                                                   'desc': x[2],
-                                                  'hs': "%.2f" % x[3],
+                                                  'hs': str(x[3].quantize(Decimal('.000'))),
                                                   'project' : x[0],
                                                   'task' : x[1]}, rep)}
         user_data.update(hs_detail)
