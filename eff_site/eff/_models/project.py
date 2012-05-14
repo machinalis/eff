@@ -30,6 +30,7 @@ class ProjectAssoc(models.Model):
     class Meta:
         app_label = 'eff'
         verbose_name = 'Project-User Association'
+        ordering = ['project', 'member']
 
     def __unicode__(self):
         return u"%s in project %s, from %s %s with rate of %s and client rate %s " % \
@@ -51,9 +52,10 @@ class Project(models.Model):
 
     class Meta:
         app_label = 'eff'
+        ordering = ['client', 'name']
 
     def __unicode__(self):
-        return u"%s (%s)" % (self.name, self.client.name)
+        return u"%s - %s" % (self.client.name, self.name)
 
     def get_external_source(self):
         return self.client.external_source
