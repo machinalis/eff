@@ -27,6 +27,7 @@ from dump import Dump
 from django.db.models import Q
 from datetime import timedelta
 from customfields import HourField
+from decimal import Decimal
 
 
 class TimeLog(models.Model):
@@ -48,7 +49,7 @@ class TimeLog(models.Model):
             self.hours_booked)
 
     @classmethod
-    def _query(klass, user, from_date, to_date, project=None, billable=False):
+    def _query(cls, user, from_date, to_date, project=None, billable=False):
         kwargs = dict(date__gte=from_date,
                       date__lte=to_date,
                       # it's an instance of UserProfile
@@ -60,11 +61,11 @@ class TimeLog(models.Model):
         if billable:
             kwargs['project__billable'] = True
 
-        return klass.objects.filter(**kwargs)
+        return cls.objects.filter(**kwargs)
 
     @classmethod
-    def hours_per_project(klass, user, from_date, to_date, project=None):
-        qset = klass._query(user, from_date, to_date, project)
+    def hours_per_project(cls, user, from_date, to_date, project=None):
+        qset = cls._query(user, from_date, to_date, project)
         return sum(log.hours_booked for log in qset)
 
     @classmethod
@@ -76,7 +77,7 @@ class TimeLog(models.Model):
                 ).distinct()
 
     @classmethod
-    def _group_by_project(klass, qset):
+    def _group_by_project(cls, qset):
         last = None
         acc = 0
         qset = qset.order_by('project')
@@ -101,89 +102,66 @@ class TimeLog(models.Model):
             yield None
 
     @classmethod
-    def hours_grouped_by_project(klass, user, from_date, to_date):
-        qset = klass._query(user, from_date, to_date, None)
-        return klass._group_by_project(qset)
+    def hours_grouped_by_project(cls, user, from_date, to_date):
+        qset = cls._query(user, from_date, to_date, None)
+        return cls._group_by_project(qset)
 
     @classmethod
-    def hours_grouped_by_project_with_rates(klass, user, from_date, to_date):
-        user_projects = klass.user_projects(user, from_date, to_date)
-        # Discard project associations out of the period
-        projassoc = ProjectAssoc.objects.filter(
-                        Q(member__user__username=user.user.username),
-                        Q(project__in=user_projects),
-                        ~Q(from_date__gt=to_date),
-                        ~Q(to_date__lt=from_date))
+    def hours_grouped_by_project_with_rates(cls, user, from_date, to_date):
+        project_rates = []
+        # Get the projects related to this user in this period
+        user_projects = cls.user_projects(user, from_date, to_date)
 
-        start_dates = projassoc.values('project').annotate(Min("from_date"))
-        projects_dates = {}
-        for m_dates in start_dates:
-            project = Project.objects.get(id=m_dates['project'])
-            d_date = m_dates['from_date__min']
-            if d_date > from_date:
-                d_date = from_date
-            next_dates = projassoc.filter(Q(project=project),
-                                Q(member__user__username=user.user.username),
-                                Q(from_date__gt=d_date) | Q(to_date__gt=d_date)
-                            ).order_by("from_date")
-            f_dates = [pa.from_date for pa in next_dates if pa.from_date > d_date]
-            t_dates = [pa.to_date for pa in next_dates if pa.to_date is not None and pa.to_date > d_date]
-            dates = f_dates + t_dates
-            dates = filter(lambda d: d > from_date and d < to_date, dates)
-            projects_dates[project] = [from_date] + sorted(dates) + [to_date]
+        for project in user_projects:
+            rates = {}
+            # Get the timelogs in this period
+            timelogs = project.timelog_set.filter(
+                Q(user__username=user.user.username),
+                Q(date__gte=from_date),
+                Q(date__lte=to_date)).order_by('date')
 
-        # Get the rates
-        rates = []
-        for project, dates in projects_dates.items():
-            project_rates = []
-            while len(dates) > 0:
-                d1 = dates.pop(0)
-                try:
-                    d2 = dates[0]
-                except IndexError:
-                    args = (Q(member__user__username=user.user.username),
-                            Q(project=project),
-                            Q(from_date__lte=d1),
-                            Q(to_date__isnull=True))
-                else:
-                    args = (Q(member__user__username=user.user.username),
-                            Q(project=project),
-                            Q(from_date__lte=d1),
-                            Q(to_date__gte=d2) |
-                            Q(to_date__isnull=True))
-                assocs = projassoc.filter(*args).order_by("-from_date")
-                if assocs:
-                    if project_rates:
-                        # Two project associations can't overlap
-                        if project_rates[len(project_rates) - 1][1] == d1:
-                            project_rates[len(project_rates) - 1][1] = d1 - timedelta(days=1)
-                    project_rates.append([d1, d2, assocs[0].user_rate])
+            # Discard project associations out of the period
+            projassoc = ProjectAssoc.objects.filter(
+                Q(member__user__username=user.user.username),
+                Q(project=project),
+                ~Q(from_date__gt=to_date),
+                ~Q(to_date__lt=from_date)).order_by('from_date')
 
-            project_rates = join_dups(project_rates)
-            rates.append((project, project_rates))
+            # Get the rates for each project.
+            for period in projassoc.values('from_date', 'to_date',
+                                           'user_rate'):
+                # All timelogs before this period belong to a previous period
+                # or do not belong to any period, so they have rate = 0.
+                for t in timelogs:
+                    if t.date < period['from_date']:
+                        rates[Decimal(0)] = rates.get(Decimal(0), Decimal(0)) +\
+                                            t.hours_booked
+                    else:
+                        break
+                # Discard timelogs already processed
+                timelogs = timelogs.exclude(date__lt=period['from_date'])
+                # All timelogs inside this period have rate equal to the one set
+                # in the projassoc.
+                for t in timelogs:
+                    if t.date <= period['to_date']:
+                        rates[Decimal(period['user_rate'])] = rates.get(
+                            Decimal(period['user_rate']), Decimal(0)) + \
+                            t.hours_booked
+                    else:
+                        break
+                # Discard timelogs already processed
+                timelogs = timelogs.exclude(date__lte=period['to_date'])
 
-        # Generate hours with rates according to project associations periods
-        t_hours = []
-        for project, rate_list in rates:
-            for rate in rate_list:
-                hours = klass.objects.filter(date__gte=rate[0],
-                                             date__lte=rate[1],
-                                             project=project,
-                                             user__username=user.user.username)
-                hours = hours.values('project').annotate(Sum("hours_booked"))
-                if hours:
-                    hours = hours[0]
-                    repeated = filter(lambda d: d['project']==project.id and d['rate']==rate[2],
-                                      t_hours)
-                    if repeated:
-                        i = t_hours.index(repeated[0])
-                        t_hours[i]['hours_booked__sum']+=hours['hours_booked__sum']
-                    elif hours:
-                        hours['rate'] = rate[2]
-                        t_hours.append(hours)
+            # All remaining timelogs have rate = 0
+            timelogs = timelogs.values('project').annotate(Sum("hours_booked"))
+            if timelogs:
+                rates[Decimal(0)] = rates.get(Decimal(0), Decimal(0)) + \
+                                    timelogs[0]['hours_booked__sum']
 
-        return map(lambda d: (Project.objects.get(id=d['project']), '', d['hours_booked__sum'], d['rate']),
-                   t_hours)
+            for rate, hours in rates.items():
+                project_rates.append((project, '', hours, rate))
+
+        return project_rates
 
     @classmethod
     def project_hours(self, project, from_date, to_date):
@@ -205,13 +183,14 @@ class TimeLog(models.Model):
         for m_dates in start_dates:
             user = User.objects.get(id=m_dates['member__user'])
             d_date = m_dates['from_date__min']
-            if d_date > from_date: d_date = from_date
+            if d_date > from_date:
+                d_date = from_date
             next_dates = projassoc.filter(Q(project=project), Q(member__user=user),
                                           Q(from_date__gt=d_date) | Q(to_date__gt=d_date)).order_by("from_date")
             f_dates = [pa.from_date for pa in next_dates if pa.from_date > d_date]
             t_dates = [pa.to_date for pa in next_dates if pa.to_date is not None and pa.to_date > d_date]
             dates = f_dates + t_dates
-            dates = filter(lambda d: d > from_date and d < to_date, dates)
+            dates = filter(lambda d: d >= from_date and d <= to_date, dates)
             users_dates[user] = [from_date] + sorted(dates) + [to_date]
 
 
@@ -249,6 +228,9 @@ class TimeLog(models.Model):
         # Generate hours with rates according to project associations periods
         t_hours = []
         for user, rate_list in rates:
+            t_logs = self.objects.filter(date__gte=from_date,
+                                         date__lte=to_date,
+                                         project=project, user=user)
             for rate in rate_list:
                 hours = self.objects.filter(date__gte=rate[0],
                                             date__lte=rate[1],
@@ -265,6 +247,22 @@ class TimeLog(models.Model):
                     elif hours:
                         hours['rate'] = rate[2]
                         t_hours.append(hours)
+                    t_logs = t_logs.exclude(date__gte=rate[0],
+                                            date__lte=rate[1],
+                                            project=project,
+                                            user=user)
+            # Add all remaining logs (if any) with rate 0
+            t_logs = t_logs.values('user__username').annotate(Sum("hours_booked"))
+            if t_logs:
+                hours = t_logs[0]
+                repeated = filter(lambda d: d['user__username']==user.username and d['rate']==0,
+                                  t_hours)
+                if repeated:
+                    i = t_hours.index(repeated[0])
+                    t_hours[i]['hours_booked__sum']+=hours['hours_booked__sum']
+                elif hours:
+                    hours['rate'] = 0
+                    t_hours.append(hours)
 
         return t_hours
 
@@ -276,7 +274,7 @@ class TimeLog(models.Model):
                                    project=project).order_by('date')
 
     @classmethod
-    def hours_per_project_a_day(klass, user, a_date, project=None):
+    def hours_per_project_a_day(cls, user, a_date, project=None):
         kwargs = dict(date=a_date,
                       user__username=user.user.username)
 
@@ -284,23 +282,23 @@ class TimeLog(models.Model):
             kwargs['project'] = project
 
         return sum(log.hours_booked
-                   for log in klass.objects.filter(**kwargs))
+                   for log in cls.objects.filter(**kwargs))
 
     @classmethod
-    def get_log_hours_per_selected_project(klass, user, project_name, from_date, to_date):
-        return klass.hours_per_project(user, from_date, to_date, project=project_name)
+    def get_log_hours_per_selected_project(cls, user, project_name, from_date, to_date):
+        return cls.hours_per_project(user, from_date, to_date, project=project_name)
 
     # All hours of a CSV project are billable, think Tutos, etc.
 
     #billable_hours = hours_per_project
     @classmethod
-    def billable_hours(klass, user, from_date, to_date, project=None):
-        qset = klass._query(user, from_date, to_date, project, billable=True)
+    def billable_hours(cls, user, from_date, to_date, project=None):
+        qset = cls._query(user, from_date, to_date, project, billable=True)
         return sum(log.hours_booked for log in qset)
 
     #billable_hours_a_day = hours_per_project_a_day
     @classmethod
-    def billable_hours_a_day(klass, user, a_date, project=None):
+    def billable_hours_a_day(cls, user, a_date, project=None):
         kwargs = dict(date=a_date,
                       user__username=user.user.username,
                       project__billable=True)
@@ -309,7 +307,7 @@ class TimeLog(models.Model):
             kwargs['project'] = project
 
         return sum(log.hours_booked
-                   for log in klass.objects.filter(**kwargs))
+                   for log in cls.objects.filter(**kwargs))
 
 
     def _to_tuple(self):
@@ -317,16 +315,16 @@ class TimeLog(models.Model):
                 self.hours_booked, self.date, self.user)
 
     @classmethod
-    def report(klass, user, from_date, to_date, project=None):
+    def report(cls, user, from_date, to_date, project=None):
         if project is not None:
             return (log._to_tuple()
-                    for log in klass.objects.filter(date__gte=from_date,
+                    for log in cls.objects.filter(date__gte=from_date,
                                                     date__lte=to_date,
                                                     user__username=user.user.username,
                                                     project__name=project))
         else:
             return (log._to_tuple()
-                    for log in klass.objects.filter(date__gte=from_date,
+                    for log in cls.objects.filter(date__gte=from_date,
                                                     date__lte=to_date,
                                                     user__username=user.user.username))
 
@@ -354,7 +352,8 @@ class TimeLog(models.Model):
             projects = projects.filter(billing_type='HOUR')
 
             for p in projects:
-                project_hours = TimeLog.project_hours_grouped_by_rate(p, from_date, to_date)
+                project_hours = TimeLog.project_hours_grouped_by_rate(p,
+                                                            from_date, to_date)
                 if project_hours:
                     projects_users_hours[p.external_id]=[]
 

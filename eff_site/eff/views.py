@@ -663,7 +663,8 @@ def eff_report(request, user_name):
                 basic_generated = basic.generate(o=report_data).render()
                 resp = HttpResponse(basic_generated.getvalue(),
                     mimetype='application/vnd.oasis.opendocument.text')
-                cd = 'filename=reverse_billing-%s-%s-logs.odt' % (from_date.year, from_date.strftime("%m"), )
+                cd = 'filename=reverse_billing-%s-%s-logs.odt' % (from_date.year,
+                                                    from_date.strftime("%m"), )
                 resp['Content-Disposition'] = cd
                 return resp
             else:
@@ -795,13 +796,18 @@ def eff_client_report(request, client_slug):
     if 'export' in request.GET:
         if request.GET['export'] == 'odt':
             if 'detailed' in request.GET:
-                basic = Template(source=None, filepath=os.path.join(cur_dir, '../templates/reporte_cliente_detallado.odt'))
-                report_by_project = dict(map(lambda x:x[0], client.report(from_date, to_date, True)))
-                report_data = format_report_data(report_by_project, client, from_date, to_date, True)
+                basic = Template(source=None, filepath=os.path.join(cur_dir,
+                                '../templates/reporte_cliente_detallado.odt'))
+                report_by_project = dict(map(lambda x:x[0],
+                                        client.report(from_date, to_date, True)))
+                report_data = format_report_data(report_by_project, client,
+                                                 from_date, to_date, True)
                 report_data['clientname'] = client.name
                 basic_generated = basic.generate(o=report_data).render()
-                resp = HttpResponse(basic_generated.getvalue(), mimetype='application/vnd.oasis.opendocument.text')
-                cd = 'filename=billing-%s-%s-logs.odt' % (from_date.year, from_date.strftime("%m"), )
+                resp = HttpResponse(basic_generated.getvalue(),
+                            mimetype='application/vnd.oasis.opendocument.text')
+                cd = 'filename=billing-%s-%s-logs.odt' % (from_date.year,
+                                                    from_date.strftime("%m"), )
                 resp['Content-Disposition'] = cd
                 return resp
             else:
