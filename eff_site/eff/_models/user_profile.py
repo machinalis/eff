@@ -24,6 +24,7 @@ from django.core.exceptions import MultipleObjectsReturned
 
 from project import Project, ProjectAssoc
 from log import TimeLog
+from decimal import Decimal
 
 class UserProfile(models.Model):
     user = models.ForeignKey(User, unique=True)
@@ -116,7 +117,10 @@ class UserProfile(models.Model):
 
     def __sum_hours (self, f, a_date):
         # Unify sums to avoid interval ending issues! (and code duplication)
-        hours = round(f(TimeLog, self), 2)
+        hours = f(TimeLog, self)
+        if (type(hours) != Decimal) and (hours == 0):
+            hours = Decimal(hours)
+        assert hours.__class__ == Decimal, "The variable hours is not a Decimal"
         return hours
 
     def percentage_hours_worked(self, from_date, to_date):
@@ -125,7 +129,10 @@ class UserProfile(models.Model):
         if th == 0:
             raise ValueError, 'No loggable hours'
         else:
-            return round((wh/th)*100, 2)
+            # For total values of this, see eff.utils.DataTotal
+            # phw must be a Decimal
+            phw = ((wh/th)*100).quantize(Decimal('.00'))
+            return phw
 
     def percentage_billable_hours (self, from_date, to_date):
         bh = self.billable_hours(from_date, to_date)
@@ -133,7 +140,10 @@ class UserProfile(models.Model):
         if th == 0:
             raise ValueError, 'No loggable hours'
         else:
-            return round((bh/th)*100, 2)
+            # For total values of this, see eff.utils.DataTotal
+            # pbh must be a Decimal
+            pbh = ((bh/th)*100).quantize(Decimal('.00'))
+            return pbh
 
     def _wrap_user(self, *args):
         # I <3 dynamic typing :-D
