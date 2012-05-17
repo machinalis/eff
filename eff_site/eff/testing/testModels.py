@@ -20,8 +20,10 @@
 from django.test import TestCase
 from django.test.client import Client
 from django.contrib.auth.models import User, Permission
+from django.core.exceptions import ValidationError
 
 from eff.models import UserProfile, AvgHours, Project, TimeLog, ExternalSource
+from eff.models import Wage
 from eff.models import Client as EffClient, Dump
 from eff.views import Data
 
@@ -115,7 +117,7 @@ class QueriesTest(HelperTest):
     def test_add_avg_hours_second_insert_error(self):
         ndate = date(2008,05,05)
         self.usr.get_profile().add_avg_hours(ndate, 8)
-        self.assertRaises(ValueError, self.usr.get_profile().add_avg_hours,
+        self.assertRaises(ValidationError, self.usr.get_profile().add_avg_hours,
                         ndate, 6)
 
     def test_add_avg_hours_negative_integer_error(self):
@@ -181,22 +183,35 @@ class PageTest(HelperTest):
         response = self.client.post('/updatehours/test1/')
         self.assertEqual(response.status_code, 302)
 
-    def test_update_hours (self):
-        context = { 'ah_date0' : '2008-05-01', 'amount_of_hours0' : '5'}
-
+    def test_update_hours(self):
+        context = {
+            'wages-TOTAL_FORMS': u'1',
+            'wages-INITIAL_FORMS': u'1',
+            'wages-MAX_NUM_FORMS': u'',
+            'wages-0-date': '2008-05-01',
+            'wages-0-amount_per_hour': '5',
+            'wages-0-id' : ''
+        }
         self.assert_(self.client.login(username='test1', password='test1'))
-
         response = self.client.post('/updatehours/test1/', context)
+
         self.assertEqual(response.status_code, 200)
 
         usr = User.objects.get(username='test1')
-        avg_hour = AvgHours.objects.get(user=usr,date=date(2008,05,01))
+        avg_hour = AvgHours.objects.get(user=usr, date=date(2008, 05, 01))
 
         self.assertEqual(avg_hour.hours, 5)
 
     def test_update_hours_repeated_date (self):
-        context = { 'ah_date0' : '2008-04-29', 'amount_of_hours0' : '5',
-                    'ah_date1' : '2008-04-29', 'amount_of_hours1' : '5'}
+        context = {
+            'wages-TOTAL_FORMS': u'1',
+            'wages-INITIAL_FORMS': u'1',
+            'wages-MAX_NUM_FORMS': u'',
+            'wages-0-date': '2008-04-29',
+            'wages-0-amount_per_hour': '5',
+            'wages-1-date' : '2008-04-29',
+            'wages-1-amount_per_hour' : '5'
+        }
 
         self.assert_(self.client.login(username='test1', password='test1'))
 

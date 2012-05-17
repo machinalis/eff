@@ -20,7 +20,8 @@ from django import forms
 from django.forms import ModelForm
 from django.contrib.auth.models import User
 
-from eff_site.eff.models import UserProfile, Client
+from eff_site.eff.models import UserProfile, Client, AvgHours, Wage
+
 
 class AvgHoursForm(forms.Form):
     ah_date = forms.DateField(required=True)
@@ -52,7 +53,7 @@ class UserProfileForm(ModelForm):
         u.first_name = self.cleaned_data['first_name']
         u.last_name = self.cleaned_data['last_name']
         u.save()
-        profile = super(UserProfileForm, self).save(*args,**kwargs)
+        profile = super(UserProfileForm, self).save(*args, **kwargs)
         return profile
 
     class Meta:
@@ -94,7 +95,7 @@ class UserPassChangeForm(forms.Form):
                                 widget=forms.PasswordInput,
                                 label='Confirm password',
                                 required=False)
-    
+
     def clean(self):
         password2 = self.cleaned_data.get('password2')
         password = self.cleaned_data.get('password')
@@ -117,6 +118,7 @@ class UserAddForm(forms.Form):
     password2 = forms.CharField(max_length=100,
                                 widget=forms.PasswordInput,
                                 label='Password confirmation')
+
     def clean(self):
         password2 = self.cleaned_data.get('password2')
         password = self.cleaned_data.get('password')
@@ -151,3 +153,15 @@ class DumpUploadForm(forms.Form):
         if csv_file.content_type != 'text/csv':
             raise forms.ValidationError('Only CSV files are allowed.')
         return self.cleaned_data
+
+
+class AvgHoursModelForm(forms.ModelForm):
+    class Meta:
+        model = AvgHours
+        widgets = {'user': forms.HiddenInput}
+
+
+class WageModelForm(forms.ModelForm):
+    class Meta:
+        model = Wage
+        widgets = {'user': forms.HiddenInput}

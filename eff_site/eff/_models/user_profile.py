@@ -78,7 +78,8 @@ class UserProfile(models.Model):
 
     def add_avg_hours(self, new_date, hours):
         if hours >= 0:
-            new_avg_hour = AvgHours(date=new_date, hours=hours,user=self.user)
+            new_avg_hour = AvgHours(date=new_date, hours=hours, user=self.user)
+            new_avg_hour.validate_unique()
             new_avg_hour.save()
         else:
             raise ValueError, "Negative value for hours"

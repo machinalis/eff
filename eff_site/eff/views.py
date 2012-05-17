@@ -51,9 +51,12 @@ from eff_site.eff.utils import overtime_period, previous_week, week, month, peri
 from eff_site.eff.utils import Data, DataTotal, debug, ERROR, load_dump, _date_fmts
 from eff_site.eff.utils import validate_header
 
-from eff_site.eff.forms import AvgHoursForm, EffQueryForm, UserProfileForm
+from eff_site.eff.forms import EffQueryForm, UserProfileForm
 from eff_site.eff.forms import UsersChangeProfileForm, UserPassChangeForm
 from eff_site.eff.forms import UserAddForm, ClientReportForm, DumpUploadForm
+from eff_site.eff.forms import WageModelForm, AvgHoursModelForm
+
+from django.forms.models import modelformset_factory
 
 cur_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -249,177 +252,106 @@ def index(request):
 @user_passes_test(__enough_perms, login_url='/accounts/login/')
 def update_hours(request, username):
 
+    WageFormSet = modelformset_factory(Wage, extra=0,
+        form=WageModelForm)
+    AvgHoursFormSet = modelformset_factory(AvgHours, extra=0,
+        form=AvgHoursModelForm)
+
     context = __get_context(request)
     user = User.objects.get(username=username)
     profile = user.get_profile()
 
     context['errors'] = []
+    context['notices'] = []
 
-    data = {}
-
-    data['address'] = profile.address
-    data['phone_number'] = profile.phone_number
-
-    data['first_name'] = profile.user.first_name
-    data['last_name'] = profile.user.last_name
-
-    data['personal_email'] = profile.personal_email
-    data['city'] = profile.city
-    data['state'] = profile.state
-    data['country'] = profile.country
-
+    data = {
+            'address': profile.address,
+            'phone_number': profile.phone_number,
+            'first_name': profile.user.first_name,
+            'last_name': profile.user.last_name,
+            'personal_email': profile.personal_email,
+            'city': profile.city,
+            'state': profile.state,
+            'country': profile.country
+    }
     context['profile_form'] = UserProfileForm(data)
-
-    #######################################
-    # Auxiliary functions which generate forms
-
-    def navghours_form_generator(size):
-        d = dict()
-        for i in xrange(size):
-            d['ah_date%d' % i] = forms.DateField(required=False, label='Fecha:')
-            d['amount_of_hours%d' % i] = forms.DecimalField(required=False,
-                label='Cantidad de horas por día:')
-        return type('NAvgHoursForm', (forms.Form,), d)
-
-    def nwage_form_generator(size):
-        d = dict()
-        for i in xrange(size):
-            d['w_date%d' % i] = forms.DateField(required=False, label='Fecha:')
-            d['amount%d' % i] = forms.DecimalField(required=False,
-                label='Monto por hora:')
-        return type('NWageForm', (forms.Form,), d)
-
-    #######################################
-    # Create form and fill it with data
-
-    def initialize_form(queryset, context, generator,
-                         form_name, arg_name_1, arg_name_2,
-                         attr_name_1, attr_name_2):
-        length = queryset.count()
-        form_class = generator(length + 1)
-
-        data = dict()
-        for i in xrange(length):
-            data[(arg_name_1 + '%d') % i] = getattr(qs[i], attr_name_1)
-            data[(arg_name_2 + '%d') % i] = getattr(qs[i], attr_name_2)
-
-        context[form_name] = form_class(data)
-        context[form_name + '_size'] = length + 1
-        return form_class
-
-    # Constructs form for introducing data on hours worked per day.
-    qs = user.avghours_set.all()
-    NAvgHoursForm = initialize_form(qs, context, navghours_form_generator,
-                                    'avghours_form', 'ah_date',
-                                    'amount_of_hours',
-                                    'date', 'hours')
-
-    # Constructs form for introducing "wage" data.
-    qs = user.wage_set.all()
-    NWageForm = initialize_form(qs, context, nwage_form_generator,
-                                'wage_form', 'w_date', 'amount',
-                                'date', 'amount_per_hour')
 
     if request.method == 'POST':
         post = request.POST.copy()
-
         profile_form = UserProfileForm(post)
-
         if profile_form.is_valid():
-
             profile.address = profile_form.cleaned_data['address']
             if profile_form.cleaned_data['phone_number'] != None:
                 profile.phone_number =\
                     str(profile_form.cleaned_data['phone_number'])
             else:
                 profile.phone_number = ''
-
             profile.personal_email = profile_form.cleaned_data['personal_email']
             profile.city = profile_form.cleaned_data['city']
             profile.state = profile_form.cleaned_data['state']
             profile.country = profile_form.cleaned_data['country']
-
             profile.save()
-
+            # Save user data
             profile.user.first_name = profile_form.cleaned_data['first_name']
             profile.user.last_name = profile_form.cleaned_data['last_name']
             profile.user.save()
-
             context['profile_form'] = profile_form
+            context['notices'].append('Profile update sucessful!')
         else:
             context['errors'].append('Invalid Profile Form')
 
-        wage_form = NWageForm(post)
+        # Wage forms validations
+        wage_form = WageFormSet(post, prefix='wages')
         if wage_form.is_valid():
-            size = context['wage_form_size']
-
-            user.wage_set.all().delete()
-
-            for i in range(0, size):
-                if wage_form.cleaned_data['w_date%d' % i] != None and\
-                    wage_form.cleaned_data['amount%d' % i] != None:
-                    try:
-                        w = Wage(user=user,
-                            date=wage_form.cleaned_data['w_date%d' % i],
-                            amount_per_hour=wage_form.cleaned_data['amount%d' % i])
-                        w.save()
-                        context['notices'] = ['Update sucessful!']
-
-                    except ValueError, e:
-                        context['errors'].append("Error guardando datos de remuneración: %s." % e)
+            instances = wage_form.save(commit=False)
+            for wage in instances:
+                wage.user = user
+                wage.validate_unique()
+                wage.save()
+            context['wage_form'] = wage_form
+            context['notices'].append('Wage update sucessful!')
         else:
-            context['errors'].append('Invalid Wage Form')
+            context['errors'].append('Invalid Wages Form')
+            context['wage_form'] = wage_form
 
-        avghours_form = NAvgHoursForm(post)
+        # Avghours forms validations
+        avghours_form = AvgHoursFormSet(post, prefix='avghours')
         if avghours_form.is_valid():
-            size = context['avghours_form_size']
-
-            user.avghours_set.all().delete()
-
-            # there are at most "size" number of filled fields
-            for i in range(0, size):
-                if avghours_form.cleaned_data['ah_date%d' % i] != None and\
-                    avghours_form.cleaned_data['amount_of_hours%d' % i] != None:
-
-                    new_date = avghours_form.cleaned_data['ah_date%d' % i]
-                    amount_of_hours = avghours_form.cleaned_data['amount_of_hours%d' % i]
-                    try:
-                        user.get_profile().add_avg_hours(new_date,
-                                                         amount_of_hours)
-                    except ValueError, e:
-                        context['errors'].append("Error guardando datos"
-                                                 " de horario.")
+            instances = avghours_form.save(commit=False)
+            for avghours in instances:
+                avghours.user = user
+                avghours.validate_unique()
+                avghours.save()
+            context['avghours_form'] = avghours_form
+            context['notices'].append('AvgHours update sucessful!')
         else:
-            context['errors'].append('Invalid Avg Hours Form')
-
-    else:  # request.method != 'POST'
-        pass
-
-    # Recontrusct the form with new data
-    #
-    profile = user.get_profile()
-    data = dict()
-
-    data['address'] = profile.address
-    data['phone_number'] = profile.phone_number
-
-    data['first_name'] = profile.user.first_name
-    data['last_name'] = profile.user.last_name
-    data['personal_email'] = profile.personal_email
-    data['city'] = profile.city
-    data['state'] = profile.state
-    data['country'] = profile.country
-
-    context['profile_form'] = UserProfileForm(data)
-    # Constructs form for introducing data on hours worked per day.
-    qs = user.avghours_set.all()
-    NAvgHoursForm = initialize_form(qs, context, navghours_form_generator,
-        'avghours_form', 'ah_date', 'amount_of_hours', 'date', 'hours')
-    # Constructs form for introducing "wage" data.
-    qs = user.wage_set.all()
-    NWageForm = initialize_form(qs, context, nwage_form_generator,
-        'wage_form', 'w_date', 'amount', 'date', 'amount_per_hour')
-
+            context['errors'].append('Invalid AvgHours Form')
+            context['avghours_form'] = avghours_form
+    else:
+        # request.method != 'POST'
+        # Recontrusct the form with new data
+        profile = user.get_profile()
+        data = {
+                'address': profile.address,
+                'phone_number': profile.phone_number,
+                'first_name': profile.user.first_name,
+                'last_name': profile.user.last_name,
+                'personal_email': profile.personal_email,
+                'city': profile.city,
+                'state': profile.state,
+                'country': profile.country
+            }
+        context['profile_form'] = UserProfileForm(data)
+        # Constructs form for introducing data on hours worked per day.
+        context['avghours_form'] = AvgHoursFormSet(
+            initial=[{'user': user, 'date': '', 'hours': ''}],
+            queryset=user.avghours_set.all(),
+            prefix='avghours')
+        # Constructs form for introducing "wage" data.
+        context['wage_form'] = WageFormSet(
+            initial=[{'user': user, 'date': '', 'amount_per_hour': ''}],
+            queryset=user.wage_set.all(),
+            prefix='wages')
     return render_to_response('update_hours.html', context)
 
 ## end update_hours view function #############################################
