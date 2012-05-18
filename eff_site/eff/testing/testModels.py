@@ -184,42 +184,52 @@ class PageTest(HelperTest):
         self.assertEqual(response.status_code, 302)
 
     def test_update_hours(self):
-        context = {
-            'wages-TOTAL_FORMS': u'1',
-            'wages-INITIAL_FORMS': u'1',
-            'wages-MAX_NUM_FORMS': u'',
-            'wages-0-date': '2008-05-01',
+        post_data = {
+            'wages-TOTAL_FORMS': '1',
+            'wages-INITIAL_FORMS': '0',
+            'wages-MAX_NUM_FORMS': '',
+
+            'avghours-TOTAL_FORMS': '0',
+            'avghours-INITIAL_FORMS': '0',
+            'avghours-MAX_NUM_FORMS': '',
+
+            'wages-0-date': '2012-05-17',
             'wages-0-amount_per_hour': '5',
-            'wages-0-id' : ''
         }
-        self.assert_(self.client.login(username='test1', password='test1'))
-        response = self.client.post('/updatehours/test1/', context)
+        self.assertTrue(self.client.login(username='test1', password='test1'))
+        response = self.client.post('/updatehours/test1/', post_data)
 
         self.assertEqual(response.status_code, 200)
 
         usr = User.objects.get(username='test1')
-        avg_hour = AvgHours.objects.get(user=usr, date=date(2008, 05, 01))
+        wage = Wage.objects.get(user=usr, date=date(2012, 5, 17))
 
-        self.assertEqual(avg_hour.hours, 5)
+        self.assertEqual(wage.amount_per_hour, 5)
 
-    def test_update_hours_repeated_date (self):
-        context = {
-            'wages-TOTAL_FORMS': u'1',
-            'wages-INITIAL_FORMS': u'1',
-            'wages-MAX_NUM_FORMS': u'',
-            'wages-0-date': '2008-04-29',
-            'wages-0-amount_per_hour': '5',
-            'wages-1-date' : '2008-04-29',
-            'wages-1-amount_per_hour' : '5'
+    def test_update_hours_repeated_date(self):
+        post_data = {
+            'wages-TOTAL_FORMS': '0',
+            'wages-INITIAL_FORMS': '0',
+            'wages-MAX_NUM_FORMS': '',
+
+            'avghours-TOTAL_FORMS': '1',
+            'avghours-INITIAL_FORMS': '0',
+            'avghours-MAX_NUM_FORMS': '',
+
+            'avghours-0-date': '2008-03-31',
+            'avghours-0-hours': '5',
         }
-
-        self.assert_(self.client.login(username='test1', password='test1'))
-
-        response = self.client.post('/updatehours/test1/', context)
+        self.assertTrue(self.client.login(username='test1', password='test1'))
+        response = self.client.get('/updatehours/test1/')
         self.assertEqual(response.status_code, 200)
 
-        self.assert_('Error' in [j for i in response.context[0]['errors']
-                                 for j in i.split()])
+        response = response.client.post('/updatehours/test1/', post_data)
+        self.assertEqual(response.status_code, 200)
+
+        # List of avghours_form's errors
+        list_errors = response.context['avghours_form'].errors
+        self.assertNotEqual([], list_errors)
+
 
     def test_eff_query (self):
         context = { 'from_date' : '2008-04-13', 'to_date' : '2008-04-20'}

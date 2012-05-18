@@ -56,7 +56,7 @@ from eff_site.eff.forms import UsersChangeProfileForm, UserPassChangeForm
 from eff_site.eff.forms import UserAddForm, ClientReportForm, DumpUploadForm
 from eff_site.eff.forms import WageModelForm, AvgHoursModelForm
 
-from django.forms.models import modelformset_factory
+from django.forms.models import inlineformset_factory
 
 cur_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -252,10 +252,10 @@ def index(request):
 @user_passes_test(__enough_perms, login_url='/accounts/login/')
 def update_hours(request, username):
 
-    WageFormSet = modelformset_factory(Wage, extra=0,
-        form=WageModelForm)
-    AvgHoursFormSet = modelformset_factory(AvgHours, extra=0,
-        form=AvgHoursModelForm)
+    WageFormSet = inlineformset_factory(User, Wage, extra=1,
+        form=WageModelForm, can_delete=False)
+    AvgHoursFormSet = inlineformset_factory(User, AvgHours, extra=1,
+        form=AvgHoursModelForm, can_delete=False)
 
     context = __get_context(request)
     user = User.objects.get(username=username)
@@ -301,28 +301,27 @@ def update_hours(request, username):
             context['errors'].append('Invalid Profile Form')
 
         # Wage forms validations
-        wage_form = WageFormSet(post, prefix='wages')
+        wage_form = WageFormSet(post, prefix='wages', instance=user)
         if wage_form.is_valid():
-            instances = wage_form.save(commit=False)
-            for wage in instances:
-                wage.user = user
-                wage.validate_unique()
-                wage.save()
-            context['wage_form'] = wage_form
+            wage_form.save()
+            context['wage_form'] = WageFormSet(
+                instance=user,
+                queryset=user.wage_set.all(),
+                prefix='wages')
             context['notices'].append('Wage update sucessful!')
         else:
             context['errors'].append('Invalid Wages Form')
             context['wage_form'] = wage_form
 
         # Avghours forms validations
-        avghours_form = AvgHoursFormSet(post, prefix='avghours')
+        avghours_form = AvgHoursFormSet(post, prefix='avghours', instance=user)
         if avghours_form.is_valid():
-            instances = avghours_form.save(commit=False)
-            for avghours in instances:
-                avghours.user = user
-                avghours.validate_unique()
-                avghours.save()
-            context['avghours_form'] = avghours_form
+            avghours_form.save()
+            context['avghours_form'] = AvgHoursFormSet(
+                instance=user,
+                queryset=user.avghours_set.all(),
+                prefix='avghours')
+            # you could put the notice in the session
             context['notices'].append('AvgHours update sucessful!')
         else:
             context['errors'].append('Invalid AvgHours Form')
@@ -344,12 +343,12 @@ def update_hours(request, username):
         context['profile_form'] = UserProfileForm(data)
         # Constructs form for introducing data on hours worked per day.
         context['avghours_form'] = AvgHoursFormSet(
-            initial=[{'user': user, 'date': '', 'hours': ''}],
+            instance=user,
             queryset=user.avghours_set.all(),
             prefix='avghours')
         # Constructs form for introducing "wage" data.
         context['wage_form'] = WageFormSet(
-            initial=[{'user': user, 'date': '', 'amount_per_hour': ''}],
+            instance=user,
             queryset=user.wage_set.all(),
             prefix='wages')
     return render_to_response('update_hours.html', context)

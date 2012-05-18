@@ -158,10 +158,10 @@ class DumpUploadForm(forms.Form):
 class AvgHoursModelForm(forms.ModelForm):
     class Meta:
         model = AvgHours
-        widgets = {'user': forms.HiddenInput}
+        exclude = ('user',)
 
 
 class WageModelForm(forms.ModelForm):
     class Meta:
         model = Wage
-        widgets = {'user': forms.HiddenInput}
+        exclude = ('user',)

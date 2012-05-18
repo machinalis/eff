@@ -25,6 +25,15 @@ class AvgHours(models.Model):
     hours = HourField()
     user = models.ForeignKey(User)
 
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if not self.id:
+            try:
+                AvgHours.objects.get(date=self.date, user=self.user)
+                raise ValidationError('Already exists this Date for this User')
+            except AvgHours.DoesNotExist:
+                pass
+
     def __unicode__(self):
         return u'%s - %s : %s ' % (self.user.get_full_name(),
                                  self.date,
