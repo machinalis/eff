@@ -18,82 +18,136 @@
 from django.contrib import admin
 from eff_site.eff.models import Project, Client, ExternalSource, Wage
 from eff_site.eff.models import AvgHours, Currency, ProjectAssoc, TimeLog
-from _models.user_profile import *
+from _models.user_profile import UserProfile
+from django.contrib.auth.models import User
+from _models.dump import Dump
 from eff_site.eff._models.external_source import ExternalId
+from django import forms
+
+
+class TimeLogAdminForm(forms.ModelForm):
+    user = forms.ModelChoiceField(queryset=User.objects.order_by('username'))
+    dump = forms.ModelChoiceField(queryset=Dump.objects.order_by('-date'))
+
+    class Meta:
+        model = TimeLog
+
 
 class TimeLogAdmin(admin.ModelAdmin):
-    list_display = ('date', 'user', 'hours_booked', 'project', 'task_name', 'description')
-    ordering = ('date', 'project__name')
-    search_fields = ('task_name', 'description', 'user__username', 'user__first_name')
+    list_display = ('date', 'user', 'hours_booked', 'project', 'task_name',
+                    'description')
+    ordering = ('date',)
+    search_fields = ('task_name', 'description', 'user__username',
+                     'user__first_name')
+    form = TimeLogAdminForm
+
 
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ('name', 'billable', 'client', 'external_id')
-    ordering = ('name', 'billable',)
+    ordering = ('name',)
     search_fields = ('name',)
 
+
 class ProjectAssocAdmin(admin.ModelAdmin):
-    list_display = ('project', 'member', 'from_date', 'to_date', 'client_rate', 'user_rate', )
-    ordering = ('project', 'member',)
+    list_display = ('project', 'member', 'from_date', 'to_date', 'client_rate',
+                    'user_rate', )
+    ordering = ('member',)
     search_fields = ('project__name', 'member__user__username',
                      'member__user__first_name')
+
 
 class ProjectsInline(admin.TabularInline):
     model = Project
     extra = 1
+
 
 class ClientAdmin(admin.ModelAdmin):
     inlines = [ProjectsInline]
     prepopulated_fields = {'slug': ('name',)}
     search_fields = ('name', 'city', 'country',
                      'currency__ccy_code', 'external_source__name',)
-                     
+    ordering = ('name',)
+
 
 class ExternalSourceAdmin(admin.ModelAdmin):
     list_display = ('name', 'fetch_url', 'csv_directory', 'csv_filename')
     ordering = ('name',)
     #inlines = [ProjectsInline2]
 
+
 class WageInLine(admin.TabularInline):
     model = Wage
+
+
+class WageAdminForm(forms.ModelForm):
+    user = forms.ModelChoiceField(queryset=User.objects.order_by('username'))
+
+    class Meta:
+        model = Wage
+
 
 class WageAdmin(admin.ModelAdmin):
     list_display = ('user', 'date', 'amount_per_hour')
     list_filter = ('date', 'amount_per_hour',)
     ordering = ('date',)
     search_fields = ('user__first_name', 'user__username',)
+    form = WageAdminForm
+
 
 class AvgHoursInLine(admin.TabularInline):
     model = AvgHours
 
+
+class AvgHoursAdminForm(forms.ModelForm):
+    user = forms.ModelChoiceField(queryset=User.objects.order_by('username'))
+
+    class Meta:
+        model = AvgHours
+
+
 class AvgHoursAdmin(admin.ModelAdmin):
     list_display = ('user', 'date', 'hours')
     list_filter = ('date', 'hours',)
-    ordering = ('date',)
+    ordering = ('-date',)
     search_fields = ('user__first_name', 'user__username',)
+    form = AvgHoursAdminForm
+
 
 class UserProfileInLine(admin.TabularInline):
     model = UserProfile
 
+
+class UserProfileAdminForm(forms.ModelForm):
+    user = forms.ModelChoiceField(queryset=User.objects.order_by('username'))
+
+    class Meta:
+        model = UserProfile
+
+
 class UserProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'address', 'phone_number')
-    ordering = ('user',)
+    ordering = ('user__username',)
     search_fields = ('user__first_name', 'user__username',)
+    form = UserProfileAdminForm
+
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ('username', 'first_name', 'last_name')
-    ordering = ('username',)
     inlines = [WageInLine, AvgHoursInLine]
+    ordering = ('username',)
+
 
 class CurrencyAdmin(admin.ModelAdmin):
     pass
 
 class ExternalIdAdmin(admin.ModelAdmin):
-    list_display = ('login', 'source', 'userprofile') 
+    list_display = ('login', 'source', 'userprofile')
     search_fields = ('userprofile__user__username',
                      'userprofile__user__first_name')
+    ordering = ('userprofile',)
 
-
-#admin.site.register(User, UserAdmin)
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(ProjectAssoc, ProjectAssocAdmin)
 admin.site.register(Client, ClientAdmin)
