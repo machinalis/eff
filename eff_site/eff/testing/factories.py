@@ -89,8 +89,8 @@ class ProjectAssocFactory(factory.Factory):
     
     project = factory.SubFactory(ProjectFactory)
     member = factory.SubFactory(UserProfileFactory)
-    client_rate = Decimal(0.53)
-    user_rate = Decimal(0.34)
+    client_rate = Decimal(str(0.53))
+    user_rate = Decimal(str(0.34))
     from_date = date.today() - timedelta(days=30)
     to_date = date.today()
 

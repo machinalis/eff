@@ -34,6 +34,7 @@ def suite():
     suite.addTest(testUtils.suite())
     suite.addTest(testModels.suite())
     suite.addTest(testAdmin.suite())
+    suite.addTest(testReports.suite())
     suite.addTest(doctest.DocTestSuite(jira))
     return suite
 
