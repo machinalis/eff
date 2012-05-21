@@ -20,17 +20,89 @@
 from django.test import TestCase
 from unittest import TestSuite, makeSuite
 
-import factories
+from factories import *
+from decimal import Decimal
 
 
 class HelperTest(TestCase):
 
     def setUp(self):
 
-        # Create 2 users and 1 client.
-        UserFactory(username='user1')
-        UserFactory(username='user2')
-        ClientFactory(name='client1')
+        # Create 2 user profiles and 1 client.
+        user1 = UserProfileFactory(username='user1')
+        user2 = UserProfileFactory(username='user2')
+        client = ClientFactory(name='client1')
+
+        # Create 2 projects
+        project1 = ProjectFactory(client=client)
+        project2 = ProjectFactory(client=client)
+
+        # Add projectassocs
+        ProjectAssocFactory(project=project2, member=user1,
+                            client_rate = Decimal('0.00'),
+                            user_rate = Decimal('0.19'),
+                            from_date = date.(2010, 9, 16),
+                            to_date = date.(2010, 09, 30))
+        ProjectAssocFactory(project=project1, member=user1,
+                            client_rate = Decimal('0.80'),
+                            user_rate = Decimal('0.50'),
+                            from_date = date.(2010, 10, 01),
+                            to_date = date.(2010, 12, 03))
+        ProjectAssocFactory(project=project1, member=user1,
+                            client_rate = Decimal('0.00'),
+                            user_rate = Decimal('0.00'),
+                            from_date = date.(2012, 01, 01),
+                            to_date = date.(2012, 05, 08))
+        ProjectAssocFactory(project=project2, member=user2,
+                            client_rate = Decimal('0.00'),
+                            user_rate = Decimal('0.19'),
+                            from_date = date.(2010, 09, 16),
+                            to_date = date.(2010, 09, 30))
+        ProjectAssocFactory(project=project1, member=user2,
+                            client_rate = Decimal('0.60'),
+                            user_rate = Decimal('0.19'),
+                            from_date = date.(2010, 10, 01),
+                            to_date = date.(2010, 12, 03))
+
+        # Add logs for users
+        # 2 logs not contained by any projectassoc period.
+        TimeLogFactory(user=user1, date=date(2012, 05, 10),
+                       hours_booked = Decimal('10.0'), project=project1)
+        TimeLogFactory(user=user1, date=date(2012, 05, 09),
+                       hours_booked = Decimal('5.0'), project=project1)
+        # A log in the limit (to_date) of a projectassoc
+        TimeLogFactory(user=user1, date=date(2010, 09, 30),
+                       hours_booked = Decimal('5.0'), project=project1)
+        # More logs for each projectassoc period.
+        # user1 hours: 45*8, user2 hours: 45*3.5
+        for d in range(45):
+            TimeLogFactory(user=user1, date=date(2010, 10, 01) + \
+                           timedelta(days=d),
+                           hours_booked = Decimal('8.0'), project=project1)
+            TimeLogFactory(user=user1, date=date(2010, 10, 01) + \
+                           timedelta(days=d),
+                           hours_booked = Decimal('3.5'), project=project1)
+        # hours: 8*5
+        for d in range(8):
+            TimeLogFactory(user=user1, date=date(2012, 01, 01) + \
+                           timedelta(days=d),
+                           hours_booked = Decimal('5.0'), project=project1)
+        # user1 hours: 15*4.5, user2 hours: 15*6.5
+        for d in range(15):
+            TimeLogFactory(user=user1, date=date(2010, 9, 16) + \
+                           timedelta(days=d),
+                           hours_booked = Decimal('4.5'), project=project2)
+            TimeLogFactory(user=user2, date=date(2010, 9, 16) + \
+                           timedelta(days=d),
+                           hours_booked = Decimal('6.5'), project=project2)
+            
+        
+#class ClientReport(HelperTest):
+
+class UserReport(HelperTest):
+    
+    def test_(self):
+        # función a teastear: get_summary_per_project
 
 
 def suite():

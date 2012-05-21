@@ -179,6 +179,8 @@ def create_profile_for_user(sender, instance, signal, *args, **kwargs):
         profile = UserProfile( user = instance )
         profile.save()
 
-signals.post_save.connect(create_profile_for_user, sender=User)
+signals.post_save.connect(
+    create_profile_for_user, sender=User,
+    dispatch_uid='eff._models.user_profile.create_profile_for_user')
 
 #-------------------------------------------------------------------------------

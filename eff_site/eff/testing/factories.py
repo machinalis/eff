@@ -47,7 +47,7 @@ class AdminFactory(factory.Factory):
 class UserProfileFactory(factory.Factory):
     FACTORY_FOR = UserProfile
     
-    user = factory.SubFactory(UserFactory, username='i')
+    user = factory.SubFactory(UserFactory)
     # projects = ManyToManyField
 
 class CurrencyFactory(factory.Factory):
@@ -69,7 +69,7 @@ class ClientFactory(factory.Factory):
     city = factory.Sequence(lambda n: 'cityTest%s' % n)
     country = factory.Sequence(lambda n: 'countryTest%s' % n)
     billing_email_address = factory.LazyAttribute(lambda o: '%s@test.com' % o.slug)
-    currency = factory.SubFactory(CurrencyFactory)
+    # currency = factory.SubFactory(CurrencyFactory)
     external_source = factory.SubFactory(ExternalSourceFactory)
     # external_id = a string
 
