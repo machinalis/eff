@@ -17,13 +17,15 @@ if __name__ == "__main__":
     api_path = os.path.join(project_path, "docs", "api")
     if not os.path.exists(api_path):
         os.makedirs(api_path)
-    files = [os.path.join(project_path, 'settings.py'), os.path.join(project_path, 'urls.py')]
+    files = [os.path.join(project_path, 'settings.py'),
+        os.path.join(project_path, 'urls.py')]
     for m in MODULES:
         mp = os.path.join(project_path, m)
         for dirpath, dirnames, filenames in os.walk(mp):
             files.extend(["'%s'" % os.path.join(dirpath, f) for f in filenames if f.endswith(".py")])
     files_joined = " ".join(files)
-    cmd = "epydoc --name=Eff --config='%s' --output='%s' %s" % (config_path, api_path, files_joined, )
+    cmd = "epydoc --name=Eff --config='%s' --output='%s' %s" % (config_path,
+        api_path, files_joined, )
     output = commands.getoutput(cmd)
     for line in output.split("\n"):
         if line.startswith("| "):

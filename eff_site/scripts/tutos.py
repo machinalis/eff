@@ -58,7 +58,7 @@ class Tutos(object):
         browser.getForm(action=showteamhours_url).submit()
 
         self._from_date = start_date_value
-        self._to_date  = end_date_value
+        self._to_date = end_date_value
         self._data = browser.contents
 
     def get_dates(self):
@@ -112,6 +112,7 @@ class Tutos(object):
 
         for row in self._process_data():
             csv_writer.writerow(row)
+
 
 def fetch_all(source, client, author, from_date, to_date, _file):
 

@@ -17,7 +17,7 @@
 
 from django.db import models
 from django.contrib.auth.models import User
-from datetime import date, timedelta, datetime
+from datetime import timedelta, datetime
 from avg_hours import AvgHours
 from django.db.models import permalink, signals
 from django.core.exceptions import MultipleObjectsReturned
@@ -25,6 +25,7 @@ from django.core.exceptions import MultipleObjectsReturned
 from project import Project, ProjectAssoc
 from log import TimeLog
 from decimal import Decimal
+
 
 class UserProfile(models.Model):
     user = models.ForeignKey(User, unique=True)
@@ -37,7 +38,8 @@ class UserProfile(models.Model):
     address = models.CharField(max_length=80, blank=True)
     phone_number = models.CharField(max_length=40, blank=True, null=True)
 
-    projects = models.ManyToManyField(Project, verbose_name=u'Projects', through=ProjectAssoc)
+    projects = models.ManyToManyField(Project, verbose_name=u'Projects',
+        through=ProjectAssoc)
 
     class Meta:
         app_label = 'eff'
@@ -52,7 +54,8 @@ class UserProfile(models.Model):
 
     def get_avg_hours_for(self, ndate):
         try:
-            hours = self.user.avghours_set.filter(date__lte=ndate).latest().hours
+            hours = self.user.avghours_set.filter(
+                date__lte=ndate).latest().hours
         except AvgHours.DoesNotExist:
             hours = 0
         return hours
@@ -104,19 +107,23 @@ class UserProfile(models.Model):
                 return True
             to_date -= delta
 
-    def get_worked_hours (self, from_date, to_date):
-        return self.__sum_hours(lambda i, p: i.hours_per_project(p, from_date, to_date), to_date)
+    def get_worked_hours(self, from_date, to_date):
+        return self.__sum_hours(
+            lambda i, p: i.hours_per_project(p, from_date, to_date), to_date)
 
-    def get_worked_hours_per_day (self, a_date):
-        return self.__sum_hours(lambda i, p: i.hours_per_project_a_day(p, a_date), a_date)
+    def get_worked_hours_per_day(self, a_date):
+        return self.__sum_hours(
+            lambda i, p: i.hours_per_project_a_day(p, a_date), a_date)
 
-    def billable_hours (self, from_date, to_date):
-        return self.__sum_hours(lambda i, p: i.billable_hours(p, from_date, to_date), to_date)
+    def billable_hours(self, from_date, to_date):
+        return self.__sum_hours(
+            lambda i, p: i.billable_hours(p, from_date, to_date), to_date)
 
-    def billable_hours_a_day (self, a_date):
-        return self.__sum_hours(lambda i, p: i.billable_hours_a_day(p, a_date), a_date)
+    def billable_hours_a_day(self, a_date):
+        return self.__sum_hours(
+            lambda i, p: i.billable_hours_a_day(p, a_date), a_date)
 
-    def __sum_hours (self, f, a_date):
+    def __sum_hours(self, f, a_date):
         # Unify sums to avoid interval ending issues! (and code duplication)
         hours = f(TimeLog, self)
         if (type(hours) != Decimal) and (hours == 0):
@@ -132,10 +139,10 @@ class UserProfile(models.Model):
         else:
             # For total values of this, see eff.utils.DataTotal
             # phw must be a Decimal
-            phw = ((wh/th)*100).quantize(Decimal('.00'))
+            phw = ((wh / th) * 100).quantize(Decimal('.00'))
             return phw
 
-    def percentage_billable_hours (self, from_date, to_date):
+    def percentage_billable_hours(self, from_date, to_date):
         bh = self.billable_hours(from_date, to_date)
         th = self.num_loggable_hours(from_date, to_date)
         if th == 0:
@@ -143,7 +150,7 @@ class UserProfile(models.Model):
         else:
             # For total values of this, see eff.utils.DataTotal
             # pbh must be a Decimal
-            pbh = ((bh/th)*100).quantize(Decimal('.00'))
+            pbh = ((bh / th) * 100).quantize(Decimal('.00'))
             return pbh
 
     def _wrap_user(self, *args):
@@ -152,17 +159,16 @@ class UserProfile(models.Model):
         self.user.login = self.user.username
         return self.user
 
-
     def report(self, from_date, to_date, project=None):
         report = list(TimeLog.report(self, from_date, to_date, project))
 
         #Ordenamos por fecha
-        report.sort(lambda x,y: cmp(datetime(x[4].year, x[4].month, x[4].day),\
-                                        datetime(y[4].year, y[4].month, y[4].day)))
+        report.sort(lambda x, y: cmp(datetime(x[4].year, x[4].month, x[4].day),\
+                                    datetime(y[4].year, y[4].month, y[4].day)))
         return report
 
     def get_absolute_url(self):
-        return ('profiles_profile_detail', (), { 'username': self.user.username })
+        return ('profiles_profile_detail', (), {'username': self.user.username})
     get_absolute_url = permalink(get_absolute_url)
 
     def projects(self, from_date, to_date):
@@ -177,7 +183,7 @@ def create_profile_for_user(sender, instance, signal, *args, **kwargs):
         UserProfile.objects.get(user=instance)
     except UserProfile.DoesNotExist, e:
         #si no existe, creamos el profile para el usuario
-        profile = UserProfile( user = instance )
+        profile = UserProfile(user=instance)
         profile.save()
 
 signals.post_save.connect(create_profile_for_user, sender=User)

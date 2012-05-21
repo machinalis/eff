@@ -20,9 +20,8 @@
 from django.test import TestCase
 from django.test.client import Client
 from pyquery import PyQuery
-from django.core.urlresolvers import reverse, NoReverseMatch
+from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
-from django.db.models import get_app, get_models
 from unittest import TestSuite, makeSuite
 from eff.models import Project, Client as EffClient, ExternalSource
 from django.template.defaultfilters import slugify

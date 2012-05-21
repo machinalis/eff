@@ -19,15 +19,16 @@ import time
 from datetime import date
 
 from django import template
-from eff_site.eff._models.user_profile import UserProfile
 #from eff_site.settings import DATE_FORMAT
 
 register = template.Library()
+
 
 def aux_mk_time(date_string):
     _date = time.mktime(time.strptime(date_string, '%Y-%m-%d'))
     _date = date.fromtimestamp(_date)
     return _date
+
 
 @register.filter(name='totalhours')
 def totalhours(profile, date_string):
@@ -35,23 +36,27 @@ def totalhours(profile, date_string):
     #There was an inconditional try/except with code in the except having
     #Broken code, I therefore assumed it was not required
     #It had a comment saying that the filters should fail silently
-    return profile.num_loggable_hours(aux_mk_time(dates[0]), aux_mk_time(dates[1]))
+    return profile.num_loggable_hours(aux_mk_time(dates[0]),
+        aux_mk_time(dates[1]))
+
 
 @register.filter(name='workedhours')
 def workedhours(profile, date_string):
     dates = date_string.split()
     #Same as totalhours
-    return profile.get_worked_hours(aux_mk_time(dates[0]), aux_mk_time(dates[1]))
+    return profile.get_worked_hours(aux_mk_time(dates[0]),
+        aux_mk_time(dates[1]))
 
 
 @register.filter(name='percentage')
 def percentage(profile, date_string):
     dates = date_string.split()
     #Same as totalhours
-    return profile.percentage_hours_worked(aux_mk_time(dates[0]), aux_mk_time(dates[1]))
+    return profile.percentage_hours_worked(aux_mk_time(dates[0]),
+        aux_mk_time(dates[1]))
+
 
 @register.filter(name='odd')
 def odd(num):
     #Same as totalhours
     return int(num) % 2
-

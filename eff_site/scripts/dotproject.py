@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Eff.  If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime
 import MySQLdb
 
 from eff_site.eff.utils import EffCsvWriter
@@ -47,22 +46,23 @@ class DotProject(object):
         # at least in dates, if Y is Year-month-day-00:00,
         # then it will not pick up logs that were made on
         # _day_
-        to_date = to_date.replace(hour=23,minute=59,second=59,microsecond=0)
+        to_date = to_date.replace(hour=23, minute=59, second=59, microsecond=0)
         from_date = str(from_date)
         to_date = str(to_date)
-        cls._cursor.execute("SELECT task_log_date, project_short_name, "
-                            "users.user_username, task_log_hours, "
-                            "task_log_name, task_log_description "
-                            "FROM task_log, users, tasks, projects, companies "
-                            "WHERE task_log_date BETWEEN %s AND %s "
-                            "AND task_log.task_log_creator=users.user_id "
-                            "AND tasks.task_project=projects.project_id "
-                            "AND tasks.task_id = task_log.task_log_task "
-                            "AND companies.company_name=%s "
-                            "AND companies.company_id = projects.project_company",
-                            (from_date, to_date, client))
+        cls._cursor.execute(
+            "SELECT task_log_date, project_short_name, "
+            "users.user_username, task_log_hours, "
+            "task_log_name, task_log_description "
+            "FROM task_log, users, tasks, projects, companies "
+            "WHERE task_log_date BETWEEN %s AND %s "
+            "AND task_log.task_log_creator=users.user_id "
+            "AND tasks.task_project=projects.project_id "
+            "AND tasks.task_id = task_log.task_log_task "
+            "AND companies.company_name=%s "
+            "AND companies.company_id = projects.project_company",
+            (from_date, to_date, client))
         return cls._cursor.fetchall()
-    
+
 
 class DotProjectSource(DotProject):
     """
@@ -90,4 +90,3 @@ def fetch_all(source, client, author, from_date, to_date, _file):
                                            from_date,
                                            to_date):
         writer.write(row)
-

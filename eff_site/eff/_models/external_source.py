@@ -30,6 +30,7 @@ class ExternalId(models.Model):
     def __unicode__(self):
         return u'%s' % (self.login,)
 
+
 class ExternalSource(models.Model):
     name = models.CharField(max_length=200)
     fetch_url = models.CharField(max_length=500, blank=True)
