@@ -36,6 +36,7 @@ class UserFactory(factory.Factory):
     first_name = factory.LazyAttribute(lambda o: '%s' % o.username)
     last_name = factory.LazyAttribute(lambda o: '%s' % o.username)
 
+
 class AdminFactory(factory.Factory):
     FACTORY_FOR = User
 
@@ -44,34 +45,40 @@ class AdminFactory(factory.Factory):
     password = 'admin'
     is_superuser = True
 
+
 class UserProfileFactory(factory.Factory):
     FACTORY_FOR = UserProfile
-    
+
     user = factory.SubFactory(UserFactory)
     # projects = ManyToManyField
 
+
 class CurrencyFactory(factory.Factory):
     FACTORY_FOR = Currency
-    
+
     ccy_code = 'USD'
+
 
 class ExternalSourceFactory(factory.Factory):
     FACTORY_FOR = ExternalSource
 
     name = factory.Sequence(lambda n: 'source%s' % n)
 
+
 class ClientFactory(factory.Factory):
     FACTORY_FOR = Client
-    
+
     name = factory.Sequence(lambda n: 'Fake Client %s' % n)
     slug = factory.LazyAttribute(lambda o: slugify(o.name))
     address = factory.Sequence(lambda n: 'stTest%s' % n)
     city = factory.Sequence(lambda n: 'cityTest%s' % n)
     country = factory.Sequence(lambda n: 'countryTest%s' % n)
-    billing_email_address = factory.LazyAttribute(lambda o: '%s@test.com' % o.slug)
+    billing_email_address = factory.LazyAttribute(lambda o: '%s@test.com' \
+                                                  % o.slug)
     # currency = factory.SubFactory(CurrencyFactory)
     external_source = factory.SubFactory(ExternalSourceFactory)
     # external_id = a string
+
 
 class ProjectFactory(factory.Factory):
     FACTORY_FOR = Project
@@ -84,9 +91,10 @@ class ProjectFactory(factory.Factory):
     # external_id = a string
     # members = ManyToManyField
 
+
 class ProjectAssocFactory(factory.Factory):
     FACTORY_FOR = ProjectAssoc
-    
+
     project = factory.SubFactory(ProjectFactory)
     member = factory.SubFactory(UserProfileFactory)
     client_rate = Decimal(str(0.53))
@@ -94,22 +102,22 @@ class ProjectAssocFactory(factory.Factory):
     from_date = date.today() - timedelta(days=30)
     to_date = date.today()
 
+
 class DumpFactory(factory.Factory):
     FACTORY_FOR = Dump
 
-    date = date.today() - timedelta(days = random.choice(range(366)))
+    date = date.today() - timedelta(days=random.choice(range(366)))
     creator = 'test123'
     source = factory.SubFactory(ExternalSourceFactory)
+
 
 class TimeLogFactory(factory.Factory):
     FACTORY_FOR = TimeLog
 
-    date = date.today() - timedelta(days = random.choice(range(366)))
+    date = date.today() - timedelta(days=random.choice(range(366)))
     project = factory.SubFactory(ProjectFactory)
     task_name = factory.Sequence(lambda n: 'Task%s' % n)
     user = factory.SubFactory(UserFactory)
-    hours_booked = random.choice([Decimal(str(i) + '.' + str(d))
-                                  for d in range(1, 1000, 3)
-                                  for i in range(10)])
+    hours_booked = Decimal('8.000')
     description = factory.Sequence(lambda n: 'Log %s' % n)
     dump = factory.SubFactory(DumpFactory)
