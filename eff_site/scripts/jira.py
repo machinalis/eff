@@ -17,7 +17,6 @@
 # along with Eff.  If not, see <http://www.gnu.org/licenses/>.
 
 import csv
-import sys
 
 from StringIO import StringIO
 from datetime import datetime
@@ -25,10 +24,9 @@ from datetime import datetime
 import mechanize
 
 from dateutil.relativedelta import relativedelta
-import calendar
+
 
 class Jira(object):
-
     csv_header = ('timetrack_id','timetrack_parentid','timetrack_volume',
                   'timetrack_start','timetrack_end','timetrack_description',
                   'timetrack_cph','timetrack_vtime','timetrack_creation',
@@ -85,7 +83,6 @@ class Jira(object):
 
         return (startdate, enddate)
 
-
     def fetch_data(self):
         url, username, password = self._url, self._username, self._password
 
@@ -100,7 +97,6 @@ class Jira(object):
 
         from_date = startdate.strftime("%Y%m%d%H%M%S")
         to_date = enddate.strftime("%Y%m%d%H%M%S")
-
 
         # values accepted are for example:
         # 20060101000000
@@ -153,6 +149,7 @@ class Jira(object):
 
         for row in self._process_data():
             csv_writer.writerow(row)
+
 
 def fetch_all(source, client, author, from_date, to_date, _file):
     from eff_site.eff.utils import EffCsvWriter

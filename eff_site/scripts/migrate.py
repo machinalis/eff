@@ -19,7 +19,8 @@
 
 """ Creates the slug column for Client model and slugifies de client name
 """
-import os, sys
+import os
+import sys
 import sqlite3
 
 from django.template.defaultfilters import slugify
@@ -30,8 +31,9 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'eff_site.settings'
 from django.conf import settings
 
 if not os.path.isfile(settings.DATABASE_NAME):
-    db_name = os.path.join(os.path.dirname(__file__), '..', settings.DATABASE_NAME)
-    settings.DATABASE_NAME=db_name
+    db_name = os.path.join(os.path.dirname(__file__), '..',
+        settings.DATABASE_NAME)
+    settings.DATABASE_NAME = db_name
 else:
     db_name = settings.DATABASE_NAME
 
@@ -43,7 +45,7 @@ try:
     conn.execute('ALTER TABLE eff_client ADD COLUMN "slug" varchar(50)')
     from eff_site.eff.models import Client
     for cli in Client.objects.all():
-        cli.slug=slugify(cli.name)
+        cli.slug = slugify(cli.name)
         cli.save()
     print "DONE",
 except sqlite3.OperationalError, message:

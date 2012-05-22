@@ -34,7 +34,8 @@ class ProjectAssoc(models.Model):
 
     def __unicode__(self):
         return u"%s in project %s, from %s %s with rate of %s and client rate %s " % \
-            (self.member, self.project, self.from_date, self.to_date and ("to %s" % self.to_date) or "until today",
+            (self.member, self.project, self.from_date, self.to_date and \
+            ("to %s" % self.to_date) or "until today",
              self.user_rate, self.client_rate, )
 
 
@@ -43,11 +44,13 @@ class Project(models.Model):
     billable = models.BooleanField(default=False)
     external_id = models.CharField(max_length=100, blank=True)
     client = models.ForeignKey('Client')
-    members = models.ManyToManyField('UserProfile', verbose_name=u'Members', through=ProjectAssoc)
+    members = models.ManyToManyField('UserProfile', verbose_name=u'Members',
+        through=ProjectAssoc)
 
-    billing_type = models.CharField(max_length=8,
-                                    choices=(('FIXED','Fixed Price'),('HOUR', 'Per Hour')),
-                                    default='HOUR')
+    billing_type = models.CharField(
+        max_length=8,
+        choices=(('FIXED', 'Fixed Price'), ('HOUR', 'Per Hour')),
+        default='HOUR')
     fixed_price = MoneyField(blank=True, null=True)
 
     class Meta:
@@ -59,4 +62,3 @@ class Project(models.Model):
 
     def get_external_source(self):
         return self.client.external_source
-
