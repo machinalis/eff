@@ -27,7 +27,7 @@ from eff_site.scripts import jira
 
 from testing import testUtils
 from testing import testModels
-from testing import testAdmin
+from testing import testAdmin, testReports
 
 def suite():
     suite = unittest.TestSuite()
