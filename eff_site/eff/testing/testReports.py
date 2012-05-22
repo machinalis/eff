@@ -16,97 +16,197 @@
 # You should have received a copy of the GNU General Public License
 # along with Eff.  If not, see <http://www.gnu.org/licenses/>.
 
-
+from django.contrib.auth.models import User
+from django.db.models import signals
 from django.test import TestCase
 from unittest import TestSuite, makeSuite
 
 from factories import *
 from decimal import Decimal
+from eff.models import TimeLog
 
 
 class HelperTest(TestCase):
 
     def setUp(self):
 
+        # Disconnect signals so there's no problem to use UserProfileFactory
+        signals.post_save.disconnect(
+            dispatch_uid='eff._models.user_profile.create_profile_for_user',
+            sender=User)
+
+        # Create a external source
+        self.ext_src = ExternalSourceFactory(name='DotprojectMachinalis')
+
+        #Create a dump
+        DumpFactory(date=date(2012, 05, 29), source=self.ext_src)
+
         # Create 2 user profiles and 1 client.
-        user1 = UserProfileFactory(username='user1')
-        user2 = UserProfileFactory(username='user2')
-        client = ClientFactory(name='client1')
+        self.user1 = UserProfileFactory()
+        self.user2 = UserProfileFactory()
+        client = ClientFactory(name='Yet Another Client',
+                               external_source=self.ext_src)
 
         # Create 2 projects
-        project1 = ProjectFactory(client=client)
-        project2 = ProjectFactory(client=client)
+        project1 = ProjectFactory(name='Fake Project 42', client=client)
+        project2 = ProjectFactory(name='Fake Project 10', client=client)
 
         # Add projectassocs
-        ProjectAssocFactory(project=project2, member=user1,
-                            client_rate = Decimal('0.00'),
-                            user_rate = Decimal('0.19'),
-                            from_date = date.(2010, 9, 16),
-                            to_date = date.(2010, 09, 30))
-        ProjectAssocFactory(project=project1, member=user1,
-                            client_rate = Decimal('0.80'),
-                            user_rate = Decimal('0.50'),
-                            from_date = date.(2010, 10, 01),
-                            to_date = date.(2010, 12, 03))
-        ProjectAssocFactory(project=project1, member=user1,
-                            client_rate = Decimal('0.00'),
-                            user_rate = Decimal('0.00'),
-                            from_date = date.(2012, 01, 01),
-                            to_date = date.(2012, 05, 08))
-        ProjectAssocFactory(project=project2, member=user2,
-                            client_rate = Decimal('0.00'),
-                            user_rate = Decimal('0.19'),
-                            from_date = date.(2010, 09, 16),
-                            to_date = date.(2010, 09, 30))
-        ProjectAssocFactory(project=project1, member=user2,
-                            client_rate = Decimal('0.60'),
-                            user_rate = Decimal('0.19'),
-                            from_date = date.(2010, 10, 01),
-                            to_date = date.(2010, 12, 03))
+        ProjectAssocFactory(project=project2, member=self.user1,
+                            client_rate=Decimal('0.00'),
+                            user_rate=Decimal('0.19'),
+                            from_date=date(2010, 9, 16),
+                            to_date=date(2010, 9, 30))
+        ProjectAssocFactory(project=project1, member=self.user1,
+                            client_rate=Decimal('0.80'),
+                            user_rate=Decimal('0.50'),
+                            from_date=date(2010, 10, 01),
+                            to_date=date(2010, 12, 03))
+        ProjectAssocFactory(project=project1, member=self.user1,
+                            client_rate=Decimal('0.00'),
+                            user_rate=Decimal('0.00'),
+                            from_date=date(2012, 01, 01),
+                            to_date=date(2012, 05, 8))
+        ProjectAssocFactory(project=project2, member=self.user2,
+                            client_rate=Decimal('0.00'),
+                            user_rate=Decimal('0.19'),
+                            from_date=date(2010, 9, 16),
+                            to_date=date(2010, 9, 30))
+        ProjectAssocFactory(project=project1, member=self.user2,
+                            client_rate=Decimal('0.60'),
+                            user_rate=Decimal('0.19'),
+                            from_date=date(2010, 10, 01),
+                            to_date=date(2010, 12, 03))
 
         # Add logs for users
         # 2 logs not contained by any projectassoc period.
-        TimeLogFactory(user=user1, date=date(2012, 05, 10),
-                       hours_booked = Decimal('10.0'), project=project1)
-        TimeLogFactory(user=user1, date=date(2012, 05, 09),
-                       hours_booked = Decimal('5.0'), project=project1)
+        TimeLogFactory(user=self.user1.user, date=date(2012, 05, 10),
+                       hours_booked=Decimal('15.0'), project=project1)
+        TimeLogFactory(user=self.user1.user, date=date(2010, 9, 30),
+                       hours_booked=Decimal('5.0'), project=project1)
         # A log in the limit (to_date) of a projectassoc
-        TimeLogFactory(user=user1, date=date(2010, 09, 30),
-                       hours_booked = Decimal('5.0'), project=project1)
+        TimeLogFactory(user=self.user1.user, date=date(2010, 9, 30),
+                       hours_booked=Decimal('3.5'), project=project2)
         # More logs for each projectassoc period.
-        # user1 hours: 45*8, user2 hours: 45*3.5
+        # project1 -> user1 hours: 45*8, user2 hours: 45*3.5
         for d in range(45):
-            TimeLogFactory(user=user1, date=date(2010, 10, 01) + \
+            TimeLogFactory(user=self.user1.user, date=date(2010, 10, 01) + \
                            timedelta(days=d),
-                           hours_booked = Decimal('8.0'), project=project1)
-            TimeLogFactory(user=user1, date=date(2010, 10, 01) + \
+                           hours_booked=Decimal('8.0'), project=project1)
+            TimeLogFactory(user=self.user2.user, date=date(2010, 10, 01) + \
                            timedelta(days=d),
-                           hours_booked = Decimal('3.5'), project=project1)
-        # hours: 8*5
+                           hours_booked=Decimal('3.5'), project=project1)
+        # project1 -> user1 hours: 8*5
         for d in range(8):
-            TimeLogFactory(user=user1, date=date(2012, 01, 01) + \
+            TimeLogFactory(user=self.user1.user, date=date(2012, 01, 01) + \
                            timedelta(days=d),
-                           hours_booked = Decimal('5.0'), project=project1)
-        # user1 hours: 15*4.5, user2 hours: 15*6.5
+                           hours_booked=Decimal('5.0'), project=project1)
+        # project2 -> user1 hours: 15*4.5, user2 hours: 15*6.5
         for d in range(15):
-            TimeLogFactory(user=user1, date=date(2010, 9, 16) + \
+            TimeLogFactory(user=self.user1.user, date=date(2010, 9, 16) + \
                            timedelta(days=d),
-                           hours_booked = Decimal('4.5'), project=project2)
-            TimeLogFactory(user=user2, date=date(2010, 9, 16) + \
+                           hours_booked=Decimal('4.5'), project=project2)
+            TimeLogFactory(user=self.user2.user, date=date(2010, 9, 16) + \
                            timedelta(days=d),
-                           hours_booked = Decimal('6.5'), project=project2)
-            
-        
-#class ClientReport(HelperTest):
+                           hours_booked=Decimal('6.5'), project=project2)
 
-class UserReport(HelperTest):
-    
-    def test_(self):
-        # función a teastear: get_summary_per_project
+
+class UserReportTest(HelperTest):
+
+    def get_report_by_project(self, up, from_date, to_date, with_rates):
+        report_by_project = list(TimeLog.get_summary_per_project(up, from_date,
+                                                                 to_date,
+                                                                 with_rates))
+        report_by_project.sort(cmp=lambda (x0, x1, x2, x3, x4),
+                               (y0, y1, y2, y3, y4): cmp(x1, y1))
+        rep_by_proj = []
+        for p in set(map(lambda ph: ph[1], report_by_project)):
+            r4proj = filter(lambda ph: ph[1] == p, report_by_project)
+            rates = sorted(map(lambda ph: (ph[3], ph[4]), r4proj),
+                           reverse=True)
+            rep_by_proj.append((r4proj[0][0], r4proj[0][1], r4proj[0][2],
+                                rates))
+        report_data = format_report_data_user(rep_by_proj, up.user, from_date,
+                                              to_date)
+        return report_data['user_hours']
+
+    def test_get_summary_per_project_limit1(self):
+        # Tests that hours are reported when from_date is equal to to_date of
+        # a projectassoc period.
+        report = TimeLog.get_summary_per_project(self.user1, '2010-09-30',
+                                                 '2010-10-02', True)
+        expected = [
+            (self.ext_src, u'Fake Project 10', True, Decimal('8.000'),
+             Decimal('0.19')),
+            (self.ext_src, u'Fake Project 42', True, Decimal('5.000'),
+             Decimal('0')),
+            (self.ext_src, u'Fake Project 42', True, Decimal('16.000'),
+             Decimal('0.50'))
+            ]
+        self.assertEqual(expected, list(report))
+
+    def test_get_summary_per_project_limit2(self):
+        # Tests that hours are reported when from_date is equal to from_date of
+        # a projectassoc period.
+        report = TimeLog.get_summary_per_project(self.user1, '2010-09-16',
+                                                 '2010-09-18', True)
+        expected = [
+            (self.ext_src, u'Fake Project 10', True, Decimal('13.500'),
+             Decimal('0.19'))
+            ]
+        self.assertEqual(expected, list(report))
+
+    def test_get_summary_per_project_limit3(self):
+        # Tests that hours are reported when to_date is equal to from_date of
+        # a projectassoc period.
+        report = TimeLog.get_summary_per_project(self.user1, '2010-09-29',
+                                                 '2010-10-01', True)
+        expected = [
+            (self.ext_src, u'Fake Project 10', True, Decimal('12.500'),
+             Decimal('0.19')),
+            (self.ext_src, u'Fake Project 42', True, Decimal('5.000'),
+             Decimal('0')),
+            (self.ext_src, u'Fake Project 42', True, Decimal('8.000'),
+             Decimal('0.50'))
+            ]
+        self.assertEqual(expected, list(report))
+
+    def test_get_summary_per_project_limit4(self):
+        # Tests that hours are reported when to_date is equal to to_date of
+        # a projectassoc period.
+        report = TimeLog.get_summary_per_project(self.user1, '2010-09-28',
+                                                 '2010-09-30', True)
+        expected = [
+            (self.ext_src, u'Fake Project 10', True, Decimal('17.000'),
+             Decimal('0.19')),
+            (self.ext_src, u'Fake Project 42', True, Decimal('5.000'),
+             Decimal('0.00'))
+            ]
+        self.assertEqual(expected, list(report))
+
+    def test_get_summary_per_project_all_hours(self):
+        # Tests that ALL hours are reported, including those with rate 0, that
+        # is, hours logged within a projectassoc period with rate 0, and hours
+        # logged in days not contained by any projectassoc period.
+        report = TimeLog.get_summary_per_project(self.user1, '2010-09-01',
+                                                 '2012-05-10', True)
+        expected = [
+            (self.ext_src, u'Fake Project 10', True, Decimal('71.000'),
+             Decimal('0.19')),
+            (self.ext_src, u'Fake Project 42', True, Decimal('60.000'),
+             Decimal('0.00')),
+            (self.ext_src, u'Fake Project 42', True, Decimal('360.000'),
+             Decimal('0.50'))
+            ]
+        self.assertEqual(expected, list(report))
+
+
+class ClientReport(HelperTest):
+      # get_client_summary_per_project
 
 
 def suite():
     suite = TestSuite()
-    suite.addTest(makeSuite(ClientReportTest))
     suite.addTest(makeSuite(UserReportTest))
+    #suite.addTest(makeSuite(ClientReportTest))
     return suite
