@@ -75,9 +75,9 @@ class ClientFactory(factory.Factory):
     country = factory.Sequence(lambda n: 'countryTest%s' % n)
     billing_email_address = factory.LazyAttribute(lambda o: '%s@test.com' \
                                                   % o.slug)
-    # currency = factory.SubFactory(CurrencyFactory)
     external_source = factory.SubFactory(ExternalSourceFactory)
     # external_id = a string
+    # currency = factory.SubFactory(CurrencyFactory)
 
 
 class ProjectFactory(factory.Factory):
@@ -86,10 +86,10 @@ class ProjectFactory(factory.Factory):
     name = factory.Sequence(lambda n: 'Fake Project %s' % n)
     billable = True
     client = factory.SubFactory(ClientFactory)
-    billing_type = random.choice(['FIXED', 'HOUR'])
-    # fixed_price = MoneyField
-    # external_id = a string
+    billing_type = 'HOUR'
+    # external_id = factory.Sequence(lambda o: 'ext%s' % o.name)
     # members = ManyToManyField
+    # fixed_price = MoneyField
 
 
 class ProjectAssocFactory(factory.Factory):
