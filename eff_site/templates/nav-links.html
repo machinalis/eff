@@ -1,0 +1,23 @@
+<div id="nav-links" style="width: 80%; margin:auto; display: inline-block;">
+    {% for nav,nav_title,nav_symbol in navs %}
+        <p id="{{nav}}">
+            {% if forloop.counter0|divisibleby:"2" %}
+                <a href="{% url eff_site.eff.views.eff_prev %}?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">{{nav_symbol}}</a>
+            {% endif %}
+            <small>
+                {% if monthly_nav %}
+                     mes 
+                {% else %}
+                     período 
+                    {% if overtime_nav %}
+                         de horas extras 
+                    {% endif %}
+                {% endif %}
+                {{nav_title}}
+            </small>
+            {% if not forloop.counter0|divisibleby:"2" %}
+                <a href="{% url eff_site.eff.views.eff_next %}?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">{{nav_symbol}}</a>
+            {% endif %}
+        </p>
+    {% endfor %}
+</div>
