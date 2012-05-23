@@ -25,9 +25,8 @@ sys.path.insert(1, path)
 os.environ['DJANGO_SETTINGS_MODULE'] = 'eff_site.settings'
 
 from datetime import datetime
-from dotproject import Machinalis
 
-from eff_site.eff.models import ExternalSource, Project, TimeLog, Client
+from eff_site.eff.models import ExternalSource, Client
 from dotproject import fetch_all
 
 if __name__ == '__main__':

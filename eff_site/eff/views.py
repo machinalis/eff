@@ -19,20 +19,17 @@
 import os
 import os.path
 import string
-import tempfile
 import csv
 import urlparse
 import operator
 
 from urllib import quote, urlencode
-from subprocess import Popen
 from datetime import date, timedelta, datetime
 
-from django.db.models import Q
 from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.template import RequestContext, loader, Context
-from django.http import HttpResponseRedirect, HttpResponse, Http404
+from django.http import HttpResponseRedirect, HttpResponse
 from django.utils import simplejson
 from django.contrib.auth.models import User
 from django.conf import settings
@@ -41,19 +38,23 @@ from django import forms
 from dateutil.relativedelta import relativedelta
 
 from relatorio.templates.opendocument import Template
-from reports import format_report_data, format_invoice_period
+from reports import format_report_data
 from reports import format_report_data_user, FixedPriceClientReverseBilling
 
-from eff_site.eff.models import AvgHours, Wage, TimeLog, Project, Client, UserProfile
+from eff_site.eff.models import AvgHours, Wage, TimeLog, Project, Client
+from eff_site.eff.models import UserProfile
 from eff_site.eff.models import ExternalId, ExternalSource, Dump
 
-from eff_site.eff.utils import overtime_period, previous_week, week, month, period
-from eff_site.eff.utils import Data, DataTotal, debug, ERROR, load_dump, _date_fmts
-from eff_site.eff.utils import validate_header
+from eff_site.eff.utils import overtime_period, previous_week, week, month
+from eff_site.eff.utils import period, validate_header, _date_fmts
+from eff_site.eff.utils import Data, DataTotal, load_dump
 
-from eff_site.eff.forms import AvgHoursForm, EffQueryForm, UserProfileForm
+from eff_site.eff.forms import EffQueryForm, UserProfileForm
 from eff_site.eff.forms import UsersChangeProfileForm, UserPassChangeForm
 from eff_site.eff.forms import UserAddForm, ClientReportForm, DumpUploadForm
+from eff_site.eff.forms import WageModelForm, AvgHoursModelForm
+
+from django.forms.models import inlineformset_factory
 
 cur_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -63,18 +64,23 @@ cur_dir = os.path.dirname(os.path.abspath(__file__))
 OVERTIME_FLAG = 'overtime_nav'
 MONTHLY_FLAG = 'monthly_nav'
 
+
 def __get_context(request):
-    context =  RequestContext(request)
+    context = RequestContext(request)
     context['hostname'] = request.get_host()
     context['title'] = "Efficiency"
     return context
+
 
 def __aux_mk_time(date_string):
     _date = datetime.strptime(date_string, settings.EFF_DATE_INPUT_FORMAT)
     _date = _date.date()
     return _date
 
-default_date = __aux_mk_time(date.today().strftime(settings.EFF_DATE_INPUT_FORMAT))
+default_date = __aux_mk_time(date.today().strftime(
+    settings.EFF_DATE_INPUT_FORMAT))
+
+
 def __process_dates(request):
     context = __get_context(request)
     if request.method == 'GET':
@@ -91,6 +97,7 @@ def __process_dates(request):
 
     assert('from_date' in context and 'to_date' in context)
     return context
+
 
 def __process_period(request, is_prev):
     context = __process_dates(request)
@@ -141,20 +148,24 @@ def __process_period(request, is_prev):
 
     return HttpResponseRedirect(redirect_to)
 
+
 def __encFloat(lof, maxval):
-    simpleEncoding =  string.uppercase + string.lowercase + string.digits
-    return "".join([simpleEncoding[min(int(i*61/maxval), 61)] for i in lof])
+    simpleEncoding = string.uppercase + string.lowercase + string.digits
+    return "".join([simpleEncoding[min(int(i * 61 / maxval), 61)] for i in lof])
+
 
 def __encList(llof, maxval):
     return ",".join([__encFloat(i, maxval) for i in llof])
 
+
 def __enough_perms(u):
     return (u.has_perm('eff.view_billable') and u.has_perm('eff.view_wage'))
 
+
 def chart_values(username_list, from_date, to_date, request_user):
     values = {}
-    monthdict = {1:'Ene', 2:'Feb', 3:'Mar', 4:'Abr', 5:'May', 6:'Jun',
-                 7:'Jul', 8:'Ago', 9:'Sep', 10:'Oct', 11:'Nov', 12:'Dic'}
+    monthdict = {1: 'Ene', 2: 'Feb', 3: 'Mar', 4: 'Abr', 5: 'May', 6: 'Jun',
+                 7: 'Jul', 8: 'Ago', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dic'}
 
     maxdays = 42
     delta = timedelta(days=1)
@@ -163,7 +174,7 @@ def chart_values(username_list, from_date, to_date, request_user):
     profile_list = [user.get_profile() for user in user_list]
 
     maxhours = len(username_list) * 24
-    if len(username_list) <= 3 :
+    if len(username_list) <= 3:
         cantidad = 2
     elif len(username_list) <= 6:
         cantidad = 4
@@ -179,7 +190,7 @@ def chart_values(username_list, from_date, to_date, request_user):
 
     maxhours_labels = range(0, maxhours, cantidad)
     maxhours_labels.append(maxhours)
-    hours_labels = "".join([s for s in ["%d|"% l for l in maxhours_labels]])
+    hours_labels = "".join([s for s in ["%d|" % l for l in maxhours_labels]])
     labels = "1:|" + hours_labels + "0:|"
     nombres = "".join(u.first_name + ", " for u in user_list)
     values['name'] = nombres.strip(", ")
@@ -201,13 +212,15 @@ def chart_values(username_list, from_date, to_date, request_user):
             billable_hours.append(bh)
         else:
             billable_hours.append(0)
-        labels += tmp_date.strftime("%d")+"|"
+        labels += tmp_date.strftime("%d") + "|"
         tmp_date += delta
         if current_month != tmp_date.month:
             current_month = tmp_date.month
             months += monthdict[current_month] + '|'
     values['chart_values'] = __encList([billable_hours,
-                                       [a-b for (a,b) in zip(worked_hours_list, billable_hours)]], maxhours)
+                                       [a - b for (a, b) in zip(
+                                           worked_hours_list,
+                                           billable_hours)]], maxhours)
 
     values['chart_type'] = 'bvs'
     if (to_date - from_date) <= timedelta(days=maxdays):
@@ -219,7 +232,7 @@ def chart_values(username_list, from_date, to_date, request_user):
         values['width'] = 640
         values['bar_format'] = '2,1'
         values['chart_axis'] = 'y,x'
-        values['chart_labels'] = "0:|"+ hours_labels + '1' + months.strip('|')
+        values['chart_labels'] = "0:|" + hours_labels + '1' + months.strip('|')
         idx = "1,0,"
         last_month = from_date.month
         tmp_date = from_date
@@ -241,188 +254,119 @@ def chart_values(username_list, from_date, to_date, request_user):
 
 # ==================== Views ====================
 
+
 def index(request):
     context = __get_context(request)
     return render_to_response('base.html', context)
 
+
 @login_required
 @user_passes_test(__enough_perms, login_url='/accounts/login/')
 def update_hours(request, username):
+
+    WageFormSet = inlineformset_factory(User, Wage, extra=1,
+        form=WageModelForm, can_delete=False)
+    AvgHoursFormSet = inlineformset_factory(User, AvgHours, extra=1,
+        form=AvgHoursModelForm, can_delete=False)
 
     context = __get_context(request)
     user = User.objects.get(username=username)
     profile = user.get_profile()
 
     context['errors'] = []
+    context['notices'] = []
 
-    data = {}
-
-    data['address'] = profile.address
-    data['phone_number'] = profile.phone_number
-
-    data['first_name'] = profile.user.first_name
-    data['last_name'] = profile.user.last_name
-
-    data['personal_email'] = profile.personal_email
-    data['city'] = profile.city
-    data['state'] = profile.state
-    data['country'] = profile.country
-
+    data = {
+            'address': profile.address,
+            'phone_number': profile.phone_number,
+            'first_name': profile.user.first_name,
+            'last_name': profile.user.last_name,
+            'personal_email': profile.personal_email,
+            'city': profile.city,
+            'state': profile.state,
+            'country': profile.country
+    }
     context['profile_form'] = UserProfileForm(data)
-
-    #######################################
-    # Auxiliary functions which generate forms
-
-    def navghours_form_generator(size):
-        d = dict()
-        for i in xrange(size):
-            d['ah_date%d' % i] = forms.DateField(required=False, label='Fecha:')
-            d['amount_of_hours%d' % i] = forms.DecimalField(required=False,
-                label='Cantidad de horas por día:')
-        return type('NAvgHoursForm', (forms.Form,), d)
-
-    def nwage_form_generator(size):
-        d = dict()
-        for i in xrange(size):
-            d['w_date%d' % i] = forms.DateField(required=False, label='Fecha:')
-            d['amount%d' % i] = forms.DecimalField(required=False,
-                label='Monto por hora:')
-        return type('NWageForm', (forms.Form,), d)
-
-    #######################################
-    # Create form and fill it with data
-
-    def initialize_form(queryset, context, generator,
-                         form_name, arg_name_1, arg_name_2,
-                         attr_name_1, attr_name_2):
-        length = queryset.count()
-        form_class = generator(length + 1)
-
-        data = dict()
-        for i in xrange(length):
-            data[(arg_name_1 + '%d') % i] = getattr(qs[i], attr_name_1)
-            data[(arg_name_2 + '%d') % i] = getattr(qs[i], attr_name_2)
-
-        context[form_name] = form_class(data)
-        context[form_name + '_size'] = length + 1
-        return form_class
-
-    # Constructs form for introducing data on hours worked per day.
-    qs = user.avghours_set.all()
-    NAvgHoursForm = initialize_form(qs, context, navghours_form_generator,
-                                    'avghours_form', 'ah_date',
-                                    'amount_of_hours',
-                                    'date', 'hours')
-
-    # Constructs form for introducing "wage" data.
-    qs = user.wage_set.all()
-    NWageForm = initialize_form(qs, context, nwage_form_generator,
-                                'wage_form', 'w_date', 'amount',
-                                'date', 'amount_per_hour')
 
     if request.method == 'POST':
         post = request.POST.copy()
-
         profile_form = UserProfileForm(post)
-
         if profile_form.is_valid():
-
             profile.address = profile_form.cleaned_data['address']
             if profile_form.cleaned_data['phone_number'] != None:
                 profile.phone_number =\
                     str(profile_form.cleaned_data['phone_number'])
             else:
                 profile.phone_number = ''
-
             profile.personal_email = profile_form.cleaned_data['personal_email']
             profile.city = profile_form.cleaned_data['city']
             profile.state = profile_form.cleaned_data['state']
             profile.country = profile_form.cleaned_data['country']
-
             profile.save()
-
+            # Save user data
             profile.user.first_name = profile_form.cleaned_data['first_name']
             profile.user.last_name = profile_form.cleaned_data['last_name']
             profile.user.save()
-
             context['profile_form'] = profile_form
+            context['notices'].append('Profile update sucessful!')
         else:
             context['errors'].append('Invalid Profile Form')
 
-        wage_form = NWageForm(post)
+        # Wage forms validations
+        wage_form = WageFormSet(post, prefix='wages', instance=user)
         if wage_form.is_valid():
-            size = context['wage_form_size']
-
-            user.wage_set.all().delete()
-
-            for i in range(0, size):
-                if wage_form.cleaned_data['w_date%d' % i] != None and\
-                    wage_form.cleaned_data['amount%d' % i] != None:
-                    try:
-                        w = Wage(user=user,
-                            date=wage_form.cleaned_data['w_date%d' % i],
-                            amount_per_hour=wage_form.cleaned_data['amount%d' % i])
-                        w.save()
-                        context['notices'] = ['Update sucessful!']
-
-                    except ValueError, e:
-                        context['errors'].append("Error guardando datos de remuneración: %s." % e)
+            wage_form.save()
+            context['wage_form'] = WageFormSet(
+                instance=user,
+                queryset=user.wage_set.all(),
+                prefix='wages')
+            context['notices'].append('Wage update sucessful!')
         else:
-            context['errors'].append('Invalid Wage Form')
+            context['errors'].append('Invalid Wages Form')
+            context['wage_form'] = wage_form
 
-        avghours_form = NAvgHoursForm(post)
+        # Avghours forms validations
+        avghours_form = AvgHoursFormSet(post, prefix='avghours', instance=user)
         if avghours_form.is_valid():
-            size = context['avghours_form_size']
-
-            user.avghours_set.all().delete()
-
-            # there are at most "size" number of filled fields
-            for i in range(0, size):
-                if avghours_form.cleaned_data['ah_date%d' % i] != None and\
-                    avghours_form.cleaned_data['amount_of_hours%d' % i] != None:
-
-                    new_date = avghours_form.cleaned_data['ah_date%d' % i]
-                    amount_of_hours = avghours_form.cleaned_data['amount_of_hours%d' % i]
-                    try:
-                        user.get_profile().add_avg_hours(new_date,
-                                                         amount_of_hours)
-                    except ValueError, e:
-                        context['errors'].append("Error guardando datos"
-                                                 " de horario.")
+            avghours_form.save()
+            context['avghours_form'] = AvgHoursFormSet(
+                instance=user,
+                queryset=user.avghours_set.all(),
+                prefix='avghours')
+            # you could put the notice in the session
+            context['notices'].append('AvgHours update sucessful!')
         else:
-            context['errors'].append('Invalid Avg Hours Form')
-
-    else:  # request.method != 'POST'
-        pass
-
-    # Recontrusct the form with new data
-    #
-    profile = user.get_profile()
-    data = dict()
-
-    data['address'] = profile.address
-    data['phone_number'] = profile.phone_number
-
-    data['first_name'] = profile.user.first_name
-    data['last_name'] = profile.user.last_name
-    data['personal_email'] = profile.personal_email
-    data['city'] = profile.city
-    data['state'] = profile.state
-    data['country'] = profile.country
-
-    context['profile_form'] = UserProfileForm(data)
-    # Constructs form for introducing data on hours worked per day.
-    qs = user.avghours_set.all()
-    NAvgHoursForm = initialize_form(qs, context, navghours_form_generator,
-        'avghours_form', 'ah_date', 'amount_of_hours', 'date', 'hours')
-    # Constructs form for introducing "wage" data.
-    qs = user.wage_set.all()
-    NWageForm = initialize_form(qs, context, nwage_form_generator,
-        'wage_form', 'w_date', 'amount', 'date', 'amount_per_hour')
-
+            context['errors'].append('Invalid AvgHours Form')
+            context['avghours_form'] = avghours_form
+    else:
+        # request.method != 'POST'
+        # Recontrusct the form with new data
+        profile = user.get_profile()
+        data = {
+                'address': profile.address,
+                'phone_number': profile.phone_number,
+                'first_name': profile.user.first_name,
+                'last_name': profile.user.last_name,
+                'personal_email': profile.personal_email,
+                'city': profile.city,
+                'state': profile.state,
+                'country': profile.country
+            }
+        context['profile_form'] = UserProfileForm(data)
+        # Constructs form for introducing data on hours worked per day.
+        context['avghours_form'] = AvgHoursFormSet(
+            instance=user,
+            queryset=user.avghours_set.all(),
+            prefix='avghours')
+        # Constructs form for introducing "wage" data.
+        context['wage_form'] = WageFormSet(
+            instance=user,
+            queryset=user.wage_set.all(),
+            prefix='wages')
     return render_to_response('update_hours.html', context)
 
 ## end update_hours view function #############################################
+
 
 def eff_check_perms(request, username):
     """
@@ -439,30 +383,35 @@ def eff_check_perms(request, username):
 
 @login_required
 def eff_previous_week(request):
-    return HttpResponseRedirect('/efi/?from_date=%s&to_date=%s' % previous_week(date.today()))
+    return HttpResponseRedirect('/efi/?from_date=%s&to_date=%s' % previous_week(
+        date.today()))
 
 
 @login_required
 def eff_current_week(request):
-    return HttpResponseRedirect('/efi/?from_date=%s&to_date=%s' % week(date.today()))
+    return HttpResponseRedirect('/efi/?from_date=%s&to_date=%s' % week(
+        date.today()))
 
 
 @login_required
 def eff_current_month(request):
     from_date, to_date = month(date.today())
-    return HttpResponseRedirect('/efi/?from_date=%s&to_date=%s&%s=True' % (from_date, to_date, MONTHLY_FLAG))
+    return HttpResponseRedirect('/efi/?from_date=%s&to_date=%s&%s=True' % (
+        from_date, to_date, MONTHLY_FLAG))
 
 
 @login_required
 def eff_last_month(request):
-    from_date, to_date = month(month(date.today())[0]-timedelta(days=1))
-    return HttpResponseRedirect('/efi/?from_date=%s&to_date=%s&%s=True' % (from_date, to_date, MONTHLY_FLAG))
+    from_date, to_date = month(month(date.today())[0] - timedelta(days=1))
+    return HttpResponseRedirect('/efi/?from_date=%s&to_date=%s&%s=True' % (
+        from_date, to_date, MONTHLY_FLAG))
 
 
 @login_required
 def eff_horas_extras(request):
     from_date, to_date = overtime_period(date.today())
-    return HttpResponseRedirect('/efi/?from_date=%s&to_date=%s&%s=True' % (from_date, to_date, OVERTIME_FLAG))
+    return HttpResponseRedirect('/efi/?from_date=%s&to_date=%s&%s=True' % (
+        from_date, to_date, OVERTIME_FLAG))
 
 
 @login_required
@@ -526,7 +475,8 @@ def eff(request):
         if from_date == to_date:
             aux = "el %s" % from_date
         elif MONTHLY_FLAG in context:
-            aux = "durante el mes de %s" % from_date.strftime('%B de %Y')  # month name
+            # month name
+            aux = "durante el mes de %s" % from_date.strftime('%B de %Y')
         elif OVERTIME_FLAG in context:
             aux = "durante el período de horas extras [%s, %s]" % (from_date, to_date)
         else:
@@ -573,7 +523,8 @@ def eff_charts(request):
         if get_data.has_key('overtime_nav'):
             del get_data['overtime_nav']
 
-        # Find out what graph has been requested and clean the dictionary accordingly
+        # Find out what graph has been requested and clean the dictionary
+        # accordingly
         # FIXME http://docs.python.org/library/stdtypes.html#dict.has_key
         if get_data.has_key('MultGraph'):
             # Multiple graphs
@@ -635,10 +586,12 @@ def eff_report(request, user_name):
     if not (request.user.has_perm('eff.view_billable') and \
             request.user.has_perm('eff.view_wage')):
         if request.user.username != user_name:
-            return HttpResponseRedirect('/accounts/login/?next=%s' % quote(request.get_full_path()))
+            return HttpResponseRedirect('/accounts/login/?next=%s' % quote(
+                request.get_full_path()))
         else:
             if 'export' in request.GET:
-                return HttpResponseRedirect('/accounts/login/?next=%s' % quote(request.get_full_path()))
+                return HttpResponseRedirect('/accounts/login/?next=%s' % quote(
+                    request.get_full_path()))
             else:
                 del context['export_allowed']
 
@@ -664,50 +617,65 @@ def eff_report(request, user_name):
                 basic_generated = basic.generate(o=report_data).render()
                 resp = HttpResponse(basic_generated.getvalue(),
                     mimetype='application/vnd.oasis.opendocument.text')
-                cd = 'filename=reverse_billing-%s-%s-logs.odt' % (from_date.year,
-                                                    from_date.strftime("%m"), )
+                cd = 'filename=reverse_billing-%s-%s-logs.odt' % (
+                    from_date.year, from_date.strftime("%m"), )
                 resp['Content-Disposition'] = cd
                 return resp
             else:
                 basic = Template(source=None, filepath=os.path.join(cur_dir,
                     '../templates/reporte_usuario.odt'))
-                report_by_project = list(TimeLog.get_summary_per_project(user.get_profile(), from_date, to_date, True))
-                report_by_project.sort(cmp=lambda (x0, x1, x2, x3, x4), (y0, y1, y2, y3, y4): cmp(x1, y1))
+                report_by_project = list(TimeLog.get_summary_per_project(
+                    user.get_profile(), from_date, to_date, True))
+                report_by_project.sort(cmp=lambda (x0, x1, x2, x3, x4),
+                    (y0, y1, y2, y3, y4): cmp(x1, y1))
                 rep_by_proj = []
                 for p in set(map(lambda ph: ph[1], report_by_project)):
                     r4proj = filter(lambda ph: ph[1] == p, report_by_project)
-                    rates = sorted(map(lambda ph: (ph[3], ph[4]), r4proj), reverse=True)
-                    rep_by_proj.append((r4proj[0][0], r4proj[0][1], r4proj[0][2], rates))
+                    rates = sorted(map(lambda ph: (ph[3], ph[4]), r4proj),
+                        reverse=True)
+                    rep_by_proj.append((r4proj[0][0], r4proj[0][1],
+                        r4proj[0][2], rates))
 
-                report_data = format_report_data_user(rep_by_proj, user, from_date, to_date)
+                report_data = format_report_data_user(rep_by_proj, user,
+                    from_date, to_date)
                 basic_generated = basic.generate(o=report_data).render()
-                resp = HttpResponse(basic_generated.getvalue(), mimetype='application/vnd.oasis.opendocument.text')
-                cd = 'filename=reverse_billing-%s-%s.odt' % (from_date.year, from_date.strftime("%m"), )
+                resp = HttpResponse(basic_generated.getvalue(),
+                    mimetype='application/vnd.oasis.opendocument.text')
+                cd = 'filename=reverse_billing-%s-%s.odt' % (from_date.year,
+                    from_date.strftime("%m"), )
                 resp['Content-Disposition'] = cd
                 return resp
         elif request.GET['export'] == 'csv':
             response = HttpResponse(mimetype='text/csv')
             if 'detailed' in request.GET:
-                cd = 'attachment; filename=reverse_billing_%s_%s_%s_logs.csv' % (user_name, from_date, to_date, )
+                cd = 'attachment; filename=reverse_billing_%s_%s_%s_logs.csv' %\
+                    (user_name, from_date, to_date, )
                 response['Content-Disposition'] = cd
-                report_data = format_report_data_user(context['report'], user, from_date, to_date, True)
+                report_data = format_report_data_user(context['report'], user,
+                    from_date, to_date, True)
                 t = loader.get_template('csv/reporte_usuario_detallado.txt')
-                c = Context({'data': report_data['user_data']['hs_detail'],})
+                c = Context({'data': report_data['user_data']['hs_detail'], })
             else:
-                cd = 'attachment; filename=reverse_billing_%s_%s_%s.csv' % (user_name, from_date, to_date, )
+                cd = 'attachment; filename=reverse_billing_%s_%s_%s.csv' % (
+                    user_name, from_date, to_date, )
                 response['Content-Disposition'] = cd
-                report_by_project = list(TimeLog.get_summary_per_project(user.get_profile(), from_date, to_date))
-                report_by_project.sort(cmp=lambda (x0,x1,x2,x3), (y0,y1,y2,y3) : cmp(x3,y3))
-                report_data = format_report_data_user(report_by_project, user, from_date, to_date)
+                report_by_project = list(TimeLog.get_summary_per_project(
+                    user.get_profile(), from_date, to_date))
+                report_by_project.sort(cmp=lambda (x0, x1, x2, x3),
+                    (y0, y1, y2, y3): cmp(x3, y3))
+                report_data = format_report_data_user(report_by_project, user,
+                    from_date, to_date)
                 t = loader.get_template('csv/reporte_usuario.txt')
-                c = Context({'data': report_data['user_hours'],})
+                c = Context({'data': report_data['user_hours'], })
 
             response.write(t.render(c))
             return response
 
     # report grouped by project
-    report_by_project = list(TimeLog.get_summary_per_project(user.get_profile(), from_date, to_date))
-    report_by_project.sort(cmp=lambda (x0,x1,x2,x3), (y0,y1,y2,y3) : cmp(x3,y3))
+    report_by_project = list(TimeLog.get_summary_per_project(user.get_profile(),
+        from_date, to_date))
+    report_by_project.sort(cmp=lambda (x0, x1, x2, x3),
+        (y0, y1, y2, y3): cmp(x3, y3))
 
     context['username'] = user_name
     context['target_user'] = user
@@ -735,13 +703,15 @@ def eff_report(request, user_name):
 
     return render_to_response('reporte.html', context)
 
+
 @login_required
 @user_passes_test(__enough_perms, login_url='/accounts/login/')
 def eff_update_db(request):
 
     if not os.path.exists(settings.FLAG_FILE):
         fd = open(settings.FLAG_FILE, 'w')
-        fd.write('%s' % date.today().strftime(settings.EFF_DATE_INPUT_FORMAT + ' %H:%M'))
+        fd.write('%s' % date.today().strftime(settings.EFF_DATE_INPUT_FORMAT +\
+             ' %H:%M'))
         fd.close()
 
         # We use a cron job to run the code below now
@@ -760,6 +730,7 @@ def eff_update_db(request):
         return HttpResponse(simplejson.dumps(response_data),
                             mimetype='application/json')
 
+
 @login_required
 @user_passes_test(__enough_perms, login_url='/accounts/login/')
 def eff_administration(request):
@@ -768,12 +739,12 @@ def eff_administration(request):
     form = UserPassChangeForm()
 
     if not request.user.is_superuser:
-        form.fields['user'].queryset=User.objects.filter(is_superuser=False)
+        form.fields['user'].queryset = User.objects.filter(is_superuser=False)
 
     if request.method == 'POST':
         form = UserPassChangeForm(request.POST)
         if form.is_valid():
-            if form.cleaned_data['password']!='':
+            if form.cleaned_data['password'] != '':
                 user = form.cleaned_data['user']
                 user.set_password(form.cleaned_data['password'])
                 user.save()
@@ -783,7 +754,9 @@ def eff_administration(request):
 
     context['form'] = form
     context['title'] = 'Users Change Password'
-    return render_to_response('administration.html', context, context_instance=RequestContext(request))
+    return render_to_response('administration.html', context,
+        context_instance=RequestContext(request))
+
 
 @login_required
 @user_passes_test(__enough_perms, login_url='/accounts/login/')
@@ -798,44 +771,55 @@ def eff_client_report(request, client_slug):
         if request.GET['export'] == 'odt':
             if 'detailed' in request.GET:
                 basic = Template(source=None, filepath=os.path.join(cur_dir,
-                                '../templates/reporte_cliente_detallado.odt'))
-                report_by_project = dict(map(lambda x:x[0],
-                                        client.report(from_date, to_date, True)))
+                    '../templates/reporte_cliente_detallado.odt'))
+                report_by_project = dict(map(lambda x: x[0], client.report(
+                    from_date, to_date, True)))
                 report_data = format_report_data(report_by_project, client,
-                                                 from_date, to_date, True)
+                    from_date, to_date, True)
                 report_data['clientname'] = client.name
                 basic_generated = basic.generate(o=report_data).render()
                 resp = HttpResponse(basic_generated.getvalue(),
-                            mimetype='application/vnd.oasis.opendocument.text')
+                    mimetype='application/vnd.oasis.opendocument.text')
                 cd = 'filename=billing-%s-%s-logs.odt' % (from_date.year,
-                                                    from_date.strftime("%m"), )
+                    from_date.strftime("%m"), )
                 resp['Content-Disposition'] = cd
                 return resp
             else:
-                basic = Template(source=None, filepath=os.path.join(cur_dir, '../templates/reporte_cliente.odt'))
-                report_by_project = dict(map(lambda x:x[0], client.report(from_date, to_date, with_rates=True)))
-                report_data = format_report_data(report_by_project, client, from_date, to_date)
+                basic = Template(source=None, filepath=os.path.join(cur_dir,
+                    '../templates/reporte_cliente.odt'))
+                report_by_project = dict(map(lambda x: x[0], client.report(
+                    from_date, to_date, with_rates=True)))
+                report_data = format_report_data(report_by_project, client,
+                    from_date, to_date)
                 basic_generated = basic.generate(o=report_data).render()
-                resp = HttpResponse(basic_generated.getvalue(), mimetype='application/vnd.oasis.opendocument.text')
-                cd = 'filename=billing-%s-%s.odt' % (from_date.year, from_date.strftime("%m"), )
+                resp = HttpResponse(basic_generated.getvalue(),
+                    mimetype='application/vnd.oasis.opendocument.text')
+                cd = 'filename=billing-%s-%s.odt' % (from_date.year,
+                    from_date.strftime("%m"), )
                 resp['Content-Disposition'] = cd
                 return resp
         elif request.GET['export'] == 'csv':
             response = HttpResponse(mimetype='text/csv')
             if 'detailed' in request.GET:
-                cd = 'attachment; filename=billing_%s_%s_%s_logs.csv' % (client_slug, from_date, to_date, )
+                cd = 'attachment; filename=billing_%s_%s_%s_logs.csv' % (
+                    client_slug, from_date, to_date, )
                 response['Content-Disposition'] = cd
-                report_by_project = dict(map(lambda x:x[0], client.report(from_date, to_date, True)))
-                report_data = format_report_data(report_by_project, client, from_date, to_date, True)
+                report_by_project = dict(map(lambda x: x[0], client.report(
+                    from_date, to_date, True)))
+                report_data = format_report_data(report_by_project, client,
+                    from_date, to_date, True)
                 t = loader.get_template('csv/reporte_cliente_detallado.txt')
-                c = Context({'data': report_data['projects_users'],})
+                c = Context({'data': report_data['projects_users'], })
             else:
-                cd = 'attachment; filename=billing_%s_%s_%s.csv' % (client_slug, from_date, to_date, )
+                cd = 'attachment; filename=billing_%s_%s_%s.csv' % (
+                    client_slug, from_date, to_date, )
                 response['Content-Disposition'] = cd
-                report_by_project = dict(map(lambda x:x[0], client.report(from_date, to_date)))
-                report_data = format_report_data(report_by_project, client, from_date, to_date)
+                report_by_project = dict(map(lambda x: x[0], client.report(
+                    from_date, to_date)))
+                report_data = format_report_data(report_by_project, client,
+                    from_date, to_date)
                 t = loader.get_template('csv/reporte_cliente.txt')
-                c = Context({'data': report_data['projects_users'],})
+                c = Context({'data': report_data['projects_users'], })
 
             response.write(t.render(c))
             return response
@@ -857,10 +841,11 @@ def eff_client_reports_admin(request):
     context = __get_context(request)
 
     if 'period' in request.GET:
-        if request.GET['period']=='current_month':
+        if request.GET['period'] == 'current_month':
             from_date, to_date = month(date.today())
-        elif request.GET['period']=='last_month':
-            from_date, to_date = month(month(date.today())[0]-timedelta(days=1))
+        elif request.GET['period'] == 'last_month':
+            from_date, to_date = month(
+                month(date.today())[0] - timedelta(days=1))
     else:
         if 'from_date' in request.GET and 'to_date' in request.GET:
             from_date = __aux_mk_time(request.GET['from_date'])
@@ -869,8 +854,8 @@ def eff_client_reports_admin(request):
             # Current week by default
             from_date, to_date = week(date.today())
 
-    initial = {'from_date' : from_date.strftime("%Y-%m-%d"),
-               'to_date' : to_date.strftime("%Y-%m-%d")}
+    initial = {'from_date': from_date.strftime("%Y-%m-%d"),
+               'to_date': to_date.strftime("%Y-%m-%d")}
 
     context['title'] = "Reporte de Clientes"
 
@@ -884,14 +869,17 @@ def eff_client_reports_admin(request):
             to_date = client_report_form.cleaned_data['to_date']
             client = client_report_form.cleaned_data['client']
 
-            redirect_to = '/efi/reporte_cliente/%s/?from_date=%s&to_date=%s' % (client.slug, from_date, to_date,)
+            redirect_to = '/efi/reporte_cliente/%s/?from_date=%s&to_date=%s' % (
+                client.slug, from_date, to_date,)
 
             if MONTHLY_FLAG in request.GET:
-                redirect_to += '&%s=%s' % (MONTHLY_FLAG, request.GET[MONTHLY_FLAG], )
+                redirect_to += '&%s=%s' % (MONTHLY_FLAG,
+                    request.GET[MONTHLY_FLAG], )
 
             return HttpResponseRedirect(redirect_to)
 
     return render_to_response('admin_reportes_cliente.html', context)
+
 
 @login_required
 @user_passes_test(__enough_perms, login_url='/accounts/login/')
@@ -906,7 +894,7 @@ def eff_admin_add_user(request):
     if request.method == 'POST':
         form = UserAddForm(request.POST)
         if form.is_valid():
-            if form.cleaned_data['password']!='':
+            if form.cleaned_data['password'] != '':
                 user = User(username=form.cleaned_data['username'])
                 user.set_password(form.cleaned_data['password'])
                 user.save()
@@ -917,7 +905,9 @@ def eff_admin_add_user(request):
 
     context['form'] = form
     context['title'] = 'Add User'
-    return render_to_response('administration.html', context, context_instance=RequestContext(request))
+    return render_to_response('administration.html', context,
+        context_instance=RequestContext(request))
+
 
 @login_required
 @user_passes_test(__enough_perms, login_url='/accounts/login/')
@@ -940,7 +930,9 @@ def eff_admin_change_profile(request):
 
     context['form'] = form
     context['title'] = 'Edit Users Profile'
-    return render_to_response('admin_change_users_profile.html', context, context_instance=RequestContext(request))
+    return render_to_response('admin_change_users_profile.html', context,
+        context_instance=RequestContext(request))
+
 
 @login_required
 @user_passes_test(__enough_perms, login_url='/accounts/login/')
@@ -949,15 +941,17 @@ def profile_detail(request, username):
     p = get_object_or_404(UserProfile, user=user)
     return render_to_response('profiles/profile_detail.html', {'profile': p})
 
+
 @login_required
 @user_passes_test(__enough_perms, login_url='/accounts/login/')
 def eff_dump_csv_upload(request):
     """ Allows to import the logs contained in an Eff formatted file.
-    The file must be structured as one generated by L{EffCsvWriter<eff_site.eff.utils.EffCsvWriter>}.
-    If there are any external id's for the logs contained in the file being uploaded not found
-    on the database, then a form that allows to associate these external id's with
-    existing user profiles will be presented to the user
-    (see L{eff_admin_users_association<eff_admin_users_association>}).
+    The file must be structured as one generated by
+    L{EffCsvWriter<eff_site.eff.utils.EffCsvWriter>}.
+    If there are any external id's for the logs contained in the file being
+    uploaded not found on the database, then a form that allows to associate
+    these external id's with existing user profiles will be presented to the
+    user (see L{eff_admin_users_association<eff_admin_users_association>}).
 
     @param request: the request object
     @type request: django.core.handlers.wsgi.WSGIRequest
@@ -966,16 +960,18 @@ def eff_dump_csv_upload(request):
 
     """
 
-    context = {'title' : 'CSV Dump Upload'}
+    context = {'title': 'CSV Dump Upload'}
 
     if request.method == 'POST':
         form = DumpUploadForm(request.POST, request.FILES)
         if form.is_valid():
-            n_rows, n_users, n_projects, n_project_assocs, temp_file = load_dump(request.FILES['csv_file'].file)
+            n_rows, n_users, n_projects, n_project_assocs, \
+                temp_file = load_dump(request.FILES['csv_file'].file)
             if temp_file:
                 request.session['log_entries_file'] = temp_file
                 request.session['n_users'] = n_users
-                return HttpResponseRedirect('/efi/administration/users_association/')
+                return HttpResponseRedirect(
+                    '/efi/administration/users_association/')
             context['notices'] = ['File Uploaded Sucessfully!']
         else:
             context['errors'] = ['Invalid Form']
@@ -984,7 +980,9 @@ def eff_dump_csv_upload(request):
 
     context['form'] = form
 
-    return  render_to_response('admin_dump_csv_upload.html', context, context_instance=RequestContext(request))
+    return  render_to_response('admin_dump_csv_upload.html', context,
+        context_instance=RequestContext(request))
+
 
 @login_required
 @user_passes_test(__enough_perms, login_url='/accounts/login/')
@@ -992,44 +990,54 @@ def eff_fixed_price_client_reports(request):
     if not request.is_ajax():
         context = __get_context(request)
         context['title'] = "Reporte de Clientes - Projectos con costo fijo"
-        context['clients'] = Client.objects.filter(project__billing_type='FIXED').distinct()
+        context['clients'] = Client.objects.filter(
+            project__billing_type='FIXED').distinct()
 
         if request.method == 'POST':
             client = Client.objects.get(id=request.POST['client'])
             project = Project.objects.get(id=request.POST['project'])
 
             state_and_country = client.state or ''
-            if state_and_country.strip(): state_and_country += ' - '
+            if state_and_country.strip():
+                state_and_country += ' - '
             state_and_country += client.country
-            client_data = {'name' : client.name or '',
-                           'address' : client.address or '',
-                           'city' : client.city or '',
-                           'state_and_country' : state_and_country,
-                           'currency' : client.currency.ccy_symbol or client.currency.ccy_code,
+            client_data = {'name': client.name or '',
+                           'address': client.address or '',
+                           'city': client.city or '',
+                           'state_and_country': state_and_country,
+                           'currency': client.currency.ccy_symbol or \
+                               client.currency.ccy_code,
                            }
             today = datetime.now()
             reverse_billing = FixedPriceClientReverseBilling(
-                project_data = {'name' : project.name, 'price' : str(project.fixed_price)},
-                client_data = client_data,
-                today = today.strftime("%A, %d %B %Y"),
-                reference = "%s%s%s" % (client.name.lower(), today.year, today.strftime("%m") )
+                project_data={'name': project.name,
+                              'price': str(project.fixed_price)},
+                client_data=client_data,
+                today=today.strftime("%A, %d %B %Y"),
+                reference="%s%s%s" % (client.name.lower(), today.year,
+                    today.strftime("%m"))
                 )
 
-            basic = Template(source=None, filepath=os.path.join(cur_dir, '../templates/reporte_cliente_precio_fijo.odt'))
+            basic = Template(source=None, filepath=os.path.join(cur_dir,
+                '../templates/reporte_cliente_precio_fijo.odt'))
             basic_generated = basic.generate(o=reverse_billing).render()
-            resp = HttpResponse(basic_generated.getvalue(), mimetype='application/vnd.oasis.opendocument.text')
+            resp = HttpResponse(basic_generated.getvalue(),
+                mimetype='application/vnd.oasis.opendocument.text')
             cd = 'filename=billing-%s.odt' % project.external_id
             resp['Content-Disposition'] = cd
             return resp
 
-        return render_to_response('admin_reportes_cliente_costo_fijo.html', context)
+        return render_to_response('admin_reportes_cliente_costo_fijo.html',
+            context)
     else:
         client_id = request.POST['client']
         client = get_object_or_404(Client, id=client_id)
         projects = Project.objects.filter(client=client, billing_type='FIXED')
         ret = '<option selected="selected" value="">----</option>'
-        ret += ''.join(['<option value="%s">%s</option>' % (p.id, p.name) for p in projects])
+        ret += ''.join(['<option value="%s">%s</option>' % (p.id, p.name) \
+            for p in projects])
         return HttpResponse(ret, mimetype="text/html")
+
 
 class UserAssociationsForm(forms.Form):
     """ Dynamic form to associate user external id's with user profiles
@@ -1040,19 +1048,22 @@ class UserAssociationsForm(forms.Form):
     def __init__(self, users, *args, **kwargs):
         super(UserAssociationsForm, self).__init__(*args, **kwargs)
         for user in users:
-            self.fields[user] = forms.ModelChoiceField(queryset=UserProfile.objects.all(),
-                                                       empty_label="----",
-                                                       label=user)
+            self.fields[user] = forms.ModelChoiceField(
+                queryset=UserProfile.objects.all(),
+                empty_label="----",
+                label=user)
+
+
 @login_required
 @user_passes_test(__enough_perms, login_url='/accounts/login/')
 def eff_admin_users_association(request):
     """ Allows to associate users external id's that not exists in the database
     with existant user profiles.
     This view expect a path to an Eff formatted csv file
-    (see L{EffCsvWriter<eff_site.eff.utils.EffCsvWriter>}) and a list of user profiles
-    in session variables. When the external id's with user profile associations is
-    submited, the external id's are created and the logs on the csv file are imported
-    to the system.
+    (see L{EffCsvWriter<eff_site.eff.utils.EffCsvWriter>}) and a list of user
+    profiles in session variables. When the external id's with user profile
+    associations is submited, the external id's are created and the logs on the
+    csv file are imported to the system.
 
     @param request: the request object
     @type request: django.core.handlers.wsgi.WSGIRequest
@@ -1066,8 +1077,9 @@ def eff_admin_users_association(request):
         n_users = request.session['n_users']
         log_entries_file = request.session['log_entries_file']
         form = UserAssociationsForm(n_users)
-        context.update({'n_users' : n_users,
-                        'user_profiles' : map(lambda e: e.login, ExternalId.objects.all())})
+        context.update(
+            {'n_users': n_users,
+             'user_profiles': map(lambda e: e.login, ExternalId.objects.all())})
     else:
         return HttpResponseRedirect('/efi/administration/dump-csv-upload/')
 
@@ -1076,7 +1088,8 @@ def eff_admin_users_association(request):
         if form.is_valid():
             r_file = open(log_entries_file, 'r')
 
-            ext_src, client, author, from_date, to_date = validate_header(r_file)
+            ext_src, client, author, from_date, to_date = validate_header(
+                r_file)
 
             external_source = ExternalSource.objects.get(name=ext_src)
             dumps = Dump.objects.filter(date=date.today(),
@@ -1093,25 +1106,26 @@ def eff_admin_users_association(request):
 
             for row in temp_reader:
                 u_p = UserProfile.objects.get(id=request.POST[row[2]])
-                e_i, created = ExternalId.objects.get_or_create(userprofile=u_p, login=row[2],
-                                                                source=external_source)
+                e_i, created = ExternalId.objects.get_or_create(
+                    userprofile=u_p, login=row[2], source=external_source)
                 row[2] = e_i.login
                 rows.append(row)
 
             r_file.close()
 
             for row in rows:
-                user = UserProfile.objects.filter(externalid__login=row[2])[0].user
+                user = UserProfile.objects.filter(
+                    externalid__login=row[2])[0].user
                 d = _date_fmts(row[0])
                 t_proj = Project.objects.get(external_id=row[1])
 
-                tl_dict = {'date' : d,
-                           'project' : t_proj,
-                           'task_name' : row[4],
-                           'user' : user,
-                           'hours_booked' : row[3],
-                           'description' : row[5],
-                           'dump' : dump
+                tl_dict = {'date': d,
+                           'project': t_proj,
+                           'task_name': row[4],
+                           'user': user,
+                           'hours_booked': row[3],
+                           'description': row[5],
+                           'dump': dump
                            }
                 TimeLog.objects.create(**tl_dict)
 
@@ -1125,4 +1139,5 @@ def eff_admin_users_association(request):
 
     context['form'] = form
 
-    return render_to_response('admin_users_association.html', context, context_instance=RequestContext(request))
+    return render_to_response('admin_users_association.html', context,
+        context_instance=RequestContext(request))

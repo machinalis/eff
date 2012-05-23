@@ -28,12 +28,12 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'eff_site.settings'
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-from eff_site.eff.utils import EffCsvWriter, load_dump
-from eff_site.eff.models import ExternalSource, Project, TimeLog, Client
+from eff_site.eff.utils import load_dump
+from eff_site.eff.models import ExternalSource, Client
 from eff_site import settings
-from django.utils.encoding import force_unicode
 
 from config import EXT_SRC_ASSOC
+
 
 def run():
     date_format = "%Y%m%d"
@@ -43,21 +43,23 @@ def run():
         print "Usage: $ fetchall.py <source-name> <from-date> <to-date>"
         sources_allowed = map(lambda e: e.name, ExternalSource.objects.all())
         sources_allowed.append(u'ALL')
-        print "\tValues allowed for <source-name>: %s" % ' | '.join(sources_allowed)
+        print "\tValues allowed for <source-name>: %s" % ' | '.join(
+            sources_allowed)
         print "\tDate format: %s ; example: 20100819" % date_format
         sys.exit(0)
 
-    if len(args)==3:
+    if len(args) == 3:
         source_name = args[0]
         from_date = datetime.strptime(args[1], date_format)
         to_date = datetime.strptime(args[2], date_format)
     else:
-        source_name="ALL"
+        source_name = "ALL"
         today = datetime.today()
         to_date = datetime(today.year, today.month, today.day)
-        from_date = datetime(to_date.year, to_date.month, 1) - relativedelta(months=1)
+        from_date = datetime(to_date.year, to_date.month, 1) - \
+            relativedelta(months=1)
 
-    if source_name=="ALL":
+    if source_name == "ALL":
         sources = ExternalSource.objects.all()
     else:
         sources = ExternalSource.objects.filter(name=source_name)
@@ -76,13 +78,16 @@ def run():
         src_clients = Client.objects.filter(external_source=source)
 
         src_mod_name = EXT_SRC_ASSOC[source.name]
-        src_mod = __import__('eff_site.scripts.%s' % src_mod_name, fromlist=['eff_site.scripts'])
+        src_mod = __import__('eff_site.scripts.%s' % src_mod_name,
+            fromlist=['eff_site.scripts'])
 
         for client in src_clients:
 
-            filename = "%s_%s_%s_%s.csv" % (source.name, client.name, from_date.strftime("%Y%m%d"),
+            filename = "%s_%s_%s_%s.csv" % (source.name, client.name,
+                from_date.strftime("%Y%m%d"),
                                             to_date.strftime("%Y%m%d"), )
-            filename = os.path.join(settings.FETCH_EXTERNALS_CSV_DIR, filename.replace(' ', '_'))
+            filename = os.path.join(settings.FETCH_EXTERNALS_CSV_DIR,
+                filename.replace(' ', '_'))
             _file = open(filename, 'w')
 
             src_mod.fetch_all(source, client, author, from_date, to_date, _file)

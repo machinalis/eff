@@ -25,22 +25,17 @@ class Wage(models.Model):
     amount_per_hour = MoneyField()
     user = models.ForeignKey(User)
 
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if not self.id:
+            try:
+                Wage.objects.get(date=self.date, user=self.user)
+                raise ValidationError('Already exists this Date for this User')
+            except Wage.DoesNotExist:
+                pass
+
     def __unicode__(self):
         return u'[%s] %s : %s' % (self.id, self.date, self.amount_per_hour)
-
-    def save(self):
-        qs = Wage.objects.filter(date=self.date, user=self.user)
-        if qs:
-            if self.id:
-                # self viene de la db
-                this_id = int(self.id)
-            else:
-                # self es nuevo
-                this_id = object()  # marker
-            other_id = Wage.objects.get(date=self.date, user=self.user).id
-            if this_id != other_id:
-                raise ValueError, "Date already exists"
-        return super(Wage, self).save()
 
     class Meta:
         app_label = 'eff'

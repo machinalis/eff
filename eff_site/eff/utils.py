@@ -17,41 +17,43 @@
 # along with Eff.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from os import stat, remove, symlink, path
+from os import stat, remove, symlink
 from os.path import basename
-from datetime import timedelta, date, datetime
+from datetime import date, datetime
 from dateutil.relativedelta import relativedelta, SU, SA
 
 import csv
-import os
 import tempfile
 
 from _models.project import Project, ProjectAssoc
 from _models.log import TimeLog
-from _models.external_source import ExternalSource, ExternalId
+from _models.external_source import ExternalSource
 from _models.dump import Dump
 from _models.user_profile import UserProfile
 from _models.client import Client
-from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils.encoding import force_unicode
-import StringIO
 from decimal import Decimal
 
+
 def previous_week(a_date):
-    to_date = a_date - relativedelta(weekday=SA, weeks=1) # last saturday
-    from_date = to_date - relativedelta(weekday=SU, weeks=1) # sunday before last saturday
+    to_date = a_date - relativedelta(weekday=SA, weeks=1)  # last saturday
+    # sunday before last saturday
+    from_date = to_date - relativedelta(weekday=SU, weeks=1)
     return (from_date, to_date)
 
+
 def week(a_date):
-    to_date = a_date + relativedelta(weekday=SA) # next saturday
-    from_date = to_date - relativedelta(weekday=SU, weeks=1) # last sunday
+    to_date = a_date + relativedelta(weekday=SA)  # next saturday
+    from_date = to_date - relativedelta(weekday=SU, weeks=1)  # last sunday
     return (from_date, to_date)
+
 
 def month(a_date):
     from_date = date(a_date.year, a_date.month, 1)
     to_date = from_date + relativedelta(months=1) - relativedelta(days=1)
     return (from_date, to_date)
+
 
 def period(start_date, end_date, op):
     """
@@ -63,8 +65,11 @@ def period(start_date, end_date, op):
     assert(from_date <= to_date)
     return (from_date, to_date)
 
+
 def third_sunday(a_date):
-    return date(a_date.year, a_date.month, 1) + relativedelta(weekday=SU, weeks=2)
+    return date(a_date.year, a_date.month, 1) + \
+                relativedelta(weekday=SU, weeks=2)
+
 
 def overtime_period(a_date):
 
@@ -79,8 +84,8 @@ def overtime_period(a_date):
     to_date = date(a_date.year, a_date.month, third_sunday(a_date).day - 1)
 
     from_date = to_date - relativedelta(months=1)
-    from_date = date(from_date.year, from_date.month, third_sunday(from_date).day)
-
+    from_date = date(from_date.year, from_date.month,
+        third_sunday(from_date).day)
 
     assert(from_date < to_date)
 
@@ -91,10 +96,14 @@ WARNING = "WARNING"
 ERROR = "ERROR"
 FATAL = "FATAL"
 
+
 def debug(msg, *args, **kwargs):
     level = kwargs.get('level', INFO)
     if getattr(settings, 'DEBUG', True):
-        print '%s: %s: %s' % (basename(__file__), level, args and (msg % args) or msg)
+        print '%s: %s: %s' % (basename(__file__),
+                              level,
+                              args and (msg % args) or msg)
+
 
 def force_symlink(src, dst):
     try:
@@ -135,14 +144,15 @@ class Data (object):
         self.projects = profile.projects(from_date, to_date)
 
     def __eq__(self, other):
-        return (self.name == other.name and
-                self.is_active == other.is_active and
-                self.worked_hours == other.worked_hours and
-                self.loggable_hours == other.loggable_hours and
-                self.percentage_hours_worked == other.percentage_hours_worked and
-                self.percentage_billable_hours == other.percentage_billable_hours and
-                self.billable_hours == other.billable_hours and
-                self.username == other.username)
+        return (
+            self.name == other.name and
+            self.is_active == other.is_active and
+            self.worked_hours == other.worked_hours and
+            self.loggable_hours == other.loggable_hours and
+            self.percentage_hours_worked == other.percentage_hours_worked and
+            self.percentage_billable_hours == other.percentage_billable_hours \
+            and self.billable_hours == other.billable_hours and
+            self.username == other.username)
 
     def efficiency_class(self):
         if self.percentage_hours_worked < 70.:
@@ -156,16 +166,18 @@ class Data (object):
 
 class DataTotal (Data):
 
-    def __init__ (self, wh, lh, bh):
+    def __init__(self, wh, lh, bh):
         self.worked_hours = wh
         self.loggable_hours = lh
         self.billable_hours = bh
         if lh > 0:
             # Total of UserProfile.percentage_hours_worked()
-            self.percentage_hours_worked = (wh/lh*100).quantize(Decimal('.00'))
+            self.percentage_hours_worked = (wh / lh * 100).quantize(
+                Decimal('.00'))
 
             # Total of UserProfile.percentage_billable_hours()
-            self.percentage_billable_hours = (bh/lh*100).quantize(Decimal('.00'))
+            self.percentage_billable_hours = (bh / lh * 100).quantize(
+                Decimal('.00'))
         else:
             self.percentage_hours_worked = 0
             self.percentage_billable_hours = 0
@@ -183,7 +195,8 @@ class EffCsvWriter(object):
     # To date: <date>\n
 
     And each task log line with the following format:\n
-    "<date>","<project_external_id>","<user_external_id>","<task_hours_booked>","<task_name>","<task_description>"
+    "<date>","<project_external_id>","<user_external_id>","<task_hours_booked>",
+    "<task_name>","<task_description>"
 
     @cvar VALIDATE_ROWS: Determines if each row and its fields must be validated
     (size and type) before being writed to file
@@ -238,9 +251,11 @@ class EffCsvWriter(object):
         self.file.write(csv_header.encode('utf-8'))
         if isinstance(self.file, file):
             self.file.close()
-            self.writer = csv.writer(open(self.file.name, 'a'), delimiter=",", quoting=csv.QUOTE_ALL)
+            self.writer = csv.writer(open(self.file.name, 'a'), delimiter=",",
+                quoting=csv.QUOTE_ALL)
         else:
-            self.writer = csv.writer(self.file, delimiter=",", quoting=csv.QUOTE_ALL)
+            self.writer = csv.writer(self.file, delimiter=",",
+                quoting=csv.QUOTE_ALL)
 
     def _validate_row(self, row):
         """ Check that a row to be writed is a valid task log.
@@ -248,12 +263,13 @@ class EffCsvWriter(object):
         @param row: the row that is about to be writed.
         @type row: list
 
-        @return: "OK" on success, an error message describing the problem otherwise
+        @return: "OK" on success, an error message describing the problem
+        otherwise
 
         """
         if not hasattr(row, '__iter__'):
             return "Row must be a list or tuple"
-        if len(row) != 6 :
+        if len(row) != 6:
             return ("Row must contain 6 items: Date, Project,"
                     " User, Hours, Task Name, Task Description")
         if not isinstance(row[0], (date, datetime)):
@@ -316,10 +332,12 @@ def _date_fmts(date_str, fmts=None):
     @param date_str: the datetime string
     @type date_str: basestring
     @param fmts: optional list of format strings
-    (if None, by default, the following formats will be tried: '%Y-%m-%d', '%Y-%m-%d %H:%M:%S')
+    (if None, by default, the following formats will be tried: '%Y-%m-%d',
+        '%Y-%m-%d %H:%M:%S')
     @type fmts: list
 
-    @raise ValueError: If it was not possible to convert the string for the given formats
+    @raise ValueError: If it was not possible to convert the string for the
+    given formats
 
     @return: datetime.datetime object corresponding to the string formated date
 
@@ -334,6 +352,7 @@ def _date_fmts(date_str, fmts=None):
         except ValueError, e:
             error = e
     raise ValueError(error)
+
 
 def validate_header(file_obj):
     """
@@ -369,6 +388,7 @@ def validate_header(file_obj):
 
     return args[0:3] + [_date_fmts(x) for x in args[3:]]
 
+
 def load_dump(file_obj, date_format=None,
               create_logins=True,
               create_projects=True,
@@ -379,34 +399,39 @@ def load_dump(file_obj, date_format=None,
 
     Preconditions
     =============
-      - The file must be structured as one generated by L{EffCsvWriter<eff_site.eff.utils.EffCsvWriter>}.
-      - The client name included in the file header must exist in the system.
-      - The external source name included in the file header must exist in the system.
+    - The file must be structured as one generated by
+        L{EffCsvWriter<eff_site.eff.utils.EffCsvWriter>}.
+    - The client name included in the file header must exist in the system.
+    - The external source name included in the file header must exist in the
+        system.
 
     Description
     ===========
-    Before uploading the logs to the system all the existing logs for the given external source
-    and client between given dates are deleted. Next a Dump object for this upload is created, and
-    all eff logs in the csv file are imported to the system with the corresponding date, project,
-    user, hours booked, task name and description.
+    Before uploading the logs to the system all the existing logs for the given
+    external source and client between given dates are deleted. Next a Dump
+    object for this upload is created, and all eff logs in the csv file are
+    imported to the system with the corresponding date, project, user,
+    hours booked, task name and description.
 
-    In case that the create_logins flag is enabled and function call does not come
-    from an API call (is_api flag disabled), then all logs which includes non existant users
-    are saved to a temp file and the path to it is included in the returned tuple.
+    In case that the create_logins flag is enabled and function call does not
+    come from an API call (is_api flag disabled), then all logs which includes
+    non existant users are saved to a temp file and the path to it is included
+    in the returned tuple.
 
-    In case that the create_projects flag is enabled and there are logs with project external id's
-    not found on the system, then these projects are created with minimal assumptions about it. The
-    project associations between the log user and the recently created project is also created.
-    If create_projects is not enabled then a list with non existant projects external id's is included
-    in the returned tuple. Also the corresponding user-project associations for these logs are
-    returned in a list.
+    In case that the create_projects flag is enabled and there are logs with
+    project external id's not found on the system, then these projects are
+    created with minimal assumptions about it. The project associations between
+    the log user and the recently created project is also created.
+    If create_projects is not enabled then a list with non existant projects
+    external id's is included in the returned tuple. Also the corresponding
+    user-project associations for these logs are returned in a list.
 
-    If create_project_assocs is enabled and there are logs which user-project association does not
-    exist, then they are created. If the flag is disabled, these associations are included in a list
-    in the returning tuple.
+    If create_project_assocs is enabled and there are logs which user-project
+    association does not exist, then they are created. If the flag is disabled,
+    these associations are included in a list in the returning tuple.
 
-    On any case that a log is not imported (for any of the above mentioned reasons), the log is
-    included in a list contained in the returning tuple.
+    On any case that a log is not imported (for any of the above mentioned
+    reasons), the log is included in a list contained in the returning tuple.
 
 
     @param file_obj: from where the records are going to be read
@@ -423,15 +448,17 @@ def load_dump(file_obj, date_format=None,
     @param create_project_assocs: optional argument to determine if non existant
     project-user associations should be created
     @type create_project_assocs: bool
-    @param is_api: determines if the function call comes from a view (set to False)
+    @param is_api: determines if the function call comes from a view
+        (set to False)
     or should be treated as an API call (set to True)
     @type is_api: bool
 
     @return: Tuple with four elements:
     list of rows not imported, set of external logins not found,
     set of projects not created, set of project associations not created.
-    If apply (is_api==False and create_logins==True) the tuple contains a fifth element
-    which is the path to the temp file where not imported rows are stored.
+    If apply (is_api==False and create_logins==True) the tuple contains a
+    fifth element which is the path to the temp file where not imported rows
+    are stored.
 
     """
 
@@ -465,14 +492,15 @@ def load_dump(file_obj, date_format=None,
 
     # Define a partial function so when don't branch in the loop
     if date_format:
-        _partial_date_fmts = lambda x : _date_fmts(x, [date_format])
+        _partial_date_fmts = lambda x: _date_fmts(x, [date_format])
     else:
-        _partial_date_fmts = lambda x : _date_fmts(x)
+        _partial_date_fmts = lambda x: _date_fmts(x)
 
     n_rows, n_users, n_projects, n_project_assocs = [], set(), set(), set()
     a_rows = []
     for row in reader:
-        if not row: continue
+        if not row:
+            continue
 
         lgn = force_unicode(row[2])
         userprofile = userprofile_dict.get(lgn, None)
@@ -489,9 +517,12 @@ def load_dump(file_obj, date_format=None,
         t_proj = projects_dict.get(row[1], None)
         if not t_proj:
             if create_projects:
-                t_proj = Project.objects.create(name=row[1], external_id=row[1], client=client)
+                t_proj = Project.objects.create(name=row[1],
+                                                external_id=row[1],
+                                                client=client)
 
-                passoc = ProjectAssoc.objects.filter(project=t_proj, member=user.get_profile())
+                passoc = ProjectAssoc.objects.filter(project=t_proj,
+                    member=user.get_profile())
                 if not passoc:
                     ProjectAssoc.objects.create(project=t_proj,
                                                 member=user.get_profile(),
@@ -506,7 +537,8 @@ def load_dump(file_obj, date_format=None,
                 n_rows.append(row)
                 continue
         else:
-            passoc = ProjectAssoc.objects.filter(project=t_proj, member=user.get_profile())
+            passoc = ProjectAssoc.objects.filter(project=t_proj,
+                member=user.get_profile())
             if not passoc:
                 if create_project_assocs:
                     ProjectAssoc.objects.create(project=t_proj,
@@ -515,17 +547,18 @@ def load_dump(file_obj, date_format=None,
                                                 user_rate=0.0,
                                                 from_date=d)
                 else:
-                    n_project_assocs.add((t_proj.external_id, user.get_profile()))
+                    n_project_assocs.add((t_proj.external_id,
+                        user.get_profile()))
                     n_rows.append(row)
                     continue
 
-        tl_dict = {'date' : d,
-                   'project' : t_proj,
-                   'task_name' : row[4],
-                   'user' : user,
-                   'hours_booked' : row[3],
-                   'description' : row[5],
-                   'dump' : dump
+        tl_dict = {'date': d,
+                   'project': t_proj,
+                   'task_name': row[4],
+                   'user': user,
+                   'hours_booked': row[3],
+                   'description': row[5],
+                   'dump': dump
                    }
         TimeLog.objects.create(**tl_dict)
 
@@ -537,8 +570,8 @@ def load_dump(file_obj, date_format=None,
             temp_path = tempfile.mktemp()
             temp_file = open(temp_path, 'w')
 
-            temp_writer = EffCsvWriter(external_source, client, author, temp_file,
-                                       from_date=from_date, to_date=to_date)
+            temp_writer = EffCsvWriter(external_source, client, author,
+                temp_file, from_date=from_date, to_date=to_date)
 
             for row in a_rows:
                 row[0] = datetime.strptime(row[0], '%Y-%m-%d')

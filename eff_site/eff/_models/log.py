@@ -67,7 +67,7 @@ class TimeLog(models.Model):
         return sum(log.hours_booked for log in qset)
 
     @classmethod
-    def user_projects(self, user, from_date, to_date):
+    def user_projects(cls, user, from_date, to_date):
         return Project.objects.filter(
                                     timelog__user__username=user.user.username,
                                     timelog__date__gte=from_date,
@@ -165,15 +165,15 @@ class TimeLog(models.Model):
         return project_rates
 
     @classmethod
-    def project_hours(self, project, from_date, to_date):
-        hours = self.objects.filter(date__gte=from_date,
+    def project_hours(cls, project, from_date, to_date):
+        hours = cls.objects.filter(date__gte=from_date,
                                     date__lte=to_date,
                                     project=project)
         hours = hours.values('user__username').annotate(Sum("hours_booked"))
         return hours
 
     @classmethod
-    def project_hours_grouped_by_rate(self, project, from_date, to_date):
+    def project_hours_grouped_by_rate(cls, project, from_date, to_date):
         users_rates = []
         # Get the users related to this project
         project_users = map(lambda member: member.user,
@@ -234,10 +234,9 @@ class TimeLog(models.Model):
 
         return users_rates
 
-
     @classmethod
-    def project_tasks_hours_log(self, project, from_date, to_date):
-        return self.objects.filter(date__gte=from_date,
+    def project_tasks_hours_log(cls, project, from_date, to_date):
+        return cls.objects.filter(date__gte=from_date,
                                    date__lte=to_date,
                                    project=project).order_by('date')
 
@@ -253,8 +252,10 @@ class TimeLog(models.Model):
                    for log in cls.objects.filter(**kwargs))
 
     @classmethod
-    def get_log_hours_per_selected_project(cls, user, project_name, from_date, to_date):
-        return cls.hours_per_project(user, from_date, to_date, project=project_name)
+    def get_log_hours_per_selected_project(cls, user, project_name, from_date,
+        to_date):
+        return cls.hours_per_project(user, from_date, to_date,
+            project=project_name)
 
     # All hours of a CSV project are billable, think Tutos, etc.
 
@@ -277,7 +278,6 @@ class TimeLog(models.Model):
         return sum(log.hours_booked
                    for log in cls.objects.filter(**kwargs))
 
-
     def _to_tuple(self):
         return (self.project.name, self.task_name, self.description,
                 self.hours_booked, self.date, self.user)
@@ -286,31 +286,37 @@ class TimeLog(models.Model):
     def report(cls, user, from_date, to_date, project=None):
         if project is not None:
             return (log._to_tuple()
-                    for log in cls.objects.filter(date__gte=from_date,
-                                                    date__lte=to_date,
-                                                    user__username=user.user.username,
-                                                    project__name=project))
+                    for log in cls.objects.filter(
+                        date__gte=from_date,
+                        date__lte=to_date,
+                        user__username=user.user.username,
+                        project__name=project))
         else:
             return (log._to_tuple()
-                    for log in cls.objects.filter(date__gte=from_date,
-                                                    date__lte=to_date,
-                                                    user__username=user.user.username))
+                    for log in cls.objects.filter(
+                        date__gte=from_date,
+                        date__lte=to_date,
+                        user__username=user.user.username))
 
     @classmethod
-    def get_summary_per_project(self, user, from_date, to_date, with_rates=False):
+    def get_summary_per_project(cls, user, from_date, to_date,
+        with_rates=False):
         if with_rates:
-            return ((item[0].get_external_source(), item[0].name, True, item[2], item[3])
+            return ((item[0].get_external_source(), item[0].name, True, item[2],
+                item[3])
                     for item in
-                    self.hours_grouped_by_project_with_rates(user, from_date, to_date)
+                    cls.hours_grouped_by_project_with_rates(user, from_date,
+                        to_date)
                     if item is not None)
         else:
             return ((item[0].get_external_source(), item[0].name, True, item[2])
                     for item in
-                    self.hours_grouped_by_project(user, from_date, to_date)
+                    cls.hours_grouped_by_project(user, from_date, to_date)
                     if item is not None)
 
     @classmethod
-    def get_client_summary_per_project(self, client, from_date, to_date, with_rates=False):
+    def get_client_summary_per_project(cls, client, from_date, to_date,
+        with_rates=False):
         projects = client.project_set.all()
         projects_users_hours = {}
 
@@ -321,35 +327,36 @@ class TimeLog(models.Model):
 
             for p in projects:
                 project_hours = TimeLog.project_hours_grouped_by_rate(p,
-                                                            from_date, to_date)
+                    from_date, to_date)
                 if project_hours:
-                    projects_users_hours[p.external_id]=[]
+                    projects_users_hours[p.external_id] = []
 
-                    projects_users_hours[p.external_id] += [(i['user__username'],
-                                                             i['hours_booked__sum'],
-                                                             i['rate'])
-                                                            for i in project_hours]
+                    projects_users_hours[p.external_id] += [
+                        (i['user__username'], i['hours_booked__sum'], i['rate'])
+                        for i in project_hours]
         else:
             for p in projects:
                 project_hours = TimeLog.project_hours(p, from_date, to_date)
                 if project_hours:
-                    projects_users_hours[p.external_id]=[]
-                    projects_users_hours[p.external_id] += [(i['user__username'],
-                                                             i['hours_booked__sum'])
-                                                            for i in project_hours]
+                    projects_users_hours[p.external_id] = []
+                    projects_users_hours[p.external_id] += [
+                        (i['user__username'], i['hours_booked__sum']) \
+                        for i in project_hours]
 
         return projects_users_hours
 
     @classmethod
-    def get_client_task_log_summary_per_project(self, client, from_date, to_date):
+    def get_client_task_log_summary_per_project(cls, client, from_date,
+        to_date):
         projects = client.project_set.all()
         projects_users_hours = {}
 
         for p in projects:
-            project_hours = TimeLog.project_tasks_hours_log(p, from_date, to_date)
+            project_hours = TimeLog.project_tasks_hours_log(p, from_date,
+                to_date)
 
             if project_hours:
-                projects_users_hours[p.external_id]={}
+                projects_users_hours[p.external_id] = {}
 
                 for i in project_hours:
                     name = i.user.username
