@@ -26,6 +26,7 @@ from dump import Dump
 from django.db.models import Q
 from customfields import HourField
 from decimal import Decimal
+from datetime import date, timedelta
 
 
 class TimeLog(models.Model):
@@ -126,8 +127,15 @@ class TimeLog(models.Model):
                 ~Q(to_date__lt=from_date)).order_by('from_date')
 
             # Get the rates for each project.
-            for period in projassoc.values('from_date', 'to_date',
-                                           'user_rate'):
+            periods = iter(projassoc.values('from_date', 'to_date',
+                                            'user_rate'))
+            try:
+                period = periods.next()
+            except StopIteration:
+                period = None
+
+            while period:
+                aux_period = None
                 # All timelogs before this period belong to a previous period
                 # or do not belong to any period, so they have rate = 0.
                 for t in timelogs:
@@ -139,6 +147,19 @@ class TimeLog(models.Model):
                         break
                 # Discard timelogs already processed
                 timelogs = timelogs.exclude(date__lt=period['from_date'])
+
+                # If to_date not available then set it to from_date - 1. If this
+                # period is the last one, then set it to today, to process all
+                # remaining logs.
+                if not period['to_date']:
+                    try:
+                        aux_period = periods.next()
+                    except StopIteration:
+                        period['to_date'] = date.today()
+                    else:
+                        period['to_date'] = aux_period['from_date'] - \
+                                            timedelta(days=1)
+
                 # All timelogs inside this period have rate equal to the one
                 # set in the projassoc.
                 for t in timelogs:
@@ -148,8 +169,18 @@ class TimeLog(models.Model):
                             t.hours_booked
                     else:
                         break
+
                 # Discard timelogs already processed
                 timelogs = timelogs.exclude(date__lte=period['to_date'])
+
+                # Set next period to process correctly
+                if aux_period:
+                    period = aux_period
+                else:
+                    try:
+                        period = periods.next()
+                    except StopIteration:
+                        break
 
             # All remaining timelogs have rate = 0
             tl_hours = map(lambda log: log['hours_booked'],
@@ -195,8 +226,15 @@ class TimeLog(models.Model):
                 ~Q(to_date__lt=from_date)).order_by('from_date')
 
             # Get the rates for each user.
-            for period in projassoc.values('from_date', 'to_date',
-                                           'client_rate'):
+            periods = iter(projassoc.values('from_date', 'to_date',
+                                            'client_rate'))
+            try:
+                period = periods.next()
+            except StopIteration:
+                period = None
+
+            while period:
+                aux_period = None
                 # All timelogs before this period belong to a previous period
                 # or do not belong to any period, so they have rate = 0.
                 for t in timelogs:
@@ -208,6 +246,19 @@ class TimeLog(models.Model):
                         break
                 # Discard timelogs already processed
                 timelogs = timelogs.exclude(date__lt=period['from_date'])
+
+                # If to_date not available then set it to from_date - 1. If this
+                # period is the last one, then set it to today, to process all
+                # remaining logs.
+                if not period['to_date']:
+                    try:
+                        aux_period = periods.next()
+                    except StopIteration:
+                        period['to_date'] = date.today()
+                    else:
+                        period['to_date'] = aux_period['from_date'] - \
+                                            timedelta(days=1)
+
                 # All timelogs inside this period have rate equal to the one set
                 # in the projassoc.
                 for t in timelogs:
@@ -219,6 +270,15 @@ class TimeLog(models.Model):
                         break
                 # Discard timelogs already processed
                 timelogs = timelogs.exclude(date__lte=period['to_date'])
+
+                # Set next period to process correctly
+                if aux_period:
+                    period = aux_period
+                else:
+                    try:
+                        period = periods.next()
+                    except StopIteration:
+                        break
 
             # All remaining timelogs have rate = 0
             tl_hours = map(lambda log: log['hours_booked'],

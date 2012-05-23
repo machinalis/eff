@@ -21,9 +21,13 @@ from django.db.models import signals
 from django.test import TestCase
 from unittest import TestSuite, makeSuite
 
-from factories import *
+from factories import UserProfileFactory, ProjectFactory, ClientFactory
+from factories import ProjectAssocFactory, ExternalSourceFactory, DumpFactory
+from factories import TimeLogFactory
 from decimal import Decimal
 from eff.models import TimeLog
+
+from datetime import date, timedelta
 
 
 class HelperTest(TestCase):
@@ -63,6 +67,11 @@ class HelperTest(TestCase):
                                   external_id='FP10')
 
         # Add projectassocs
+        ProjectAssocFactory(project=project1, member=self.user2,
+                            client_rate=Decimal('0.30'),
+                            user_rate=Decimal('0.14'),
+                            from_date=date(2008, 01, 01),
+                            to_date=None)
         ProjectAssocFactory(project=project2, member=self.user1,
                             client_rate=Decimal('0.00'),
                             user_rate=Decimal('0.19'),
@@ -107,13 +116,17 @@ class HelperTest(TestCase):
                                             ], date(2010, 10, 01), project1)
 
         # project1 -> user1 hours: 8*5
-        self.create_timelogs_for_users(8, [(self.user1.user, 5.0)],
+        self.create_timelogs_for_users(8, [(self.user1.user, 5.00)],
                                        date(2012, 01, 01), project1)
 
         # project2 -> user1 hours: 15*4.5, user2 hours: 15*6.5
         self.create_timelogs_for_users(15, [(self.user1.user, 4.5),
                                             (self.user2.user, 6.5)
                                             ], date(2010, 9, 16), project2)
+
+        # project1 -> user2 hours: 15*4
+        self.create_timelogs_for_users(15, [(self.user2.user, 4.0)],
+                                       date(2008, 01, 01), project1)
 
 
 class UserReportTest(HelperTest):
@@ -172,11 +185,11 @@ class UserReportTest(HelperTest):
             ]
         self.assertEqual(expected, list(report))
 
-    def test_get_summary_per_project_all_hours(self):
+    def test_get_summary_per_project_all_hours1(self):
         # Tests that ALL hours are reported, including those with rate 0, that
         # is, hours logged within a projectassoc period with rate 0, and hours
         # logged in days not contained by any projectassoc period.
-        report = TimeLog.get_summary_per_project(self.user1, '2010-09-01',
+        report = TimeLog.get_summary_per_project(self.user1, '2008-01-01',
                                                  '2012-05-10', True)
         expected = [
             (self.ext_src, u'Fake Project 10', True, Decimal('71.000'),
@@ -185,6 +198,21 @@ class UserReportTest(HelperTest):
              Decimal('0.00')),
             (self.ext_src, u'Fake Project 42', True, Decimal('360.000'),
              Decimal('0.50'))
+            ]
+        self.assertEqual(expected, list(report))
+
+    def test_get_summary_per_project_all_hours2(self):
+        # Same as previous test, plus tests all works fine with a projassoc
+        # with to_date not set.
+        report = TimeLog.get_summary_per_project(self.user2, '2008-01-01',
+                                                 '2012-05-10', True)
+        expected = [
+            (self.ext_src, u'Fake Project 10', True, Decimal('97.500'),
+             Decimal('0.19')),
+            (self.ext_src, u'Fake Project 42', True, Decimal('60.000'),
+             Decimal('0.14')),
+            (self.ext_src, u'Fake Project 42', True, Decimal('157.500'),
+             Decimal('0.19'))
             ]
         self.assertEqual(expected, list(report))
 
@@ -248,7 +276,7 @@ class ClientReportTest(HelperTest):
                     }
         self.assertEqual(expected, report)
 
-    def test_get_client_summary_per_project_all_hours(self):
+    def test_get_client_summary_per_project_all_hours1(self):
         # Tests that ALL hours are reported, including those with rate 0, that
         # is, hours logged within a projectassoc period with rate 0, and hours
         # logged in days not contained by any projectassoc period.
@@ -259,6 +287,23 @@ class ClientReportTest(HelperTest):
         expected = {u'FP42': [(u'user1', Decimal('60.000'), Decimal('0.00')),
                               (u'user1', Decimal('360.000'), Decimal('0.80')),
                               (u'user2', Decimal('157.500'), Decimal('0.60'))],
+                    u'FP10': [(u'user1', Decimal('71.000'), Decimal('0.00')),
+                              (u'user2', Decimal('97.500'), Decimal('0.00'))]
+                    }
+        self.assertEqual(expected, report)
+
+    def test_get_client_summary_per_project_all_hours2(self):
+        # Same as previous test, plus tests all works fine with a projassoc
+        # with to_date not set.
+        report = TimeLog.get_client_summary_per_project(self.client,
+                                                        date(2008, 01, 01),
+                                                        date(2012, 05, 10),
+                                                        True)
+        expected = {u'FP42': [(u'user1', Decimal('60.000'), Decimal('0.00')),
+                              (u'user1', Decimal('360.000'), Decimal('0.80')),
+                              (u'user2', Decimal('157.500'), Decimal('0.60')),
+                              (u'user2', Decimal('60.000'), Decimal('0.30')),
+                              ],
                     u'FP10': [(u'user1', Decimal('71.000'), Decimal('0.00')),
                               (u'user2', Decimal('97.500'), Decimal('0.00'))]
                     }
