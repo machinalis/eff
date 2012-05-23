@@ -28,6 +28,15 @@ from eff.models import TimeLog
 
 class HelperTest(TestCase):
 
+    def create_timelogs_for_users(self, n, users_hours, start_date, project):
+        # Generate n timelogs with specified hours for each user, from
+        # start_date, for specified project
+        for d in xrange(n):
+            for user, user_hours in users_hours:
+                TimeLogFactory(user=user, date=start_date + timedelta(days=d),
+                               hours_booked=Decimal(str(user_hours)),
+                               project=project)
+
     def setUp(self):
 
         # Disconnect signals so there's no problem to use UserProfileFactory
@@ -86,31 +95,25 @@ class HelperTest(TestCase):
                        hours_booked=Decimal('15.0'), project=project1)
         TimeLogFactory(user=self.user1.user, date=date(2010, 9, 30),
                        hours_booked=Decimal('5.0'), project=project1)
+
         # A log in the limit (to_date) of a projectassoc
         TimeLogFactory(user=self.user1.user, date=date(2010, 9, 30),
                        hours_booked=Decimal('3.5'), project=project2)
+
         # More logs for each projectassoc period.
         # project1 -> user1 hours: 45*8, user2 hours: 45*3.5
-        for d in range(45):
-            TimeLogFactory(user=self.user1.user, date=date(2010, 10, 01) + \
-                           timedelta(days=d),
-                           hours_booked=Decimal('8.0'), project=project1)
-            TimeLogFactory(user=self.user2.user, date=date(2010, 10, 01) + \
-                           timedelta(days=d),
-                           hours_booked=Decimal('3.5'), project=project1)
+        self.create_timelogs_for_users(45, [(self.user1.user, 8.0),
+                                            (self.user2.user, 3.5)
+                                            ], date(2010, 10, 01), project1)
+
         # project1 -> user1 hours: 8*5
-        for d in range(8):
-            TimeLogFactory(user=self.user1.user, date=date(2012, 01, 01) + \
-                           timedelta(days=d),
-                           hours_booked=Decimal('5.0'), project=project1)
+        self.create_timelogs_for_users(8, [(self.user1.user, 5.0)],
+                                       date(2012, 01, 01), project1)
+
         # project2 -> user1 hours: 15*4.5, user2 hours: 15*6.5
-        for d in range(15):
-            TimeLogFactory(user=self.user1.user, date=date(2010, 9, 16) + \
-                           timedelta(days=d),
-                           hours_booked=Decimal('4.5'), project=project2)
-            TimeLogFactory(user=self.user2.user, date=date(2010, 9, 16) + \
-                           timedelta(days=d),
-                           hours_booked=Decimal('6.5'), project=project2)
+        self.create_timelogs_for_users(15, [(self.user1.user, 4.5),
+                                            (self.user2.user, 6.5)
+                                            ], date(2010, 9, 16), project2)
 
 
 class UserReportTest(HelperTest):
@@ -193,7 +196,8 @@ class ClientReportTest(HelperTest):
         # a projectassoc period.
         report = TimeLog.get_client_summary_per_project(self.client,
                                                         date(2010, 9, 30),
-                                                        date(2010, 10, 2), True)
+                                                        date(2010, 10, 2),
+                                                        True)
         expected = {u'FP42': [(u'user1', Decimal('5.000'), Decimal('0.00')),
                               (u'user1', Decimal('16.000'), Decimal('0.80')),
                               (u'user2', Decimal('7.000'), Decimal('0.60'))
@@ -209,7 +213,8 @@ class ClientReportTest(HelperTest):
         # a projectassoc period.
         report = TimeLog.get_client_summary_per_project(self.client,
                                                         date(2010, 9, 16),
-                                                        date(2010, 9, 18), True)
+                                                        date(2010, 9, 18),
+                                                        True)
         expected = {u'FP10': [(u'user1', Decimal('13.500'), Decimal('0.00')),
                               (u'user2', Decimal('19.500'), Decimal('0.00'))]
                     }
@@ -220,7 +225,8 @@ class ClientReportTest(HelperTest):
         # a projectassoc period.
         report = TimeLog.get_client_summary_per_project(self.client,
                                                         date(2010, 9, 29),
-                                                        date(2010, 10, 1), True)
+                                                        date(2010, 10, 1),
+                                                        True)
         expected = {u'FP42': [(u'user1', Decimal('5.000'), Decimal('0.00')),
                               (u'user1', Decimal('8.000'), Decimal('0.80')),
                               (u'user2', Decimal('3.500'), Decimal('0.60'))],
@@ -234,7 +240,8 @@ class ClientReportTest(HelperTest):
         # a projectassoc period.
         report = TimeLog.get_client_summary_per_project(self.client,
                                                         date(2010, 9, 28),
-                                                        date(2010, 9, 30), True)
+                                                        date(2010, 9, 30),
+                                                        True)
         expected = {u'FP10': [(u'user1', Decimal('17.000'), Decimal('0.00')),
                               (u'user2', Decimal('19.500'), Decimal('0.00'))],
                     u'FP42': [(u'user1', Decimal('5.000'), Decimal('0.00'))]
@@ -247,7 +254,8 @@ class ClientReportTest(HelperTest):
         # logged in days not contained by any projectassoc period.
         report = TimeLog.get_client_summary_per_project(self.client,
                                                         date(2010, 9, 01),
-                                                        date(2012, 5, 10), True)
+                                                        date(2012, 5, 10),
+                                                        True)
         expected = {u'FP42': [(u'user1', Decimal('60.000'), Decimal('0.00')),
                               (u'user1', Decimal('360.000'), Decimal('0.80')),
                               (u'user2', Decimal('157.500'), Decimal('0.60'))],

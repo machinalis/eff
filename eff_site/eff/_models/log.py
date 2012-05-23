@@ -19,12 +19,11 @@
 from django.db import models
 from django.contrib.auth.models import User
 from project import Project, ProjectAssoc
-from django.db.models import Sum, Min
+from django.db.models import Sum
 
 from dump import Dump
 
 from django.db.models import Q
-from datetime import timedelta
 from customfields import HourField
 from decimal import Decimal
 
@@ -140,8 +139,8 @@ class TimeLog(models.Model):
                         break
                 # Discard timelogs already processed
                 timelogs = timelogs.exclude(date__lt=period['from_date'])
-                # All timelogs inside this period have rate equal to the one set
-                # in the projassoc.
+                # All timelogs inside this period have rate equal to the one
+                # set in the projassoc.
                 for t in timelogs:
                     if t.date <= period['to_date']:
                         rates[Decimal(period['user_rate'])] = rates.get(
@@ -179,7 +178,7 @@ class TimeLog(models.Model):
         # Get the users related to this project
         project_users = map(lambda member: member.user,
                             project.members.all().distinct())
-        
+
         for user in project_users:
             rates = {}
             # Get the timelogs in this period
@@ -363,19 +362,3 @@ class TimeLog(models.Model):
                         user_data[name] = [info]
 
         return projects_users_hours
-
-def join_dups(l):
-    """
-    Helper function to join consecutive project associations with same rate
-    """
-    if not l:
-        return l
-
-    i = 0
-    for item in l:
-        if item[2]==l[i][2]: continue
-        i += 1
-        l[i] = (l[i][0], item[1], l[i][2])
-    l[i] = (l[i][0], item[1], l[i][2])
-    del l[i+1:]
-    return l

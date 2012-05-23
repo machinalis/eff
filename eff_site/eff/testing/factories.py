@@ -50,7 +50,6 @@ class UserProfileFactory(factory.Factory):
     FACTORY_FOR = UserProfile
 
     user = factory.SubFactory(UserFactory)
-    # projects = ManyToManyField
 
 
 class CurrencyFactory(factory.Factory):
@@ -76,8 +75,6 @@ class ClientFactory(factory.Factory):
     billing_email_address = factory.LazyAttribute(lambda o: '%s@test.com' \
                                                   % o.slug)
     external_source = factory.SubFactory(ExternalSourceFactory)
-    # external_id = a string
-    # currency = factory.SubFactory(CurrencyFactory)
 
 
 class ProjectFactory(factory.Factory):
@@ -87,9 +84,6 @@ class ProjectFactory(factory.Factory):
     billable = True
     client = factory.SubFactory(ClientFactory)
     billing_type = 'HOUR'
-    # external_id = factory.Sequence(lambda o: 'ext%s' % o.name)
-    # members = ManyToManyField
-    # fixed_price = MoneyField
 
 
 class ProjectAssocFactory(factory.Factory):
@@ -106,7 +100,7 @@ class ProjectAssocFactory(factory.Factory):
 class DumpFactory(factory.Factory):
     FACTORY_FOR = Dump
 
-    date = date.today() - timedelta(days=random.choice(range(366)))
+    date = date.today() - timedelta(days=random.choice(xrange(366)))
     creator = 'test123'
     source = factory.SubFactory(ExternalSourceFactory)
 
@@ -114,7 +108,7 @@ class DumpFactory(factory.Factory):
 class TimeLogFactory(factory.Factory):
     FACTORY_FOR = TimeLog
 
-    date = date.today() - timedelta(days=random.choice(range(366)))
+    date = date.today() - timedelta(days=random.choice(xrange(366)))
     project = factory.SubFactory(ProjectFactory)
     task_name = factory.Sequence(lambda n: 'Task%s' % n)
     user = factory.SubFactory(UserFactory)
