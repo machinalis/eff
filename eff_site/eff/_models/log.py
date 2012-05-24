@@ -16,17 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with Eff.  If not, see <http://www.gnu.org/licenses/>.
 
-
 from django.db import models
 from django.contrib.auth.models import User
 from project import Project, ProjectAssoc
-from django.db.models import Sum, Min
+from django.db.models import Sum
 
 from dump import Dump
 
 from django.db.models import Q
-from datetime import timedelta
 from customfields import HourField
+from decimal import Decimal
+from datetime import date, timedelta
 
 
 class TimeLog(models.Model):
@@ -107,87 +107,93 @@ class TimeLog(models.Model):
 
     @classmethod
     def hours_grouped_by_project_with_rates(cls, user, from_date, to_date):
+        project_rates = []
+        # Get the projects related to this user in this period
         user_projects = cls.user_projects(user, from_date, to_date)
-        # Discard project associations out of the period
-        projassoc = ProjectAssoc.objects.filter(
-                        Q(member__user__username=user.user.username),
-                        Q(project__in=user_projects),
-                        ~Q(from_date__gt=to_date),
-                        ~Q(to_date__lt=from_date))
 
-        start_dates = projassoc.values('project').annotate(Min("from_date"))
-        projects_dates = {}
-        for m_dates in start_dates:
-            project = Project.objects.get(id=m_dates['project'])
-            d_date = m_dates['from_date__min']
-            if d_date > from_date:
-                d_date = from_date
-            next_dates = projassoc.filter(Q(project=project),
-                                Q(member__user__username=user.user.username),
-                                Q(from_date__gt=d_date) | Q(to_date__gt=d_date)
-                            ).order_by("from_date")
-            f_dates = [pa.from_date for pa in next_dates \
-                if pa.from_date > d_date]
-            t_dates = [pa.to_date for pa in next_dates \
-                if pa.to_date is not None and pa.to_date > d_date]
-            dates = f_dates + t_dates
-            dates = filter(lambda d: d > from_date and d < to_date, dates)
-            projects_dates[project] = [from_date] + sorted(dates) + [to_date]
+        for project in user_projects:
+            rates = {}
+            # Get the timelogs in this period
+            timelogs = project.timelog_set.filter(
+                Q(user__username=user.user.username),
+                Q(date__gte=from_date),
+                Q(date__lte=to_date)).order_by('date')
 
-        # Get the rates
-        rates = []
-        for project, dates in projects_dates.items():
-            project_rates = []
-            while len(dates) > 0:
-                d1 = dates.pop(0)
-                try:
-                    d2 = dates[0]
-                except IndexError:
-                    args = (Q(member__user__username=user.user.username),
-                            Q(project=project),
-                            Q(from_date__lte=d1),
-                            Q(to_date__isnull=True))
+            # Discard project associations out of the period
+            projassoc = ProjectAssoc.objects.filter(
+                Q(member__user__username=user.user.username),
+                Q(project=project),
+                ~Q(from_date__gt=to_date),
+                ~Q(to_date__lt=from_date)).order_by('from_date')
+
+            # Get the rates for each project.
+            periods = iter(projassoc.values('from_date', 'to_date',
+                                            'user_rate'))
+            try:
+                period = periods.next()
+            except StopIteration:
+                period = None
+
+            while period:
+                aux_period = None
+                # All timelogs before this period belong to a previous period
+                # or do not belong to any period, so they have rate = 0.
+                for t in timelogs:
+                    if t.date < period['from_date']:
+                        rates[Decimal('0.00')] = rates.get(Decimal('0.00'),
+                                                           Decimal('0.00')) +\
+                                                           t.hours_booked
+                    else:
+                        break
+                # Discard timelogs already processed
+                timelogs = timelogs.exclude(date__lt=period['from_date'])
+
+                # If to_date not available then set it to from_date - 1. If this
+                # period is the last one, then set it to today, to process all
+                # remaining logs.
+                if not period['to_date']:
+                    try:
+                        aux_period = periods.next()
+                    except StopIteration:
+                        period['to_date'] = date.today()
+                    else:
+                        period['to_date'] = aux_period['from_date'] - \
+                                            timedelta(days=1)
+
+                # All timelogs inside this period have rate equal to the one
+                # set in the projassoc.
+                for t in timelogs:
+                    if t.date <= period['to_date']:
+                        rates[Decimal(period['user_rate'])] = rates.get(
+                            Decimal(period['user_rate']), Decimal('0.00')) + \
+                            t.hours_booked
+                    else:
+                        break
+
+                # Discard timelogs already processed
+                timelogs = timelogs.exclude(date__lte=period['to_date'])
+
+                # Set next period to process correctly
+                if aux_period:
+                    period = aux_period
                 else:
-                    args = (Q(member__user__username=user.user.username),
-                            Q(project=project),
-                            Q(from_date__lte=d1),
-                            Q(to_date__gte=d2) |
-                            Q(to_date__isnull=True))
-                assocs = projassoc.filter(*args).order_by("-from_date")
-                if assocs:
-                    if project_rates:
-                        # Two project associations can't overlap
-                        if project_rates[len(project_rates) - 1][1] == d1:
-                            project_rates[len(project_rates) - 1][1] = \
-                                d1 - timedelta(days=1)
-                    project_rates.append([d1, d2, assocs[0].user_rate])
+                    try:
+                        period = periods.next()
+                    except StopIteration:
+                        break
 
-            project_rates = join_dups(project_rates)
-            rates.append((project, project_rates))
+            # All remaining timelogs have rate = 0
+            tl_hours = map(lambda log: log['hours_booked'],
+                           timelogs.values('hours_booked'))
+            if timelogs:
+                rates[Decimal('0.00')] = rates.get(Decimal('0.00'),
+                                                   Decimal('0.00')) + \
+                                                   sum(tl_hours)
 
-        # Generate hours with rates according to project associations periods
-        t_hours = []
-        for project, rate_list in rates:
-            for rate in rate_list:
-                hours = cls.objects.filter(date__gte=rate[0],
-                                             date__lte=rate[1],
-                                             project=project,
-                                             user__username=user.user.username)
-                hours = hours.values('project').annotate(Sum("hours_booked"))
-                if hours:
-                    hours = hours[0]
-                    repeated = filter(lambda d: d['project'] == project.id and \
-                        d['rate'] == rate[2], t_hours)
-                    if repeated:
-                        i = t_hours.index(repeated[0])
-                        t_hours[i]['hours_booked__sum'] += hours[
-                            'hours_booked__sum']
-                    elif hours:
-                        hours['rate'] = rate[2]
-                        t_hours.append(hours)
+            for rate, hours in rates.items():
+                project_rates.append((project, '', hours, rate))
 
-        return map(lambda d: (Project.objects.get(id=d['project']), '',
-            d['hours_booked__sum'], d['rate']), t_hours)
+        return project_rates
 
     @classmethod
     def project_hours(cls, project, from_date, to_date):
@@ -199,87 +205,94 @@ class TimeLog(models.Model):
 
     @classmethod
     def project_hours_grouped_by_rate(cls, project, from_date, to_date):
-        # Discard project associations out of the period
-        projassoc = ProjectAssoc.objects.filter(Q(project=project),
-                                                ~Q(from_date__gt=to_date),
-                                                ~Q(to_date__lt=from_date))
+        users_rates = []
+        # Get the users related to this project
+        project_users = map(lambda member: member.user,
+                            project.members.all().distinct())
 
-        start_dates = projassoc.values('member__user').annotate(
-            Min("from_date"))
-        users_dates = {}
-        for m_dates in start_dates:
-            user = User.objects.get(id=m_dates['member__user'])
-            d_date = m_dates['from_date__min']
-            if d_date > from_date:
-                d_date = from_date
-            next_dates = projassoc.filter(
-                    Q(project=project),
-                    Q(member__user=user),
-                    Q(from_date__gt=d_date) | Q(to_date__gt=d_date)
-                ).order_by("from_date")
-            f_dates = [pa.from_date for pa in next_dates \
-                if pa.from_date > d_date]
-            t_dates = [pa.to_date for pa in next_dates \
-                if pa.to_date is not None and pa.to_date > d_date]
-            dates = f_dates + t_dates
-            dates = filter(lambda d: d > from_date and d < to_date, dates)
-            users_dates[user] = [from_date] + sorted(dates) + [to_date]
+        for user in project_users:
+            rates = {}
+            # Get the timelogs in this period
+            timelogs = project.timelog_set.filter(
+                Q(user=user),
+                Q(date__gte=from_date),
+                Q(date__lte=to_date)).order_by('date')
 
-        # Get the rates
-        rates = []
-        for user, dates in users_dates.items():
-            user_rates = []
-            while len(dates) > 0:
-                d1 = dates.pop(0)
-                try:
-                    d2 = dates[0]
-                except IndexError:
-                    args = (Q(member__user=user),
-                            Q(project=project),
-                            Q(from_date__lte=d1),
-                            Q(to_date__isnull=True))
+            # Discard project associations out of the period
+            projassoc = ProjectAssoc.objects.filter(
+                Q(member__user=user),
+                Q(project=project),
+                ~Q(from_date__gt=to_date),
+                ~Q(to_date__lt=from_date)).order_by('from_date')
+
+            # Get the rates for each user.
+            periods = iter(projassoc.values('from_date', 'to_date',
+                                            'client_rate'))
+            try:
+                period = periods.next()
+            except StopIteration:
+                period = None
+
+            while period:
+                aux_period = None
+                # All timelogs before this period belong to a previous period
+                # or do not belong to any period, so they have rate = 0.
+                for t in timelogs:
+                    if t.date < period['from_date']:
+                        rates[Decimal('0.00')] = rates.get(Decimal('0.00'),
+                                                           Decimal('0.00')) +\
+                                                           t.hours_booked
+                    else:
+                        break
+                # Discard timelogs already processed
+                timelogs = timelogs.exclude(date__lt=period['from_date'])
+
+                # If to_date not available then set it to from_date - 1. If this
+                # period is the last one, then set it to today, to process all
+                # remaining logs.
+                if not period['to_date']:
+                    try:
+                        aux_period = periods.next()
+                    except StopIteration:
+                        period['to_date'] = date.today()
+                    else:
+                        period['to_date'] = aux_period['from_date'] - \
+                                            timedelta(days=1)
+
+                # All timelogs inside this period have rate equal to the one set
+                # in the projassoc.
+                for t in timelogs:
+                    if t.date <= period['to_date']:
+                        rates[Decimal(period['client_rate'])] = rates.get(
+                            Decimal(period['client_rate']), Decimal('0.00')) + \
+                            t.hours_booked
+                    else:
+                        break
+                # Discard timelogs already processed
+                timelogs = timelogs.exclude(date__lte=period['to_date'])
+
+                # Set next period to process correctly
+                if aux_period:
+                    period = aux_period
                 else:
-                    args = (Q(member__user=user),
-                            Q(project=project),
-                            Q(from_date__lte=d1),
-                            Q(to_date__gte=d2) |
-                            Q(to_date__isnull=True))
+                    try:
+                        period = periods.next()
+                    except StopIteration:
+                        break
 
-                assocs = projassoc.filter(*args).order_by("-from_date")
-                if assocs:
-                    if user_rates:
-                        # Two project associations can't overlap
-                        if user_rates[len(user_rates) - 1][1] == d1:
-                            user_rates[len(user_rates) - 1][1] = \
-                                d1 - timedelta(days=1)
-                    user_rates.append([d1, d2, assocs[0].client_rate])
+            # All remaining timelogs have rate = 0
+            tl_hours = map(lambda log: log['hours_booked'],
+                           timelogs.values('hours_booked'))
+            if timelogs:
+                rates[Decimal('0.00')] = rates.get(Decimal('0.00'),
+                                                   Decimal('0.00')) + \
+                                                   sum(tl_hours)
 
-            user_rates = join_dups(user_rates)
-            rates.append((user, user_rates))
+            for rate, hours in rates.items():
+                users_rates.append({'user__username': user.username,
+                                    'rate': rate, 'hours_booked__sum': hours})
 
-        # Generate hours with rates according to project associations periods
-        t_hours = []
-        for user, rate_list in rates:
-            for rate in rate_list:
-                hours = self.objects.filter(date__gte=rate[0],
-                                            date__lte=rate[1],
-                                            project=project,
-                                            user=user)
-                hours = hours.values('user__username').annotate(
-                    Sum("hours_booked"))
-                if hours:
-                    hours = hours[0]
-                    repeated = filter(lambda d: d['user__username'] == \
-                        user.username and d['rate'] == rate[2], t_hours)
-                    if repeated:
-                        i = t_hours.index(repeated[0])
-                        t_hours[i]['hours_booked__sum'] += \
-                            hours['hours_booked__sum']
-                    elif hours:
-                        hours['rate'] = rate[2]
-                        t_hours.append(hours)
-
-        return t_hours
+        return users_rates
 
     @classmethod
     def project_tasks_hours_log(cls, project, from_date, to_date):
@@ -416,21 +429,3 @@ class TimeLog(models.Model):
                         user_data[name] = [info]
 
         return projects_users_hours
-
-
-def join_dups(l):
-    """
-    Helper function to join consecutive project associations with same rate
-    """
-    if not l:
-        return l
-
-    i = 0
-    for item in l:
-        if item[2] == l[i][2]:
-            continue
-        i += 1
-        l[i] = (l[i][0], item[1], l[i][2])
-    l[i] = (l[i][0], item[1], l[i][2])
-    del l[i + 1:]
-    return l
