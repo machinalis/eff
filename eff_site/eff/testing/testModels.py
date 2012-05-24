@@ -19,6 +19,7 @@
 
 from django.test import TestCase
 from django.test.client import Client
+from pyquery import PyQuery
 from django.contrib.auth.models import User, Permission
 from django.core.exceptions import ValidationError
 
@@ -438,6 +439,53 @@ class PageTest(HelperTest):
         response = self.client.get('/efi/reporte/' + self.usr.username + '/',
             context)
         self.assertEqual(response.status_code, 302)
+
+        def _test_prev_next_button(self, url):
+            url_start = url
+            check = self.client.login(username="test1", password="test1")
+            self.assertTrue(check)
+            response = self.client.get(url_start)
+            self.assertEqual(response.status_code, 200)
+            query = PyQuery(response.content)
+
+            # Test prev button
+            a_prev = query('#prev>a')
+            url_prev = a_prev.attr('href')
+            response_prev = self.client.get(url_prev)
+            self.assertEqual(response_prev.status_code, 200)
+
+            # Test next button
+            a_next = query('#prev>a')
+            url_next = a_next.attr('href')
+            response_next = self.client.get(url_next)
+            self.assertEqual(response_next.status_code, 200)
+
+        def test_include_navlinks_into_reporte_cliente(self):
+            """
+            Test
+            view: eff_client_report
+            template: reporte_cliente.html
+             """
+            self._test_prev_next_button('/efi/reporte_cliente/fake-client-1/'\
+                '?from_date=2008-03-04&to_date=2008-04-29')
+
+        def test_include_navlinks_into_eff_query(self):
+            """
+            Test
+            view: eff
+            template: eff_query.html
+            """
+            self._test_prev_next_button('/efi/?from_date=2008-03-04&'\
+                'to_date=2008-04-29')
+
+        def test_include_navlinks_into_eff_charts(self):
+            """
+            Test
+            view: eff_chart
+            template: profiles/eff_charts.html
+            """
+            self._test_prev_next_button('efi/chart/admin/?from_date=2008-03-04'\
+                '&to_date=2008-04-29')
 
 
 class UserProfileCreationTest(TestCase):
