@@ -8,3 +8,4 @@ python-dateutil==2.1
 relatorio==0.5.6
 zope.interface==3.8.0
 zope.testbrowser==4.0.2
+factory_boy==1.1.3
