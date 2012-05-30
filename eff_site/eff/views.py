@@ -451,7 +451,8 @@ def eff(request):
 
         if not request.user.is_superuser:
             #Less elegant yet nicer in the db, I presume
-            object_list = UserProfile.objects.filter(user=request.user)
+            object_list = UserProfile.objects.filter(
+                user__in=[request.user, request.user.user_set.all()])
         else:
             object_list = UserProfile.objects.all()
 

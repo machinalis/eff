@@ -117,8 +117,13 @@ class UserProfileInLine(admin.TabularInline):
     model = UserProfile
 
 
+class UserInLine(admin.TabularInline):
+    model = User
+
+
 class UserProfileAdminForm(forms.ModelForm):
     user = forms.ModelChoiceField(queryset=User.objects.order_by('username'))
+    inlines = [UserInLine]
 
     class Meta:
         model = UserProfile
