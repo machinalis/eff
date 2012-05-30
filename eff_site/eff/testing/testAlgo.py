@@ -22,7 +22,6 @@ from django.test.client import Client as TestClient
 from django.core.urlresolvers import reverse
 from pyquery import PyQuery
 from django.core import mail
-from datetime import date
 import re
 
 from factories import UserFactory
@@ -40,22 +39,15 @@ class HelperTest(TestCase):
 
 class PasswordResetTest(HelperTest):
 
-    def check_users(self, url):
-        check = self.test_client.login(username=self.user.username,
-                                       password=self.user.password)
-        self.assertEqual(check, True)
+    def generate_password_reset_url(self):
+        self.test_client.post(reverse('password_reset'),
+                              {'email': 'test@test.com'})
+        email_sent = mail.outbox[0]
+        aux = re.search('(?P<uidb36>[0-9A-Za-z]+)-(?P<token>.+)',
+                        email_sent.body[100:])
+        aux = aux.group(0)
 
-        response = self.test_client.get(url)
-        query = PyQuery(response.content)
-        # Get users as they appear in the dropdown
-        users = query("select#id_user option")
-        if users:
-            users = users.text().split()
-            self.assertEqual(users, self.ordered_users)
-        response = self.test_client.get(url)
-        query = PyQuery(response.content)
-        # Get users as they appear in the dropdown
-        users = query("select#id_user option")
+        return '/accounts/reset/' + aux
 
     def test_password_reset1(self):
         response = self.test_client.get(reverse('login'))
@@ -64,7 +56,7 @@ class PasswordResetTest(HelperTest):
         href = query.attr('href')
         self.assertEqual(href, '/accounts/password_reset/')
 
-    def test_password_reset3(self):
+    def test_password_reset2(self):
         self.test_client.post(reverse('password_reset'),
                               {'email': 'test@test.com'})
         # check user can still login
@@ -75,33 +67,37 @@ class PasswordResetTest(HelperTest):
     def test_password_reset_email_subject(self):
         self.test_client.post(reverse('password_reset'),
                               {'email': 'test@test.com'})
-        self.assertEqual(mail.outbox[0].subject,
+        email_sent = mail.outbox[0]
+        self.assertEqual(email_sent.subject,
                          'Password reset on example.com')
 
     def test_password_reset_email_from(self):
         self.test_client.post(reverse('password_reset'),
                               {'email': 'test@test.com'})
-        self.assertEqual(mail.outbox[0].from_email, 'webmaster@localhost')
+        email_sent = mail.outbox[0]
+        self.assertEqual(email_sent.from_email, 'webmaster@localhost')
 
     def test_password_reset_email_to(self):
         self.test_client.post(reverse('password_reset'),
                               {'email': 'test@test.com'})
-        self.assertEqual(mail.outbox[0].to, [u'test@test.com'])
+        email_sent = mail.outbox[0]
+        self.assertEqual(email_sent.to, [u'test@test.com'])
 
     def test_password_reset_email_body(self):
         self.test_client.post(reverse('password_reset'),
                               {'email': 'test@test.com'})
+        email_sent = mail.outbox[0]
         body = "\n\n\n\nYou\'re receiving this e-mail because you requested " +\
                "a password reset for your user account at example.com.\n\n\n" +\
                "Please go to the following page and choose a new password:" +\
                "\n\nhttp://example.com/accounts/reset/"
         aux = re.search('(?P<uidb36>[0-9A-Za-z]+)-(?P<token>.+)',
-                        mail.outbox[0].body[len(body) - 1:])
+                        email_sent.body[len(body) - 1:])
         body += aux.group(0) + "\n\nYour username, in case you\'ve forgotten" +\
                 ": test\n\nThanks for using our site!\n\nThe example.com tea" +\
                 "m\n\n\n"
 
-        self.assertEqual(mail.outbox[0].body, body)
+        self.assertEqual(email_sent.body, body)
 
     def test_password_reset_redirect(self):
         response = self.test_client.post(reverse('password_reset'),
@@ -111,18 +107,87 @@ class PasswordResetTest(HelperTest):
                          ('http://testserver/accounts/password_reset/done/',
                           302))
 
-    def test_password_reset_bad_email(self):
+    def test_password_reset_bad_email_error(self):
         response = self.test_client.post(reverse('password_reset'),
                                          {'email': 'badMail@test.com'})
-        query?
-        self.assertEqual(response, ALGO)
+        query = PyQuery(response.content)
+        query = query('ul.errorlist')
+        error = query.text()
+        error_msg = "That e-mail address doesn't have an associated user " +\
+                    "account. Are you sure you've registered?"
+        self.assertEqual(error, error_msg)
+
+    def test_password_reset_not_an_email_error(self):
+        response = self.test_client.post(reverse('password_reset'),
+                                         {'email': 'notAnEmail'})
+        query = PyQuery(response.content)
+        query = query('ul.errorlist')
+        error = query.text()
+        error_msg = "Enter a valid e-mail address."
+        self.assertEqual(error, error_msg)
 
     def test_password_reset_done(self):
         response = self.test_client.get(reverse('password_reset_done'))
         self.assertEqual(response.status_code, 200)
 
+    def test_password_reset_confirm_link_works(self):
+        url = self.generate_password_reset_url()
+        response = self.test_client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_password_reset_confirm_link_already_used(self):
+        url = self.generate_password_reset_url()
+        response = self.test_client.post(url, {'new_password1': 'newpass',
+                                               'new_password2': 'newpass'})
+        response = self.test_client.get(url)
+        query = PyQuery(response.content)
+        query = query('div p')
+        msg = "Password reset unsuccessful The password reset link was " +\
+              "invalid, possibly because it has already been used.  Please " +\
+              "request a new password reset."
+        self.assertEqual(query.text(), msg)
+
+    def test_password_reset_confirm_different_passwords(self):
+        url = self.generate_password_reset_url()
+        response = self.test_client.post(url, {'new_password1': 'newpass',
+                                               'new_password2': 'pass'})
+        query = PyQuery(response.content)
+        query = query('ul.errorlist')
+        error = query.text()
+        error_msg = "The two password fields didn't match."
+        self.assertEqual(error, error_msg)
+
+    def test_password_reset_complete(self):
+        url = self.generate_password_reset_url()
+        response = self.test_client.post(url, {'new_password1': 'newpass',
+                                               'new_password2': 'newpass'},
+                                         follow=True)
+        self.assertEqual(response.redirect_chain[0],
+                         ('http://testserver/accounts/reset/done/',
+                          302))
+        query = PyQuery(response.content)
+        query = query('div p:last').prevAll()
+        msg = "Password reset complete Your password has been set.  You may " +\
+              "go ahead and log in now."
+        self.assertEqual(query.text(), msg)
+
+    def test_password_reset_worked(self):
+        url = self.generate_password_reset_url()
+        self.test_client.post(url, {'new_password1': 'newpass',
+                                    'new_password2': 'newpass'})
+        check = self.test_client.login(username='test', password='newpass')
+        self.assertEqual(check, True)
+
+
 
 class PasswordChangeTest(HelperTest):
+
+    def test_password_change_worked(self):
+        url = self.generate_password_reset_url()
+        self.test_client.post(url, {'new_password1': 'newpass',
+                                    'new_password2': 'newpass'})
+        check = self.test_client.login(username='test', password='newpass')
+        self.assertEqual(check, True)
 
     def test_get_client_summary_per_project_limit1(self):
         pass

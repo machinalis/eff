@@ -37,3 +37,6 @@ DATABASES = {
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
+
+EMAIL_HOST = ''  # Set this as the host to use for sending e-mail
+EMAIL_PORT = 25  # Port to use for the SMTP server defined in EMAIL_HOST
