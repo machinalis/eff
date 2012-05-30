@@ -140,6 +140,7 @@ class UserAdmin(admin.ModelAdmin):
 class CurrencyAdmin(admin.ModelAdmin):
     pass
 
+
 class ExternalIdAdmin(admin.ModelAdmin):
     list_display = ('login', 'source', 'userprofile')
     search_fields = ('userprofile__user__username',

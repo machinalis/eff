@@ -162,9 +162,6 @@ class PasswordResetTest(HelperTest):
         response = self.test_client.post(url, {'new_password1': 'newpass',
                                                'new_password2': 'newpass'},
                                          follow=True)
-        self.assertEqual(response.redirect_chain[0],
-                         ('http://testserver/accounts/reset/done/',
-                          302))
         query = PyQuery(response.content)
         query = query('div p:last').prevAll()
         msg = "Password reset complete Your password has been set.  You may " +\
@@ -179,22 +176,72 @@ class PasswordResetTest(HelperTest):
         self.assertEqual(check, True)
 
 
-
 class PasswordChangeTest(HelperTest):
 
+    def setUp(self):
+        super(PasswordChangeTest, self).setUp()
+        self.test_client.login(username='test', password='test')
+
+    def test_password_change(self):
+        response = self.test_client.get(reverse('password_change'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_password_change_redirect(self):
+        response = self.test_client.post(reverse('password_change'),
+                                         {'old_password': 'test',
+                                          'new_password1': 'newpass',
+                                          'new_password2': 'newpass'},
+                                         follow=True)
+        self.assertEqual(response.redirect_chain[0],
+                         ('http://testserver/accounts/change_password/done/',
+                          302))
+
+    def test_password_change_bad_old_password(self):
+        response = self.test_client.post(reverse('password_change'),
+                                         {'old_password': 'notmypass',
+                                          'new_password1': 'newpass',
+                                          'new_password2': 'newpass'})
+        query = PyQuery(response.content)
+        query = query('ul.errorlist')
+        error = query.text()
+        error_msg = "Your old password was entered incorrectly. " +\
+                    "Please enter it again."
+        self.assertEqual(error, error_msg)
+
+    def test_password_change_bad_new_password(self):
+        response = self.test_client.post(reverse('password_change'),
+                                         {'old_password': 'test',
+                                          'new_password1': 'newpass1',
+                                          'new_password2': 'newpass2'})
+        query = PyQuery(response.content)
+        query = query('ul.errorlist')
+        error = query.text()
+        error_msg = "The two password fields didn't match."
+        self.assertEqual(error, error_msg)
+
+    def test_password_change_complete(self):
+        response = self.test_client.post(reverse('password_change'),
+                                         {'old_password': 'test',
+                                          'new_password1': 'newpass2',
+                                          'new_password2': 'newpass2'},
+                                                      follow=True)
+        query = PyQuery(response.content)
+        query = query('div p')
+        msg = "Password change successful Your password was changed."
+        self.assertEqual(query.text(), msg)
+
     def test_password_change_worked(self):
-        url = self.generate_password_reset_url()
-        self.test_client.post(url, {'new_password1': 'newpass',
-                                    'new_password2': 'newpass'})
+        self.test_client.post(reverse('password_change'),
+                              {'old_password': 'test',
+                               'new_password1': 'newpass',
+                               'new_password2': 'newpass'})
+        self.test_client.logout()
         check = self.test_client.login(username='test', password='newpass')
         self.assertEqual(check, True)
-
-    def test_get_client_summary_per_project_limit1(self):
-        pass
 
 
 def suite():
     suite = TestSuite()
-    suite.addTest(makeSuite(PasswordResetTest))
+    suite.addTest(makeSuite(PasswordChangeTest))
     suite.addTest(makeSuite(PasswordChangeTest))
     return suite
