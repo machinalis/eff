@@ -5,21 +5,21 @@
 
 if [ $# -eq 2 ] ; then
     cd $1
-    # echo "Delete the migrations folder of appname"
-    rm -r $2/migrations/
-
     # echo "Reset south db registers"
     python manage.py reset south 
 
-    # echo "Load the South table into the database"
+    # echo "Load the eff register to migrate"
     python manage.py syncdb
 
-    # echo "Convert to south"
-    python manage.py convert_to_south eff 
+    # Load the initial migrations faked
+    python manage.py migrate $2 --fake 0001
+
+    # Load the rest of eff migrations
+    python manage.py migrate $2
+    
 else                   
     echo "You must pass to script the path to django project and appname by params."
     echo "script-migration path/to/django/project appname"
     echo "Ej. If your django project is in 'eff_site' and appname is 'eff'"
     echo "Excecute 'script-migration eff_site eff'"
 fi
-
