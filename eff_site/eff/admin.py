@@ -117,13 +117,13 @@ class UserProfileInLine(admin.TabularInline):
     model = UserProfile
 
 
-class UserInLine(admin.TabularInline):
-    model = User
-
-
 class UserProfileAdminForm(forms.ModelForm):
     user = forms.ModelChoiceField(queryset=User.objects.order_by('username'))
-    inlines = [UserInLine]
+    # Set amount of users shown at a time to 10, make an ordered query
+    watches = forms.ModelMultipleChoiceField(
+        widget=forms.SelectMultiple(attrs={'size': 10}),
+        queryset=User.objects.order_by('username'),
+        label='Users to follow')
 
     class Meta:
         model = UserProfile

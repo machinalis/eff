@@ -19,7 +19,7 @@
 import factory
 from django.contrib.auth.models import User
 from eff.models import UserProfile, Client, ProjectAssoc, TimeLog, AvgHours
-from eff.models import Project, TimeLog, ExternalSource, Currency, Dump
+from eff.models import Project, ExternalSource, Currency, Dump
 from django.template.defaultfilters import slugify
 
 from decimal import Decimal
@@ -126,3 +126,11 @@ class TimeLogFactory(factory.Factory):
     hours_booked = Decimal('8.000')
     description = factory.Sequence(lambda n: 'Log %s' % n)
     dump = factory.SubFactory(DumpFactory)
+
+
+class AvgHoursFactory(factory.Factory):
+    FACTORY_FOR = AvgHours
+
+    date = date.today()
+    hours = Decimal('8.000')
+    user = factory.SubFactory(UserFactory)

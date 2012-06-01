@@ -42,7 +42,8 @@ class UserProfile(models.Model):
         through=ProjectAssoc)
 
     watches = models.ManyToManyField(User, blank=True, null=True,
-                                     verbose_name=u'Users')
+                                     verbose_name=u'Users',
+                                     related_name='watched_by')
 
     class Meta:
         app_label = 'eff'

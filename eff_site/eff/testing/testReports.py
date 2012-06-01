@@ -43,6 +43,11 @@ class HelperTest(TestCase):
 
     def setUp(self):
 
+        # Disconnect signals so there's no problem to use UserProfileFactory
+        signals.post_save.disconnect(
+            dispatch_uid='eff._models.user_profile.create_profile_for_user',
+            sender=User)
+
         # Create a external source
         self.ext_src = ExternalSourceFactory(name='DotprojectMachinalis')
 

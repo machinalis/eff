@@ -22,25 +22,24 @@ from django.test.client import Client as TestClient
 from django.core.urlresolvers import reverse
 from pyquery import PyQuery
 from decimal import Decimal
-from datetime import date
+from datetime import date, timedelta
+from django.db.models import signals
+from django.contrib.auth.models import User
+from urllib import urlencode
 
 from factories import UserProfileFactory, ProjectFactory, ClientFactory
 from factories import ProjectAssocFactory, ExternalSourceFactory, DumpFactory
-from factories import TimeLogFactory
+from factories import TimeLogFactory, AvgHoursFactory
 
 
 class UserFollowPermsTest(TestCase):
 
-    def create_timelogs_for_users(self, n, users_hours, start_date, project):
-        # Generate n timelogs with specified hours for each user, from
-        # start_date, for specified project
-        for d in xrange(n):
-            for user, user_hours in users_hours:
-                TimeLogFactory(user=user, date=start_date + timedelta(days=d),
-                               hours_booked=Decimal(str(user_hours)),
-                               project=project)
-
     def setUp(self):
+
+        # Disconnect signals so there's no problem to use UserProfileFactory
+        signals.post_save.disconnect(
+            dispatch_uid='eff._models.user_profile.create_profile_for_user',
+            sender=User)
 
         self.test_client = TestClient()
 
@@ -48,7 +47,7 @@ class UserFollowPermsTest(TestCase):
         # A external source
         self.ext_src = ExternalSourceFactory(name='DotprojectMachinalis')
         # A dump
-        DumpFactory(date=date(2012, 05, 30), source=self.ext_src)
+        dump = DumpFactory(date=date(2012, 05, 30), source=self.ext_src)
         # A client
         client = ClientFactory(name='client', external_source=self.ext_src)
         # 2 projects
@@ -57,24 +56,61 @@ class UserFollowPermsTest(TestCase):
         project2 = ProjectFactory(name='Fake Project 2', client=client,
                                   external_id='FP2')
         # A 'watcher' UserProfile, the one who watches others and a projassoc.
-        self.watcher = UserProfileFactory(username='watcher')
+        self.watcher = UserProfileFactory(user__username='watcher')
+        start_date = date(2012, 01, 01)
+        end_date = date(2012, 01, 31)
+        AvgHoursFactory(user=self.watcher.user, date=start_date,
+                        hours=Decimal('8.00'))
         ProjectAssocFactory(project=project1, member=self.watcher,
-                            client_rate=Decimal('0.30'),
-                            user_rate=Decimal('0.14'),
-                            from_date=date(2012, 01, 01),
-                            to_date=date(2012, 01, 31))
+                            client_rate=Decimal('0.50'),
+                            user_rate=Decimal('0.20'),
+                            from_date=start_date,
+                            to_date=end_date)
+        for d in xrange(5):
+            TimeLogFactory(user=self.watcher.user, hours_booked=Decimal('2.00'),
+                           date=start_date + timedelta(days=d),
+                           project=project1, dump=dump)
 
-        self.watches = []
         # 5 'watched' UserProfiles, those watched by watcher
-        # For each user add projassocs and some logs.
+        # For each user add projassocs, avghours and some logs.
+        start_date = date(2012, 01, 01)
+        end_date = date(2012, 01, 31)
         for i in xrange(5):
-            user = self.watches.append(
-                UserProfileFactory(username='test' + str(i)))
+            user = UserProfileFactory(user__username='test' + str(i))
+            self.watcher.watches.add(user.user)
             ProjectAssocFactory(project=project2, member=user,
-                                client_rate=Decimal('0.00'),
-                                user_rate=Decimal('0.19'),
-                                from_date=date(2012, 01, 01),
-                                to_date=date(2012, 01, 31))
+                                client_rate=Decimal('0.25'),
+                                user_rate=Decimal('0.10'), from_date=start_date,
+                                to_date=end_date)
+            AvgHoursFactory(user=user.user, date=start_date,
+                            hours=Decimal('8.00'))
+            # Generate some timelogs with specified hours for each user.
+            for d in xrange(5):
+                TimeLogFactory(user=user.user, hours_booked=Decimal('4.00'),
+                               date=start_date + timedelta(days=d),
+                               project=project2, dump=dump)
+
+        self.test_client.login(username='watcher', password='watcher')
+
+    def get_response(self, from_date, to_date):
+        get_data = urlencode([('from_date', from_date),
+                              ('to_date', to_date)])
+        url = '%s?%s' % (reverse('eff'), get_data)
+        return self.test_client.get(url)
+
+    def test_eff_view_works(self):
+        response = self.get_response('2012-01-01', '2012-01-31')
+        self.assertEqual(response.status_code, 200)
+
+    def test_followed_users_shows_correctly(self):
+        response = self.get_response('2012-01-02', '2012-01-30')
+        query = PyQuery(response.content)
+        query = query('table#queryTable td.name').text()
+        names = map(lambda u: u.username, self.watcher.watches.all())
+        names.append('watcher')
+        self.assertEqual(query.split(), names)
+
+
 def suite():
     suite = TestSuite()
     suite.addTest(makeSuite(UserFollowPermsTest))
