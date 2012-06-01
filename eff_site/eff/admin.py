@@ -123,7 +123,23 @@ class UserProfileAdminForm(forms.ModelForm):
     watches = forms.ModelMultipleChoiceField(
         widget=forms.SelectMultiple(attrs={'size': 10}),
         queryset=User.objects.order_by('username'),
-        label='Users to follow')
+        label='Users to follow', required=False)
+
+    def clean_watches(self):
+        data = self.cleaned_data['watches']
+        try:
+            admin_user = User.objects.get(username='admin')
+        except User.DoesNotExist:
+            pass
+        else:
+            if admin_user in data:
+                raise forms.ValidationError("Don't add admin here")
+
+        if self.instance.user in data:
+            raise forms.ValidationError("You are adding this user to watch " +\
+                                        "himself, please don't")
+
+        return data
 
     class Meta:
         model = UserProfile

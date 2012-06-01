@@ -23,7 +23,7 @@ from pyquery import PyQuery
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from unittest import TestSuite, makeSuite
-from eff.models import Project, Client as EffClient, ExternalSource
+from eff.models import Project, Client as EffClient, ExternalSource, UserProfile
 from django.template.defaultfilters import slugify
 
 
@@ -128,6 +128,31 @@ class QueriesTest(TestCase):
         if users:
             users = users.text().split()
             self.assertEqual(users, ordered_users)
+
+    def test_users_to_follow_in_eff_userprofile_cant_follow_itself(self):
+        test_user = UserProfile.objects.get(user__username='test1')
+        url = reverse('admin:eff_userprofile_change', args=(test_user.id,))
+        response = self.test_client.get(url)
+        context = {'user': test_user.user.id, 'watches': [test_user.user.id]}
+        response = self.test_client.post(url, context)
+        error = "You are adding this user to watch himself, please don't"
+        query = PyQuery(response.content)
+        # Get the error
+        error_msg = query("ul.errorlist").text()
+        self.assertEqual(error_msg, error)
+
+    def test_users_to_follow_in_eff_userprofile_cant_follow_admin_user(self):
+        admin_user = UserProfile.objects.get(user__username='admin')
+        test_user = UserProfile.objects.get(user__username='test1')
+        url = reverse('admin:eff_userprofile_change', args=(test_user.id,))
+        response = self.test_client.get(url)
+        context = {'user': test_user.user.id, 'watches': [admin_user.user.id]}
+        response = self.test_client.post(url, context)
+        error = "Don't add admin here"
+        query = PyQuery(response.content)
+        # Get the error
+        error_msg = query("ul.errorlist").text()
+        self.assertEqual(error_msg, error)
 
 
 def suite():
