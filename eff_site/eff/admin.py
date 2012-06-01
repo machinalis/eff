@@ -119,6 +119,11 @@ class UserProfileInLine(admin.TabularInline):
 
 class UserProfileAdminForm(forms.ModelForm):
     user = forms.ModelChoiceField(queryset=User.objects.order_by('username'))
+    # Set amount of users shown at a time to 10, make an ordered query
+    watches = forms.ModelMultipleChoiceField(
+        widget=forms.SelectMultiple(attrs={'size': 10}),
+        queryset=User.objects.order_by('username'),
+        label='Users to follow')
 
     class Meta:
         model = UserProfile
@@ -139,6 +144,7 @@ class UserAdmin(admin.ModelAdmin):
 
 class CurrencyAdmin(admin.ModelAdmin):
     pass
+
 
 class ExternalIdAdmin(admin.ModelAdmin):
     list_display = ('login', 'source', 'userprofile')

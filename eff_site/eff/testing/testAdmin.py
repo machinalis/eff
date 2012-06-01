@@ -117,6 +117,18 @@ class QueriesTest(TestCase):
         url = reverse('admin:eff_projectassoc_add')
         self.check_ordered_projects(url)
 
+    def test_ordered_multiselect_in_eff_userprofile(self):
+        url = reverse('admin:eff_userprofile_add')
+        response = self.test_client.get(url)
+        query = PyQuery(response.content)
+        # Get users as they appear in the multi select
+        users = query("select#id_watches option")
+        # Drop '--------', since it will not show that choice
+        ordered_users = self.ordered_users[1:]
+        if users:
+            users = users.text().split()
+            self.assertEqual(users, ordered_users)
+
 
 def suite():
     suite = TestSuite()

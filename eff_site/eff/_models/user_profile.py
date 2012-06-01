@@ -41,6 +41,10 @@ class UserProfile(models.Model):
     projects = models.ManyToManyField(Project, verbose_name=u'Projects',
         through=ProjectAssoc)
 
+    watches = models.ManyToManyField(User, blank=True, null=True,
+                                     verbose_name=u'Users',
+                                     related_name='watched_by')
+
     class Meta:
         app_label = 'eff'
         permissions = (('view_billable',

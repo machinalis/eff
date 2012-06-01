@@ -24,3 +24,19 @@ DOTPROJECT_DB_PASSWD = ''
 DOTPROJECT_DB_HOST = 'localhost'
 DOTPROJECT_DB_PORT = 3306
 DOTPROJECT_DB_CHARSET = 'latin1'
+#
+# Database configuration
+#
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': '',                      # Or path to database file if using sqlite3.
+        'USER': '',                      # Not used with sqlite3.
+        'PASSWORD': '',                  # Not used with sqlite3.
+        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+    }
+}
+
+EMAIL_HOST = ''  # Set this as the host to use for sending e-mail
+EMAIL_PORT = 25  # Port to use for the SMTP server defined in EMAIL_HOST

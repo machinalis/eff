@@ -19,7 +19,7 @@
 import factory
 from django.contrib.auth.models import User
 from eff.models import UserProfile, Client, ProjectAssoc, TimeLog, AvgHours
-from eff.models import Project, TimeLog, ExternalSource, Currency, Dump
+from eff.models import Project, ExternalSource, Currency, Dump
 from django.template.defaultfilters import slugify
 
 from decimal import Decimal
@@ -29,6 +29,16 @@ import random
 
 class UserFactory(factory.Factory):
     FACTORY_FOR = User
+
+    @classmethod
+    def _prepare(cls, create, **kwargs):
+        password = kwargs.pop('password', None)
+        user = super(UserFactory, cls)._prepare(create, **kwargs)
+        if password:
+            user.set_password(password)
+            if create:
+                user.save()
+        return user
 
     username = factory.Sequence(lambda n: 'test%s' % n)
     email = factory.LazyAttribute(lambda o: '%s@test.com' % o.username)
@@ -43,6 +53,7 @@ class AdminFactory(factory.Factory):
     username = 'admin'
     email = 'admin@test.com'
     password = 'admin'
+    is_active = True
     is_superuser = True
 
 
@@ -115,3 +126,11 @@ class TimeLogFactory(factory.Factory):
     hours_booked = Decimal('8.000')
     description = factory.Sequence(lambda n: 'Log %s' % n)
     dump = factory.SubFactory(DumpFactory)
+
+
+class AvgHoursFactory(factory.Factory):
+    FACTORY_FOR = AvgHours
+
+    date = date.today()
+    hours = Decimal('8.000')
+    user = factory.SubFactory(UserFactory)
