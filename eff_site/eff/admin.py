@@ -18,7 +18,9 @@
 from django.contrib import admin
 from eff_site.eff.models import Project, Client, ExternalSource, Wage
 from eff_site.eff.models import AvgHours, Currency, ProjectAssoc, TimeLog
+from eff_site.eff.models import Handle, ClientHandles
 from _models.user_profile import UserProfile
+from eff_site.eff.forms import UserAdminForm
 from django.contrib.auth.models import User
 from _models.dump import Dump
 from eff_site.eff._models.external_source import ExternalId
@@ -129,17 +131,23 @@ class UserProfileAdminForm(forms.ModelForm):
         model = UserProfile
 
 
+class ClientHandlesInline(admin.TabularInline):
+    model = ClientHandles
+
+
 class UserProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'address', 'phone_number')
     ordering = ('user__username',)
     search_fields = ('user__first_name', 'user__username',)
     form = UserProfileAdminForm
+    inlines = [ClientHandlesInline]
 
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ('username', 'first_name', 'last_name')
     inlines = [WageInLine, AvgHoursInLine]
     ordering = ('username',)
+    form = UserAdminForm
 
 
 class CurrencyAdmin(admin.ModelAdmin):
@@ -151,6 +159,11 @@ class ExternalIdAdmin(admin.ModelAdmin):
     search_fields = ('userprofile__user__username',
                      'userprofile__user__first_name')
     ordering = ('userprofile',)
+
+
+class HandleAdmin(admin.ModelAdmin):
+    list_display = ('protocol', 'sort_name', 'description')
+
 
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
@@ -164,3 +177,4 @@ admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(Currency, CurrencyAdmin)
 admin.site.register(ExternalId, ExternalIdAdmin)
 admin.site.register(TimeLog, TimeLogAdmin)
+admin.site.register(Handle, HandleAdmin)

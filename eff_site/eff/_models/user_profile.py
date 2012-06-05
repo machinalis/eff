@@ -19,12 +19,25 @@ from django.db import models
 from django.contrib.auth.models import User
 from datetime import timedelta, datetime
 from avg_hours import AvgHours
+from client import Client
 from django.db.models import permalink, signals
 from django.core.exceptions import MultipleObjectsReturned
 
 from project import Project, ProjectAssoc
 from log import TimeLog
 from decimal import Decimal
+
+
+class Handle(models.Model):
+    protocol = models.CharField(default="", max_length=100)
+    sort_name = models.CharField(default="", max_length=100)
+    description = models.TextField(default="", max_length=200, blank=True)
+
+    def __unicode__(self):
+        return '%s' % (self.sort_name)
+
+    class Meta:
+        app_label = 'eff'
 
 
 class UserProfile(models.Model):
@@ -45,6 +58,17 @@ class UserProfile(models.Model):
                                      verbose_name=u'Users',
                                      related_name='watched_by')
 
+    # Field for client user profile
+    USER_TYPE_CHOICES = (
+        ('Default', 'Default'),
+        ('Client', 'Client'),
+    )
+    user_type = models.CharField(default="Default", max_length=50,
+        choices=USER_TYPE_CHOICES)
+    company = models.ForeignKey(Client, blank=True, null=True)
+    job_position = models.CharField(default="", max_length=100, blank=True)
+    handles = models.ManyToManyField(Handle, through="ClientHandles")
+
     class Meta:
         app_label = 'eff'
         permissions = (('view_billable',
@@ -52,6 +76,16 @@ class UserProfile(models.Model):
                        ('view_wage',
                         'Can view the salary per hour of a user'),)
         ordering = ['user__first_name']
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if (self.user_type.lower() == 'client') and (self.company == None):
+            raise ValidationError('The user type %s must have a Company' %
+                self.user_type)
+        if (self.user_type.lower() != 'client') and \
+                (self.company or self.job_position):
+            raise ValidationError('The user type %s is not allowed to have '\
+                'company or job position' % self.user_type)
 
     def __unicode__(self):
         return u'%s (%s)' % (self.user.get_full_name(), self.user.username)
@@ -188,6 +222,10 @@ def create_profile_for_user(sender, instance, signal, *args, **kwargs):
     except UserProfile.DoesNotExist, e:
         #si no existe, creamos el profile para el usuario
         profile = UserProfile(user=instance)
+        if hasattr(instance, "is_client"):
+            if instance.is_client:
+                profile.company = instance.company
+                profile.user_type = 'Client'
         profile.save()
 
 signals.post_save.connect(
@@ -195,3 +233,15 @@ signals.post_save.connect(
     dispatch_uid='eff._models.user_profile.create_profile_for_user')
 
 #-------------------------------------------------------------------------------
+
+
+class ClientHandles(models.Model):
+    handle = models.ForeignKey(Handle)
+    client = models.ForeignKey(UserProfile)
+    address = models.CharField(default="", max_length=100)
+
+    def __unicode__(self):
+        return '%s' % (self.address)
+
+    class Meta:
+        app_label = 'eff'

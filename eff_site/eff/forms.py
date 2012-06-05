@@ -165,3 +165,35 @@ class WageModelForm(forms.ModelForm):
     class Meta:
         model = Wage
         exclude = ('user',)
+
+
+class UserAdminForm(forms.ModelForm):
+    is_client = forms.BooleanField(required=False)
+    company = forms.ModelChoiceField(required=False,
+        queryset=Client.objects.all())
+
+    class Meta:
+        model = User
+
+    def clean(self):
+        cleaned_data = super(UserAdminForm, self).clean()
+        is_client = cleaned_data.get("is_client")
+        company = cleaned_data.get("company")
+        if is_client and not company:
+            raise forms.ValidationError("A client user need have Company")
+        if company and not is_client:
+            raise forms.ValidationError("A no client user dont must have " \
+                "Company")
+
+        return cleaned_data
+
+    def save(self, *args, **kwargs):
+        kwargs.pop('commit', None)
+        instance = super(UserAdminForm, self).save(*args, commit=False,
+            **kwargs)
+        instance.is_client = self.cleaned_data['is_client']
+        if instance.is_client:
+            instance.company = self.cleaned_data['company']
+            instance.is_client = self.cleaned_data['is_client']
+        instance.save()
+        return instance
