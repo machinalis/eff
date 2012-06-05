@@ -99,3 +99,19 @@ class Client(models.Model):
                                 report_by_project)
 
         return zip(report_by_project, totalHrs)
+
+
+class BillingEmail(models.Model):
+    SEND_AS_CHOICES = [('to', 'TO'), ('cc', 'CC'), ('bcc', 'BCC')]
+    email_address = models.EmailField()
+    send_as = models.CharField(default='to', max_length=3,
+                               choices=SEND_AS_CHOICES)
+    client = models.ForeignKey(Client)
+
+    class Meta:
+        app_label = 'eff'
+        verbose_name_plural = 'Billing email addresses'
+        ordering = ['client', 'email_address']
+
+    def __unicode__(self):
+        return u'%s send as %s' % (self.email_address, self.send_as)

@@ -16,7 +16,7 @@
 # along with Eff.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.contrib import admin
-from eff_site.eff.models import Project, Client, ExternalSource, Wage
+from eff_site.eff.models import Project, Client, ExternalSource, Wage, BillingEmail
 from eff_site.eff.models import AvgHours, Currency, ProjectAssoc, TimeLog
 from _models.user_profile import UserProfile
 from django.contrib.auth.models import User
@@ -61,8 +61,28 @@ class ProjectsInline(admin.TabularInline):
     extra = 1
 
 
+class BillingEmailAdminForm(forms.ModelForm):
+    client = forms.ModelChoiceField(queryset=Client.objects.order_by('name'))
+
+    class Meta:
+        model = BillingEmail
+
+
+class BillingEmailAdmin(admin.ModelAdmin):
+    search_fields = ('email_address', 'client__name', )
+    ordering = ('client',)
+    list_display = ('client', 'email_address', 'send_as')
+    list_filter = ('client', 'email_address', 'send_as')
+    form = BillingEmailAdminForm
+
+
+class BillingEmailsInLine(admin.TabularInline):
+    model = BillingEmail
+    extra = 1
+
+
 class ClientAdmin(admin.ModelAdmin):
-    inlines = [ProjectsInline]
+    inlines = [BillingEmailsInLine, ProjectsInline]
     prepopulated_fields = {'slug': ('name',)}
     search_fields = ('name', 'city', 'country',
                      'currency__ccy_code', 'external_source__name',)
@@ -180,3 +200,4 @@ admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(Currency, CurrencyAdmin)
 admin.site.register(ExternalId, ExternalIdAdmin)
 admin.site.register(TimeLog, TimeLogAdmin)
+admin.site.register(BillingEmail, BillingEmailAdmin)

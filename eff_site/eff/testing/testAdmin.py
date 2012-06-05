@@ -154,6 +154,45 @@ class QueriesTest(TestCase):
         error_msg = query("ul.errorlist").text()
         self.assertEqual(error_msg, error)
 
+    def test_billing_emails_shown_in_eff_client(self):
+        client = EffClient.objects.get(name='Fake Client 1')
+        url = reverse('admin:eff_client_change', args=(client.id,))
+        response = self.test_client.get(url)
+        query = PyQuery(response.content)
+        query = query('div#billingemail_set-group fieldset h2').text()
+        self.assertEqual(query, 'Billing email addresses')
+
+    def test_invalid_email_in_eff_billing_emails(self):
+        client = EffClient.objects.get(name='Fake Client 1')
+        url = reverse('admin:eff_billingemail_add')
+        response = self.test_client.get(url)
+        context = {'email_address': 'not_an_email@lala', 'send_as': 'to',
+                   'client': client.id}
+        response = self.test_client.post(url, context)
+        error = "Enter a valid e-mail address."
+        query = PyQuery(response.content)
+        # Get the error
+        error_msg = query("ul.errorlist").text()
+        self.assertEqual(error_msg, error)
+
+    def test_client_required_in_eff_billing_emails(self):
+        url = reverse('admin:eff_billingemail_add')
+        response = self.test_client.get(url)
+        context = {'email_address': 'email@test.com', 'send_as': 'to'}
+        response = self.test_client.post(url, context)
+        error = "This field is required."
+        query = PyQuery(response.content)
+        # Get the error
+        error_msg = query("ul.errorlist").text()
+        self.assertEqual(error_msg, error)
+
+    def test_send_as_correctly_shown_in_eff_billing_emails(self):
+        url = reverse('admin:eff_billingemail_add')
+        response = self.test_client.get(url)
+        query = PyQuery(response.content)
+        query = query("select#id_send_as")
+        self.assertEqual(query.text(), 'TO CC BCC')
+
 
 def suite():
     suite = TestSuite()
