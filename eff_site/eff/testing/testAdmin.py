@@ -133,8 +133,12 @@ class QueriesTest(TestCase):
         test_user = UserProfile.objects.get(user__username='test1')
         url = reverse('admin:eff_userprofile_change', args=(test_user.id,))
         response = self.test_client.get(url)
-        context = {'user': test_user.user.id, 'watches': [test_user.user.id]}
-        response = self.test_client.post(url, context)
+        post_data = {'user': test_user.user.id, 'watches': [test_user.user.id],
+                     'user_type': 'Default',
+                     'clienthandles_set-TOTAL_FORMS': '3',
+                     'clienthandles_set-INITIAL_FORMS': '0',
+                     'clienthandles_set-MAX_NUM_FORMS': ''}
+        response = self.test_client.post(url, post_data)
         error = "You are adding this user to watch himself, please don't"
         query = PyQuery(response.content)
         # Get the error
@@ -146,8 +150,12 @@ class QueriesTest(TestCase):
         test_user = UserProfile.objects.get(user__username='test1')
         url = reverse('admin:eff_userprofile_change', args=(test_user.id,))
         response = self.test_client.get(url)
-        context = {'user': test_user.user.id, 'watches': [admin_user.user.id]}
-        response = self.test_client.post(url, context)
+        post_data = {'user': test_user.user.id, 'watches': [admin_user.user.id],
+                     'user_type': 'Default',
+                     'clienthandles_set-TOTAL_FORMS': '3',
+                     'clienthandles_set-INITIAL_FORMS': '0',
+                     'clienthandles_set-MAX_NUM_FORMS': ''}
+        response = self.test_client.post(url, post_data)
         error = "Don't add admin here"
         query = PyQuery(response.content)
         # Get the error
@@ -166,9 +174,9 @@ class QueriesTest(TestCase):
         client = EffClient.objects.get(name='Fake Client 1')
         url = reverse('admin:eff_billingemail_add')
         response = self.test_client.get(url)
-        context = {'email_address': 'not_an_email@lala', 'send_as': 'to',
+        post_data = {'email_address': 'not_an_email@lala', 'send_as': 'to',
                    'client': client.id}
-        response = self.test_client.post(url, context)
+        response = self.test_client.post(url, post_data)
         error = "Enter a valid e-mail address."
         query = PyQuery(response.content)
         # Get the error
@@ -178,8 +186,8 @@ class QueriesTest(TestCase):
     def test_client_required_in_eff_billing_emails(self):
         url = reverse('admin:eff_billingemail_add')
         response = self.test_client.get(url)
-        context = {'email_address': 'email@test.com', 'send_as': 'to'}
-        response = self.test_client.post(url, context)
+        post_data = {'email_address': 'email@test.com', 'send_as': 'to'}
+        response = self.test_client.post(url, post_data)
         error = "This field is required."
         query = PyQuery(response.content)
         # Get the error
