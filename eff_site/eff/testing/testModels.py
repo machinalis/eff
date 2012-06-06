@@ -531,7 +531,7 @@ class UserProfileTest(TestCase):
         else:
             self.assert_(profile.id)
 
-    def test_modifying_user_type_client_must_have_company(self):
+    def test_modifying_user_type_client_must_have_required_fields(self):
         try:
             profile = self.user_client.get_profile()
             profile.company = None
@@ -551,6 +551,8 @@ class UserProfileTest(TestCase):
     def test_create_user_type_client(self):
         data = {'username': 'test1',
                 'password': 'test1',
+                'first_name': 'test1',
+                'last_name': 'test1',
                 'is_client': True,
                 'company': self.company.id,
                 'last_login': datetime.now(),
@@ -559,11 +561,37 @@ class UserProfileTest(TestCase):
         self.assertTrue(form.is_valid())
         self.assertIsInstance(form.save(), User)
 
-    def test_creat_user_type_client_without_company(self):
+    def test_create_user_type_client_without_first_name(self):
+        data = {'username': 'test1',
+                'password': 'test1',
+                'is_client': True,
+                'company': self.company.id,
+                'first_name': '',
+                'last_name': 'test1',
+                'last_login': datetime.now(),
+                'date_joined': datetime.now()}
+        form = UserAdminForm(data)
+        self.assertFalse(form.is_valid())
+
+    def test_create_user_type_client_without_last_name(self):
+        data = {'username': 'test1',
+                'password': 'test1',
+                'is_client': True,
+                'company': self.company.id,
+                'first_name': 'test1',
+                'last_name': '',
+                'last_login': datetime.now(),
+                'date_joined': datetime.now()}
+        form = UserAdminForm(data)
+        self.assertFalse(form.is_valid())
+
+    def test_create_user_type_client_without_company(self):
         data = {'username': 'test1',
                 'password': 'test1',
                 'is_client': True,
                 'company': '',
+                'first_name': 'test1',
+                'last_name': 'test1',
                 'last_login': datetime.now(),
                 'date_joined': datetime.now()}
         form = UserAdminForm(data)

@@ -19,6 +19,7 @@
 from django import forms
 from django.forms import ModelForm
 from django.contrib.auth.models import User
+from django.forms.util import ErrorList
 
 from eff_site.eff.models import UserProfile, Client, AvgHours, Wage
 
@@ -179,12 +180,35 @@ class UserAdminForm(forms.ModelForm):
         cleaned_data = super(UserAdminForm, self).clean()
         is_client = cleaned_data.get("is_client")
         company = cleaned_data.get("company")
-        if is_client and not company:
-            raise forms.ValidationError("A client user need have Company")
-        if company and not is_client:
-            raise forms.ValidationError("A no client user dont must have " \
-                "Company")
+        first_name = cleaned_data.get("first_name")
+        last_name = cleaned_data.get("last_name")
+        errors = False
 
+        if company and not is_client:
+            self._errors['company'] = self._errors.get('company',
+                ErrorList())
+            self._errors['company'].append("A default user not must have "\
+                "Company")
+            errors = True
+        if is_client and not company:
+            self._errors['company'] = self._errors.get('company', ErrorList())
+            self._errors['company'].append("A client user must have Company")
+            errors = True
+        if is_client and not first_name:
+            self._errors['first_name'] = self._errors.get('first_name',
+                ErrorList())
+            self._errors['first_name'].append("A client user must have First " \
+                "name")
+            errors = True
+        if is_client and not last_name:
+            self._errors['last_name'] = self._errors.get('last_name',
+                ErrorList())
+            self._errors['last_name'].append("A client user must have Last " \
+                "name")
+            errors = True
+
+        if errors:
+            raise forms.ValidationError('Some field are invalid')
         return cleaned_data
 
     def save(self, *args, **kwargs):
