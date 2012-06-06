@@ -450,8 +450,12 @@ def eff(request):
                                             'to_date': to_date})
 
         if not request.user.is_superuser:
-            #Less elegant yet nicer in the db, I presume
-            object_list = UserProfile.objects.filter(user=request.user)
+            # Get all the users this user is allowed to watch and avoid having
+            # current user twice
+            up = request.user.get_profile()
+            users = [request.user] + list(up.watches.all())
+            # Less elegant yet nicer in the db, I presume
+            object_list = UserProfile.objects.filter(user__in=users)
         else:
             object_list = UserProfile.objects.all()
 

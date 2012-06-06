@@ -20,24 +20,21 @@
 import unittest
 import doctest
 
-import reports
-from _models import log, client
-
 from eff_site.scripts import jira
 
 from testing import testUtils
 from testing import testModels
-from testing import testAdmin, testReports
+from testing import testAdmin, testReports, testUserPassChange
+from testing import testUserFollowPerms
+
 
 def suite():
     suite = unittest.TestSuite()
+    suite.addTest(doctest.DocTestSuite(jira))
     suite.addTest(testUtils.suite())
     suite.addTest(testModels.suite())
     suite.addTest(testAdmin.suite())
     suite.addTest(testReports.suite())
-    suite.addTest(doctest.DocTestSuite(jira))
+    suite.addTest(testUserPassChange.suite())
+    suite.addTest(testUserFollowPerms.suite())
     return suite
-
-
-
-

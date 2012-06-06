@@ -23,7 +23,7 @@ from pyquery import PyQuery
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from unittest import TestSuite, makeSuite
-from eff.models import Project, Client as EffClient, ExternalSource
+from eff.models import Project, Client as EffClient, ExternalSource, UserProfile
 from django.template.defaultfilters import slugify
 
 
@@ -116,6 +116,82 @@ class QueriesTest(TestCase):
     def test_ordered_dropdowns_in_eff_projectassoc(self):
         url = reverse('admin:eff_projectassoc_add')
         self.check_ordered_projects(url)
+
+    def test_ordered_multiselect_in_eff_userprofile(self):
+        url = reverse('admin:eff_userprofile_add')
+        response = self.test_client.get(url)
+        query = PyQuery(response.content)
+        # Get users as they appear in the multi select
+        users = query("select#id_watches option")
+        # Drop '--------', since it will not show that choice
+        ordered_users = self.ordered_users[1:]
+        if users:
+            users = users.text().split()
+            self.assertEqual(users, ordered_users)
+
+    def test_users_to_follow_in_eff_userprofile_cant_follow_itself(self):
+        test_user = UserProfile.objects.get(user__username='test1')
+        url = reverse('admin:eff_userprofile_change', args=(test_user.id,))
+        response = self.test_client.get(url)
+        context = {'user': test_user.user.id, 'watches': [test_user.user.id]}
+        response = self.test_client.post(url, context)
+        error = "You are adding this user to watch himself, please don't"
+        query = PyQuery(response.content)
+        # Get the error
+        error_msg = query("ul.errorlist").text()
+        self.assertEqual(error_msg, error)
+
+    def test_users_to_follow_in_eff_userprofile_cant_follow_admin_user(self):
+        admin_user = UserProfile.objects.get(user__username='admin')
+        test_user = UserProfile.objects.get(user__username='test1')
+        url = reverse('admin:eff_userprofile_change', args=(test_user.id,))
+        response = self.test_client.get(url)
+        context = {'user': test_user.user.id, 'watches': [admin_user.user.id]}
+        response = self.test_client.post(url, context)
+        error = "Don't add admin here"
+        query = PyQuery(response.content)
+        # Get the error
+        error_msg = query("ul.errorlist").text()
+        self.assertEqual(error_msg, error)
+
+    def test_billing_emails_shown_in_eff_client(self):
+        client = EffClient.objects.get(name='Fake Client 1')
+        url = reverse('admin:eff_client_change', args=(client.id,))
+        response = self.test_client.get(url)
+        query = PyQuery(response.content)
+        query = query('div#billingemail_set-group fieldset h2').text()
+        self.assertEqual(query, 'Billing email addresses')
+
+    def test_invalid_email_in_eff_billing_emails(self):
+        client = EffClient.objects.get(name='Fake Client 1')
+        url = reverse('admin:eff_billingemail_add')
+        response = self.test_client.get(url)
+        context = {'email_address': 'not_an_email@lala', 'send_as': 'to',
+                   'client': client.id}
+        response = self.test_client.post(url, context)
+        error = "Enter a valid e-mail address."
+        query = PyQuery(response.content)
+        # Get the error
+        error_msg = query("ul.errorlist").text()
+        self.assertEqual(error_msg, error)
+
+    def test_client_required_in_eff_billing_emails(self):
+        url = reverse('admin:eff_billingemail_add')
+        response = self.test_client.get(url)
+        context = {'email_address': 'email@test.com', 'send_as': 'to'}
+        response = self.test_client.post(url, context)
+        error = "This field is required."
+        query = PyQuery(response.content)
+        # Get the error
+        error_msg = query("ul.errorlist").text()
+        self.assertEqual(error_msg, error)
+
+    def test_send_as_correctly_shown_in_eff_billing_emails(self):
+        url = reverse('admin:eff_billingemail_add')
+        response = self.test_client.get(url)
+        query = PyQuery(response.content)
+        query = query("select#id_send_as")
+        self.assertEqual(query.text(), 'TO CC BCC')
 
 
 def suite():

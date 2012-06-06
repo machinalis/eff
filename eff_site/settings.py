@@ -40,6 +40,9 @@ DATABASES = {
     }
 }
 
+EMAIL_HOST = ''  # Set this as the host to use for sending e-mail
+EMAIL_PORT = 25  # Port to use for the SMTP server defined in EMAIL_HOST
+
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
