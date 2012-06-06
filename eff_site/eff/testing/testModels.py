@@ -28,8 +28,10 @@ from eff.models import Wage
 from eff.models import Client as EffClient, Dump
 from eff.views import Data
 
+from eff_site.eff.forms import UserAdminForm
+
 from unittest import TestSuite, makeSuite
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 
 class HelperTest(TestCase):
@@ -502,6 +504,82 @@ class UserProfileCreationTest(TestCase):
             self.assert_(profile.id)
 
 
+class UserProfileTest(TestCase):
+
+    def setUp(self):
+        self.user_machinalis = User.objects.create_user(username='user_default',
+                                     email='user_default@except.com.ar',
+                                     password='user_default')
+        self.user_client = User.objects.create_user(username='user_client',
+                                     email='user_client@except.com.ar',
+                                     password='user_client')
+        source, is_done = ExternalSource.objects.get_or_create(name='Example')
+        self.company = EffClient(name='client_test', slug='client_test_slug',
+                           address='test123', city='test123',
+                           country='test123',
+                           billing_email_address='test123@test.com',
+                           external_source=source)
+        self.company.save()
+        try:
+            profile = UserProfile.objects.get(user=self.user_client)
+            profile.user_type = "Client"
+            profile.company = self.company
+            profile.job_position = "Job position 1"
+            profile.save()
+        except UserProfile.DoesNotExist:
+            self.fail('No se creo el UserProfile')
+        else:
+            self.assert_(profile.id)
+
+    def test_modifying_user_type_client_must_have_company(self):
+        try:
+            profile = self.user_client.get_profile()
+            profile.company = None
+            self.assertRaises(ValidationError, profile.save())
+        except UserProfile.DoesNotExist:
+            self.fail('Do not have UserProfile')
+
+    def test_modifying_user_type_not_client_dont_must_have_company_or_job_position(self):
+        try:
+            profile = self.user_machinalis.get_profile()
+            profile.company = self.company
+            profile.job_position = 'Job position 1'
+            self.assertRaises(ValidationError, profile.save())
+        except UserProfile.DoesNotExist:
+            self.fail('Do not have UserProfile')
+
+    def test_create_user_type_client(self):
+        data = {'username': 'test1',
+                'password': 'test1',
+                'is_client': True,
+                'company': self.company.id,
+                'last_login': datetime.now(),
+                'date_joined': datetime.now()}
+        form = UserAdminForm(data)
+        self.assertTrue(form.is_valid())
+        self.assertIsInstance(form.save(), User)
+
+    def test_creat_user_type_client_without_company(self):
+        data = {'username': 'test1',
+                'password': 'test1',
+                'is_client': True,
+                'company': '',
+                'last_login': datetime.now(),
+                'date_joined': datetime.now()}
+        form = UserAdminForm(data)
+        self.assertFalse(form.is_valid())
+
+    def test_creat_user_type_default_with_company(self):
+        data = {'username': 'test1',
+                'password': 'test1',
+                'is_client': False,
+                'company': self.company.id,
+                'last_login': datetime.now(),
+                'date_joined': datetime.now()}
+        form = UserAdminForm(data)
+        self.assertFalse(form.is_valid())
+
+
 class ActiveTest(TestCase):
 
     def setUp(self):
@@ -656,4 +734,5 @@ def suite():
     suite.addTest(makeSuite(ExternalSourceTest))
     suite.addTest(makeSuite(ProjectsTest))
     suite.addTest(makeSuite(TimeLogsAttributesTest))
+    suite.addTest(makeSuite(UserProfileTest))
     return suite

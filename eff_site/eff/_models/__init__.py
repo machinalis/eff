@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Eff.  If not, see <http://www.gnu.org/licenses/>.
 
-from user_profile import UserProfile
+from user_profile import UserProfile, Handle, ClientHandles
 from project import Project, ProjectAssoc
 from log import TimeLog
 from avg_hours import AvgHours
