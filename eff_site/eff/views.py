@@ -162,6 +162,11 @@ def __enough_perms(u):
     return (u.has_perm('eff.view_billable') and u.has_perm('eff.view_wage'))
 
 
+def __not_a_client(u):
+    up = u.get_profile()
+    return not up.is_client()
+
+
 def chart_values(username_list, from_date, to_date, request_user):
     values = {}
     monthdict = {1: 'Ene', 2: 'Feb', 3: 'Mar', 4: 'Abr', 5: 'May', 6: 'Jun',
@@ -368,6 +373,8 @@ def update_hours(request, username):
 ## end update_hours view function #############################################
 
 
+@login_required
+@user_passes_test(lambda u: not __not_a_client(u), login_url='/accounts/login')
 def eff_client_home(request):
     """
     Manages client home page
@@ -446,6 +453,7 @@ def eff_prev(request):
 
 
 @login_required
+@user_passes_test(__not_a_client, login_url='/accounts/login')
 def eff(request):
     """
     When no parameters are provided this view will go directly to the current

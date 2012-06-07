@@ -55,7 +55,7 @@ class ClientProfileTest(HelperTest):
                      'password': self.client.username}
         response = self.test_client.post(url, post_data, follow=True)
         home = response.redirect_chain[1]
-        self.assertEqual(home, ('http://testserver/efi/clienthome/', 302))
+        self.assertEqual(home, ('http://testserver/clients/home/', 302))
 
     def test_login_failure_shows_an_error_for_client(self):
         url = reverse('login')

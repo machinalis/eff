@@ -44,7 +44,8 @@ templates_dir = join(CURRENT_ABS_DIR, 'templates/')
 images_dir = join(CURRENT_ABS_DIR, 'templates/images/')
 
 urlpatterns = patterns('',
-    (r'^$', redirect_to, {'url': '/efi/semanaactual/'}),
+    url(r'^$', redirect_to, {'url': '/efi/semanaactual/'}, name='root'),
+    url(r'^clients/home/$', eff_client_home, name='clients_home'),
     # django-profiles
     url(r'^accounts/login/$', login, {'template_name': 'login.html'},
         name='login'),
@@ -92,7 +93,6 @@ urlpatterns = patterns('',
     (r'^password_change/$', redirect_to, {'url': '/accounts/password_change/'}),
     (r'^updatehours/([A-Za-z_0-9]*)/$', update_hours),
     url(r'^efi/$', eff, name='eff'),
-    (r'^efi/clienthome/$', eff_client_home),
     (r'^efi/semanaanterior/$', eff_previous_week),
     (r'^efi/semanaactual/$', eff_current_week),
     (r'^efi/mesactual/$', eff_current_month),
