@@ -26,7 +26,7 @@ import operator
 from urllib import quote, urlencode
 from datetime import date, timedelta, datetime
 
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.template import RequestContext, loader, Context
 from django.http import HttpResponseRedirect, HttpResponse
@@ -368,6 +368,27 @@ def update_hours(request, username):
 ## end update_hours view function #############################################
 
 
+def eff_client_home(request):
+    """
+    Manages client home page
+    """
+    context = __get_context(request)
+    return render_to_response('client_home.html', context)
+
+
+def eff_login(request):
+    """
+    Checks whether the user is a client or not and redirects accordingly.
+    """
+    up = request.user.get_profile()
+
+    if up.is_client():
+        return redirect(eff_client_home)
+    else:
+        print "hola :D"
+        return redirect(eff)
+
+
 def eff_check_perms(request, username):
     """
     Check user permission and redirects accordingly
@@ -390,7 +411,7 @@ def eff_previous_week(request):
 @login_required
 def eff_current_week(request):
     return HttpResponseRedirect('/efi/?from_date=%s&to_date=%s' % week(
-        date.today()))
+            date.today()))
 
 
 @login_required
@@ -939,11 +960,16 @@ def eff_admin_change_profile(request):
 
 
 @login_required
-@user_passes_test(__enough_perms, login_url='/accounts/login/')
 def profile_detail(request, username):
-    user = get_object_or_404(User, username=username)
-    p = get_object_or_404(UserProfile, user=user)
-    return render_to_response('profiles/profile_detail.html', {'profile': p})
+    logged_user = request.user
+    requested_user = get_object_or_404(User, username=username)
+    # Check if logged user can access UserProfile details from requested user.
+    if __enough_perms(logged_user) or (logged_user == requested_user):
+        p = get_object_or_404(UserProfile, user=requested_user)
+        return render_to_response('profiles/profile_detail.html',
+                                  {'user': request.user, 'profile': p})
+    else:
+        return redirect('/accounts/login/')
 
 
 @login_required

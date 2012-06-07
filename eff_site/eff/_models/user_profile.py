@@ -58,10 +58,13 @@ class UserProfile(models.Model):
                                      verbose_name=u'Users',
                                      related_name='watched_by')
 
+    KIND_CLIENT = 'Client'
+    KIND_OTHER = 'Default'
+
     # Field for client user profile
     USER_TYPE_CHOICES = (
-        ('Default', 'Default'),
-        ('Client', 'Client'),
+        ('Default', KIND_OTHER),
+        ('Client', KIND_CLIENT),
     )
     user_type = models.CharField(default="Default", max_length=50,
         choices=USER_TYPE_CHOICES)
@@ -212,6 +215,9 @@ class UserProfile(models.Model):
     def projects(self, from_date, to_date):
         projects = TimeLog.user_projects(self, from_date, to_date)
         return projects
+
+    def is_client(self):
+        return self.user_type == UserProfile.KIND_CLIENT
 
 
 #----------------------- Para manejo de seniales -------------------------------
