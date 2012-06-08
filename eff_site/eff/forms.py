@@ -168,9 +168,11 @@ class WageModelForm(forms.ModelForm):
 
 
 class UserAdminForm(forms.ModelForm):
-    is_client = forms.BooleanField(required=False)
+    is_client = forms.BooleanField(required=False, label="Client",
+                                   help_text=("Designates whether this user"
+                                              "should be treated as a Client."))
     company = forms.ModelChoiceField(required=False,
-        queryset=Client.objects.all())
+                                     queryset=Client.objects.all())
 
     class Meta:
         model = User
@@ -180,10 +182,10 @@ class UserAdminForm(forms.ModelForm):
         is_client = cleaned_data.get("is_client")
         company = cleaned_data.get("company")
         if is_client and not company:
-            raise forms.ValidationError("A client user need have Company")
+            raise forms.ValidationError("A client user must have a Company")
         if company and not is_client:
-            raise forms.ValidationError("A no client user dont must have " \
-                "Company")
+            raise forms.ValidationError(("A non client user must not have a"
+                                         "Company"))
 
         return cleaned_data
 

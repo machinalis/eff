@@ -24,10 +24,9 @@
                 <tr> <td> Provincia: </td> <td> {{ profile.state }} </td> </tr>
                 <tr> <td> Pais: </td> <td> {{ profile.country }} </td> </tr>
                 <tr> <td> Telefono: </td> <td> {{ profile.phone_number }} </tds> </tr> 
-                <tr> <td> Tutos/Jira Login: </td> <td> {{ profile.prot_login }} </td> </tr>
-                <tr> <td> Tutos/Jira name: </td> <td> {{ profile.prot_name }} </td> </tr>
                 <tbody>
             </table>
+            {% if not profile.is_client %}
             <p> <b>Cambios de Horas de Trabajo:</b> <br/> <small>(ordenado por fecha)</small> </p>
             <table class="extra-data">
                 {% for object in profile.user.avghours_set.all %}
@@ -37,6 +36,7 @@
                 <tr>
                 {% endfor %}
             </table>
+            {% endif %}
 
             {% if perms.eff.view_wage %}
             <p> <b> Wage Changes: </b> </p>

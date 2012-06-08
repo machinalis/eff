@@ -161,6 +161,9 @@
           <ul class="main-menu-ul" id="main-menu">
 
           <li style="width: 260px; background-color: #FFFFFF;line-height:22px;">Logged as: {{ user }}@{{ hostname|default:"localhost" }}</li>
+          {% if user.get_profile.is_client %}
+          <li><a href="{% url clients_home %}">home</a></li>
+          {% endif %}
           <li><a href="{% url password_change %}">change password</a></li>
           <li><a href="{% url profiles_edit %}">edit your profile</a></li>
 

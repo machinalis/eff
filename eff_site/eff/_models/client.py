@@ -102,7 +102,10 @@ class Client(models.Model):
 
 
 class BillingEmail(models.Model):
-    SEND_AS_CHOICES = [('to', 'TO'), ('cc', 'CC'), ('bcc', 'BCC')]
+    KIND_TO = 'TO'
+    KIND_CC = 'CC'
+    KIND_BCC = 'BCC'
+    SEND_AS_CHOICES = [('to', KIND_TO), ('cc', KIND_CC), ('bcc', KIND_BCC)]
     email_address = models.EmailField()
     send_as = models.CharField(default='to', max_length=3,
                                choices=SEND_AS_CHOICES)

@@ -33,7 +33,7 @@ class HelperTest(TestCase):
 
         self.test_client = TestClient()
 
-        # Create a UserProfile.
+        # Create a User.
         self.user = UserFactory(username='test', email='test@test.com')
 
 
@@ -243,5 +243,5 @@ class PasswordChangeTest(HelperTest):
 def suite():
     suite = TestSuite()
     suite.addTest(makeSuite(PasswordChangeTest))
-    suite.addTest(makeSuite(PasswordChangeTest))
+    suite.addTest(makeSuite(PasswordResetTest))
     return suite
