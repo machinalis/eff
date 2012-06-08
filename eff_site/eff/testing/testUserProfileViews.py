@@ -24,6 +24,7 @@ from django.db.models import signals
 from django.core.urlresolvers import reverse
 from pyquery import PyQuery
 
+from urllib import urlencode
 from factories import (UserFactory, ClientProfileFactory, UserProfileFactory,
                        AdminFactory)
 
@@ -48,8 +49,11 @@ class ClientProfileTest(HelperTest):
         # Create a Client User.
         self.client = UserFactory(username='client')
         self.up = ClientProfileFactory(user=self.client)
+        self.test_client.login(username=self.client.username,
+                               password=self.client.username)
 
     def test_login_redirects_to_client_home(self):
+        self.test_client.logout()
         url = reverse('login')
         post_data = {'username': self.client.username,
                      'password': self.client.username}
@@ -58,6 +62,7 @@ class ClientProfileTest(HelperTest):
         self.assertEqual(home, ('http://testserver/clients/home/', 302))
 
     def test_login_failure_shows_an_error_for_client(self):
+        self.test_client.logout()
         url = reverse('login')
         post_data = {'username': self.client.username,
                      'password': 'NotApassWord'}
@@ -66,14 +71,6 @@ class ClientProfileTest(HelperTest):
         error = query('div p.error').text()
         error_msg = "Sorry, that's not a valid username or password"
         self.assertEqual(error, error_msg)
-
-    def test_client_can_see_profile_details(self):
-        self.test_client.login(username=self.client.username,
-                               password=self.client.username)
-        url = reverse('profiles_detail',
-                      kwargs={'username': self.client.username})
-        response = self.test_client.get(url)
-        self.assertEqual(response.status_code, 200)
 
 
 class UserProfileTest(HelperTest):
@@ -115,8 +112,53 @@ class UserProfileTest(HelperTest):
         self.assertEqual(response.status_code, 200)
 
 
+class ClientPermissionsTest(HelperTest):
+
+    def setUp(self):
+        super(ClientPermissionsTest, self).setUp()
+        # Create a Client User.
+        self.client = UserFactory(username='client')
+        self.up = ClientProfileFactory(user=self.client)
+        self.test_client.login(username=self.client.username,
+                               password=self.client.username)
+
+    def get_response(self, url_name, args=None, kwargs=None, data=None):
+        if args:
+            url = reverse(url_name, args=args)
+        elif kwargs:
+            url = reverse(url_name, kwargs=kwargs)
+        else:
+            url = reverse(url_name)
+
+        if data:
+            get_data = urlencode(data)
+            url = '%s?%s' % (url, get_data)
+
+        return self.test_client.get(url, follow=True)
+
+    def test_client_can_access_eff_root(self):
+        response = self.get_response('root')
+        self.assertEqual(response.status_code, 200)
+
+    def test_client_can_access_eff_login(self):
+        response = self.get_response('login')
+        self.assertEqual(response.status_code, 200)
+
+    def test_client_can_access_clients_home(self):
+        response = self.get_response('profiles_detail',
+                                 kwargs={'username': 'client'})
+        self.assertEqual(response.status_code, 200)
+
+    def test_client_cant_access_eff_report(self):
+        response = self.get_response('eff_report', args=['client'],
+                                 data=[('from_date', '2010-01-01'),
+                                       ('to_date', '2010-01-01')])
+        self.assertEqual(response.status_code, 200)
+
+
 def suite():
     suite = TestSuite()
     suite.addTest(makeSuite(ClientProfileTest))
     suite.addTest(makeSuite(UserProfileTest))
+    suite.addTest(makeSuite(ClientPermissionsTest))
     return suite

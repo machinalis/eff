@@ -261,8 +261,7 @@ def chart_values(username_list, from_date, to_date, request_user):
 
 
 def index(request):
-    context = __get_context(request)
-    return render_to_response('base.html', context)
+    return redirect('login')
 
 
 @login_required
