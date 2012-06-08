@@ -24,13 +24,14 @@ from django.contrib import admin
 admin.autodiscover()
 
 from eff_site.settings import CURRENT_ABS_DIR
-from eff_site.eff.views import update_hours, eff, eff_check_perms,\
-    eff_previous_week, eff_current_week, eff_current_month, eff_horas_extras,\
-    eff_chart, eff_next, eff_prev, eff_charts, eff_report, eff_update_db,\
-    eff_administration, eff_client_report, eff_client_reports_admin, \
-    UserProfileForm, eff_last_month, eff_admin_add_user, \
-    eff_admin_change_profile, profile_detail, eff_dump_csv_upload, \
-    eff_fixed_price_client_reports, eff_admin_users_association
+from eff_site.eff.views import (update_hours, eff, eff_check_perms,
+    eff_previous_week, eff_current_week, eff_current_month, eff_horas_extras,
+    eff_chart, eff_next, eff_prev, eff_charts, eff_report, eff_update_db,
+    eff_administration, eff_client_report, eff_client_reports_admin,
+    UserProfileForm, eff_last_month, eff_admin_add_user,
+    eff_admin_change_profile, profile_detail, eff_dump_csv_upload,
+    eff_fixed_price_client_reports, eff_admin_users_association, eff_login,
+    eff_client_home)
 
 from os.path import join
 
@@ -43,18 +44,20 @@ templates_dir = join(CURRENT_ABS_DIR, 'templates/')
 images_dir = join(CURRENT_ABS_DIR, 'templates/images/')
 
 urlpatterns = patterns('',
-    (r'^$', redirect_to, {'url': '/efi/semanaactual/'}),
+    url(r'^$', redirect_to, {'url': '/efi/semanaactual/'}, name='root'),
+    url(r'^clients/home/$', eff_client_home, name='clients_home'),
     # django-profiles
     url(r'^accounts/login/$', login, {'template_name': 'login.html'},
         name='login'),
     url(r'^accounts/logout/$', logout, {'template_name': 'logout.html'},
         name='logout'),
-    (r'^accounts/profile/$', redirect_to, {'url': '/efi/semanaactual/'}),
+    (r'^accounts/profile/$', eff_login),
     (r'^login/$', redirect_to, {'url': '/accounts/login/'}),
     (r'^logout/$', redirect_to, {'url': '/accounts/logout/'}),
     (r'^checkperms/([A-Za-z_0-9]*)/$', eff_check_perms),
     url(r'^profiles/edit', 'eff.views.edit_profile', name='profiles_edit'),
-    (r'^profiles/(?P<username>[\w\._-]+)/$', profile_detail),
+    url(r'^profiles/(?P<username>[\w\._-]+)/$', profile_detail,
+        name='profiles_detail'),
     (r'^profiles/', include('profiles.urls')),
     # password reset
     url(r'^accounts/password_reset/$',

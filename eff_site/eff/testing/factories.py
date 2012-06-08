@@ -47,13 +47,9 @@ class UserFactory(factory.Factory):
     last_name = factory.LazyAttribute(lambda o: '%s' % o.username)
 
 
-class AdminFactory(factory.Factory):
+class AdminFactory(UserFactory):
     FACTORY_FOR = User
 
-    username = 'admin'
-    email = 'admin@test.com'
-    password = 'admin'
-    is_active = True
     is_superuser = True
 
 
@@ -61,6 +57,14 @@ class UserProfileFactory(factory.Factory):
     FACTORY_FOR = UserProfile
 
     user = factory.SubFactory(UserFactory)
+    user_type = UserProfile.KIND_OTHER
+
+
+class ClientProfileFactory(factory.Factory):
+    FACTORY_FOR = UserProfile
+
+    user = factory.SubFactory(UserFactory)
+    user_type = UserProfile.KIND_CLIENT
 
 
 class CurrencyFactory(factory.Factory):
