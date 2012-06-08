@@ -73,6 +73,32 @@ class UserProfileForm(ModelForm):
     phone_number = forms.IntegerField(required=False, label='Telefono')
 
 
+class ClientUserProfileForm(ModelForm):
+    first_name = forms.CharField(required=False, label='First name')
+    last_name = forms.CharField(required=False, label='Last name')
+
+    def __init__(self, *args, **kwargs):
+        super(ClientUserProfileForm, self).__init__(*args, **kwargs)
+        try:
+            self.fields['first_name'].initial = self.instance.user.first_name
+            self.fields['last_name'].initial = self.instance.user.last_name
+        except User.DoesNotExist:
+            pass
+
+    def save(self, *args, **kwargs):
+        u = self.instance.user
+        u.first_name = self.cleaned_data['first_name']
+        u.last_name = self.cleaned_data['last_name']
+        u.save()
+        profile = super(ClientUserProfileForm, self).save(*args, **kwargs)
+        return profile
+
+    class Meta:
+        model = UserProfile
+        fields = ('first_name', 'last_name', 'job_position','personal_email',
+            'city', 'state', 'country', 'address', 'phone_number')
+
+
 class UsersChangeProfileForm (UserProfileForm):
     """ Users profile change  """
     user = forms.ModelChoiceField(queryset=User.objects.all(),
