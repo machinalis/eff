@@ -399,10 +399,10 @@ def eff_login(request):
     if up.is_client():
         return redirect(eff_client_home)
     else:
-        print "hola :D"
         return redirect(eff)
 
 
+@user_passes_test(__not_a_client)
 def eff_check_perms(request, username):
     """
     Check user permission and redirects accordingly
@@ -417,18 +417,21 @@ def eff_check_perms(request, username):
 
 
 @login_required
+@user_passes_test(__not_a_client)
 def eff_previous_week(request):
     return HttpResponseRedirect('/efi/?from_date=%s&to_date=%s' % previous_week(
         date.today()))
 
 
 @login_required
+@user_passes_test(__not_a_client)
 def eff_current_week(request):
     return HttpResponseRedirect('/efi/?from_date=%s&to_date=%s' % week(
             date.today()))
 
 
 @login_required
+@user_passes_test(__not_a_client)
 def eff_current_month(request):
     from_date, to_date = month(date.today())
     return HttpResponseRedirect('/efi/?from_date=%s&to_date=%s&%s=True' % (
@@ -436,6 +439,7 @@ def eff_current_month(request):
 
 
 @login_required
+@user_passes_test(__not_a_client)
 def eff_last_month(request):
     from_date, to_date = month(month(date.today())[0] - timedelta(days=1))
     return HttpResponseRedirect('/efi/?from_date=%s&to_date=%s&%s=True' % (
@@ -443,6 +447,7 @@ def eff_last_month(request):
 
 
 @login_required
+@user_passes_test(__not_a_client)
 def eff_horas_extras(request):
     from_date, to_date = overtime_period(date.today())
     return HttpResponseRedirect('/efi/?from_date=%s&to_date=%s&%s=True' % (
@@ -450,17 +455,19 @@ def eff_horas_extras(request):
 
 
 @login_required
+@user_passes_test(__not_a_client)
 def eff_next(request):
     return __process_period(request, is_prev=False)
 
 
 @login_required
+@user_passes_test(__not_a_client)
 def eff_prev(request):
     return __process_period(request, is_prev=True)
 
 
 @login_required
-@user_passes_test(__not_a_client, login_url='/accounts/login/')
+@user_passes_test(__not_a_client)
 def eff(request):
     """
     When no parameters are provided this view will go directly to the current
@@ -527,6 +534,7 @@ def eff(request):
 
 
 @login_required
+@user_passes_test(__not_a_client)
 def eff_chart(request, username):
 
     if not (request.user.has_perm('eff.view_billable') and \
