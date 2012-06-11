@@ -601,16 +601,6 @@ class UserProfileTest(TestCase):
         form = UserAdminForm(data)
         self.assertFalse(form.is_valid())
 
-    def test_creat_user_type_default_with_company(self):
-        data = {'username': 'test1',
-                'password': 'test1',
-                'is_client': False,
-                'company': self.company.id,
-                'last_login': datetime.now(),
-                'date_joined': datetime.now()}
-        form = UserAdminForm(data)
-        self.assertFalse(form.is_valid())
-
     def test_send_email_when_userprofile_changed(self):
         client = Client()
         count_mails = len(mail.outbox)
