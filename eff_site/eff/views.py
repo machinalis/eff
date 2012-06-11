@@ -268,7 +268,8 @@ def chart_values(username_list, from_date, to_date, request_user):
 
 
 def index(request):
-    return redirect('login')
+    context = __get_context(request)
+    return render_to_response('base.html', context)
 
 
 @login_required
@@ -1188,7 +1189,7 @@ def eff_admin_users_association(request):
 
 
 @login_required
-def edit_profile(request):
+def edit_profile(request, form_class):
     try:
         profile_obj = request.user.get_profile()
         if profile_obj.is_client():
