@@ -22,6 +22,7 @@ from django.test.client import Client
 from pyquery import PyQuery
 from django.contrib.auth.models import User, Permission
 from django.core.exceptions import ValidationError
+from django.core import mail
 
 from eff.models import UserProfile, AvgHours, Project, TimeLog, ExternalSource
 from eff.models import Wage
@@ -513,6 +514,9 @@ class UserProfileTest(TestCase):
         self.user_client = User.objects.create_user(username='user_client',
                                      email='user_client@except.com.ar',
                                      password='user_client')
+        self.user_client.first_name = 'first'
+        self.user_client.last_name = 'last'
+        self.user_client.save()
         source, is_done = ExternalSource.objects.get_or_create(name='Example')
         self.company = EffClient(name='client_test', slug='client_test_slug',
                            address='test123', city='test123',
@@ -531,7 +535,7 @@ class UserProfileTest(TestCase):
         else:
             self.assert_(profile.id)
 
-    def test_modifying_user_type_client_must_have_company(self):
+    def test_modifying_user_type_client_must_have_required_fields(self):
         try:
             profile = self.user_client.get_profile()
             profile.company = None
@@ -539,7 +543,7 @@ class UserProfileTest(TestCase):
         except UserProfile.DoesNotExist:
             self.fail('Do not have UserProfile')
 
-    def test_modifying_user_type_not_client_dont_must_have_company_or_job_position(self):
+    def test_modifying_not_client_dont_must_have_company_or_job_position(self):
         try:
             profile = self.user_machinalis.get_profile()
             profile.company = self.company
@@ -551,6 +555,8 @@ class UserProfileTest(TestCase):
     def test_create_user_type_client(self):
         data = {'username': 'test1',
                 'password': 'test1',
+                'first_name': 'test1',
+                'last_name': 'test1',
                 'is_client': True,
                 'company': self.company.id,
                 'last_login': datetime.now(),
@@ -559,11 +565,37 @@ class UserProfileTest(TestCase):
         self.assertTrue(form.is_valid())
         self.assertIsInstance(form.save(), User)
 
-    def test_creat_user_type_client_without_company(self):
+    def test_create_user_type_client_without_first_name(self):
+        data = {'username': 'test1',
+                'password': 'test1',
+                'is_client': True,
+                'company': self.company.id,
+                'first_name': '',
+                'last_name': 'test1',
+                'last_login': datetime.now(),
+                'date_joined': datetime.now()}
+        form = UserAdminForm(data)
+        self.assertFalse(form.is_valid())
+
+    def test_create_user_type_client_without_last_name(self):
+        data = {'username': 'test1',
+                'password': 'test1',
+                'is_client': True,
+                'company': self.company.id,
+                'first_name': 'test1',
+                'last_name': '',
+                'last_login': datetime.now(),
+                'date_joined': datetime.now()}
+        form = UserAdminForm(data)
+        self.assertFalse(form.is_valid())
+
+    def test_create_user_type_client_without_company(self):
         data = {'username': 'test1',
                 'password': 'test1',
                 'is_client': True,
                 'company': '',
+                'first_name': 'test1',
+                'last_name': 'test1',
                 'last_login': datetime.now(),
                 'date_joined': datetime.now()}
         form = UserAdminForm(data)
@@ -578,6 +610,27 @@ class UserProfileTest(TestCase):
                 'date_joined': datetime.now()}
         form = UserAdminForm(data)
         self.assertFalse(form.is_valid())
+
+    def test_send_email_when_userprofile_changed(self):
+        client = Client()
+        count_mails = len(mail.outbox)
+        self.assertTrue(client.login(username='user_client',
+            password='user_client'))
+        response = client.get('/profiles/edit/')
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 200)
+        response = response.client.post("/profiles/edit/",
+            {'job_position': 'Job position 2',
+             'first_name': self.user_client.first_name,
+             'last_name': self.user_client.last_name})
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 302)
+        sent_email = False
+        if count_mails < len(mail.outbox):
+            sent_email = True
+        self.assertTrue(sent_email)
+        self.assertEqual(mail.outbox[-1].subject,
+            'Client first last has change')
 
 
 class ActiveTest(TestCase):
