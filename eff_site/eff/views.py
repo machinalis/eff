@@ -266,6 +266,7 @@ def index(request):
 
 @login_required
 @user_passes_test(__enough_perms, login_url='/accounts/login/')
+@user_passes_test(__not_a_client, login_url='/accounts/login/')
 def update_hours(request, username):
 
     WageFormSet = inlineformset_factory(User, Wage, extra=1,
@@ -373,7 +374,7 @@ def update_hours(request, username):
 
 
 @login_required
-@user_passes_test(lambda u: not __not_a_client(u), login_url='/accounts/login')
+@user_passes_test(lambda u: not __not_a_client(u), login_url='/accounts/login/')
 def eff_client_home(request):
     """
     Manages client home page
@@ -452,7 +453,7 @@ def eff_prev(request):
 
 
 @login_required
-@user_passes_test(__not_a_client, login_url='/accounts/login')
+@user_passes_test(__not_a_client, login_url='/accounts/login/')
 def eff(request):
     """
     When no parameters are provided this view will go directly to the current
@@ -611,6 +612,7 @@ def eff_charts(request):
 
 
 @login_required
+@user_passes_test(__not_a_client, login_url='/accounts/login/')
 def eff_report(request, user_name):
 
     context = __process_dates(request)

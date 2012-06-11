@@ -122,7 +122,8 @@ class ClientPermissionsTest(HelperTest):
         self.test_client.login(username=self.client.username,
                                password=self.client.username)
 
-    def get_response(self, url_name, args=None, kwargs=None, data=None):
+    def get_response(self, url_name, args=None, kwargs=None, data=None,
+                     follow=False):
         if args:
             url = reverse(url_name, args=args)
         elif kwargs:
@@ -134,14 +135,18 @@ class ClientPermissionsTest(HelperTest):
             get_data = urlencode(data)
             url = '%s?%s' % (url, get_data)
 
-        return self.test_client.get(url, follow=True)
+        return self.test_client.get(url, follow=follow)
 
     def test_client_can_access_eff_root(self):
         response = self.get_response('root')
-        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(response, 'accounts/login/')
 
     def test_client_can_access_eff_login(self):
         response = self.get_response('login')
+        self.assertEqual(response.status_code, 200)
+
+    def test_client_can_logout(self):
+        response = self.get_response('logout')
         self.assertEqual(response.status_code, 200)
 
     def test_client_can_access_clients_home(self):
@@ -150,10 +155,12 @@ class ClientPermissionsTest(HelperTest):
         self.assertEqual(response.status_code, 200)
 
     def test_client_cant_access_eff_report(self):
+        print self.client.get_profile().is_client()
         response = self.get_response('eff_report', args=['client'],
                                  data=[('from_date', '2010-01-01'),
-                                       ('to_date', '2010-01-01')])
-        self.assertEqual(response.status_code, 200)
+                                       ('to_date', '2010-01-01')], follow=True)
+        self.assertRedirects(response, 'accounts/login/')
+        self.assertEqual(response.status_code, 302)
 
 
 def suite():
