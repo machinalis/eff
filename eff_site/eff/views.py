@@ -31,11 +31,17 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.template import RequestContext, loader, Context
 from django.http import HttpResponseRedirect, HttpResponse
 from django.utils import simplejson
+from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.conf import settings
 from django import forms
+from django.template.loader import render_to_string
+from django.core import mail
+
 
 from dateutil.relativedelta import relativedelta
+
+from profiles import views as profile_views
 
 from relatorio.templates.opendocument import Template
 from reports import format_report_data
@@ -50,6 +56,7 @@ from eff_site.eff.utils import period, validate_header, _date_fmts
 from eff_site.eff.utils import Data, DataTotal, load_dump
 
 from eff_site.eff.forms import EffQueryForm, UserProfileForm
+from eff_site.eff.forms import ClientUserProfileForm
 from eff_site.eff.forms import UsersChangeProfileForm, UserPassChangeForm
 from eff_site.eff.forms import UserAddForm, ClientReportForm, DumpUploadForm
 from eff_site.eff.forms import WageModelForm, AvgHoursModelForm
@@ -1178,3 +1185,85 @@ def eff_admin_users_association(request):
 
     return render_to_response('admin_users_association.html', context,
         context_instance=RequestContext(request))
+
+
+@login_required
+def edit_profile(request):
+    try:
+        profile_obj = request.user.get_profile()
+        # can be used profile_obj.is_client()
+        if profile_obj.user_type == 'Client':
+            # User Client
+            if request.method == 'POST':
+                form = ClientUserProfileForm(data=request.POST,
+                    files=request.FILES, instance=profile_obj)
+                ctx_dict = {}
+                ctx_dict['first_name_old'] = request.user.first_name
+                ctx_dict['last_name_old'] = request.user.last_name
+                ctx_dict['job_position_old'] = profile_obj.job_position
+                ctx_dict['personal_email_old'] = profile_obj.personal_email
+                ctx_dict['city_old'] = profile_obj.city
+                ctx_dict['state_old'] = profile_obj.state
+                ctx_dict['country_old'] = profile_obj.country
+                ctx_dict['address_old'] = profile_obj.address
+                ctx_dict['phone_number_old'] = profile_obj.phone_number
+                if form.is_valid():
+                    send_email = False
+                    if ctx_dict['first_name_old'] != \
+                                                form.cleaned_data['first_name']:
+                        send_email = True
+                    if ctx_dict['last_name_old'] != \
+                                                form.cleaned_data['last_name']:
+                        send_email = True
+                    if ctx_dict['job_position_old'] != \
+                                            form.cleaned_data['job_position']:
+                        send_email = True
+                    if ctx_dict['personal_email_old'] != \
+                                            form.cleaned_data['personal_email']:
+                        send_email = True
+                    if ctx_dict['city_old'] != form.cleaned_data['city']:
+                        send_email = True
+                    if ctx_dict['state_old'] != form.cleaned_data['state']:
+                        send_email = True
+                    if ctx_dict['country_old'] != form.cleaned_data['country']:
+                        send_email = True
+                    if ctx_dict['address_old'] != form.cleaned_data['address']:
+                        send_email = True
+                    if ctx_dict['phone_number_old'] != \
+                                            form.cleaned_data['phone_number']:
+                        send_email = True
+
+                    ctx_dict.update(form.cleaned_data)
+
+                    form.save()
+
+                    if send_email:
+                        subject = render_to_string('client_changed_subject.txt',
+                            ctx_dict)
+                        # Email subject *must not* contain newlines
+                        subject = ''.join(subject.splitlines())
+                        message = render_to_string('client_changed_message.txt',
+                            ctx_dict)
+                        # Need to define CLIENT_CHANGE_FROM string in
+                        # settings.py
+                        from_email = settings.CLIENT_CHANGE_FROM
+                        # Need to define CLIENT_CHANGE_DATA_RECIPIENT tuple
+                        # contains mails of recipients in settings.py
+                        recipient_list = list(settings.CLIENT_CHANGE_RECIPIENT)
+                        mail.send_mail(subject, message, from_email,
+                            recipient_list)
+                    return HttpResponseRedirect(
+                        reverse('profiles_profile_detail',
+                            kwargs={'username': request.user.username}))
+            else:
+                # request not POST
+                form = ClientUserProfileForm(instance=profile_obj)
+            return render_to_response('profiles/edit_profile.html',
+                                      {'form': form, 'profile': profile_obj, },
+                                      context_instance=RequestContext(request))
+        else:
+            # User Default, call to his view
+            return profile_views.edit_profile(request,
+                                              form_class=UserProfileForm)
+    except profile_obj.DoesNotExist:
+        return HttpResponseRedirect('profiles/create')
