@@ -195,9 +195,11 @@ class WageModelForm(forms.ModelForm):
 
 
 class UserAdminForm(forms.ModelForm):
-    is_client = forms.BooleanField(required=False)
+    is_client = forms.BooleanField(required=False, label="Client",
+                                   help_text=("Designates whether this user"
+                                              "should be treated as a Client."))
     company = forms.ModelChoiceField(required=False,
-        queryset=Client.objects.all())
+                                     queryset=Client.objects.all())
 
     class Meta:
         model = User
@@ -217,6 +219,7 @@ class UserAdminForm(forms.ModelForm):
         cleaned_data = super(UserAdminForm, self).clean()
         is_client = cleaned_data.get("is_client")
         company = cleaned_data.get("company")
+
         first_name = cleaned_data.get("first_name")
         last_name = cleaned_data.get("last_name")
         errors = False
@@ -248,6 +251,7 @@ class UserAdminForm(forms.ModelForm):
 
         if errors:
             raise forms.ValidationError('Some field are invalid')
+
         return cleaned_data
 
     def save(self, *args, **kwargs):
