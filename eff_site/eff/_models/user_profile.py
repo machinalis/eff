@@ -86,9 +86,13 @@ class UserProfile(models.Model):
             raise ValidationError('The user type %s must have a Company' %
                 self.user_type)
         if (self.user_type.lower() != 'client') and \
-                (self.company or self.job_position):
+                self.job_position:
+        # This code is commented for #109 correction. I dont erase this because
+        # in #140 is necessary
+        # (self.company or self.job_position):
+
             raise ValidationError('The user type %s is not allowed to have '\
-                'company or job position' % self.user_type)
+                'job position' % self.user_type)
 
     def __unicode__(self):
         return u'%s (%s)' % (self.user.get_full_name(), self.user.username)
@@ -224,15 +228,17 @@ class UserProfile(models.Model):
 
 def create_profile_for_user(sender, instance, signal, *args, **kwargs):
     try:
-        UserProfile.objects.get(user=instance)
+        profile = UserProfile.objects.get(user=instance)
     except UserProfile.DoesNotExist, e:
         #si no existe, creamos el profile para el usuario
         profile = UserProfile(user=instance)
-        if hasattr(instance, "is_client"):
-            if instance.is_client:
-                profile.company = instance.company
-                profile.user_type = 'Client'
-        profile.save()
+    if hasattr(instance, "is_client"):
+        if instance.is_client:
+            profile.company = instance.company
+            profile.user_type = UserProfile.KIND_CLIENT
+        else:
+            profile.user_type = UserProfile.KIND_OTHER
+    profile.save()
 
 signals.post_save.connect(
     create_profile_for_user, sender=User,

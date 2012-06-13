@@ -26,7 +26,7 @@ from pyquery import PyQuery
 
 from urllib import urlencode
 from factories import (UserFactory, ClientProfileFactory, UserProfileFactory,
-                       AdminFactory)
+                       AdminFactory, ClientFactory)
 
 
 class HelperTest(TestCase):
@@ -134,14 +134,18 @@ class ClientPermissionsTest(HelperTest):
             get_data = urlencode(data)
             url = '%s?%s' % (url, get_data)
 
-        return self.test_client.get(url, follow=True)
+        return self.test_client.get(url)
 
     def test_client_can_access_eff_root(self):
         response = self.get_response('root')
-        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(response, 'accounts/login/')
 
     def test_client_can_access_eff_login(self):
         response = self.get_response('login')
+        self.assertEqual(response.status_code, 200)
+
+    def test_client_can_logout(self):
+        response = self.get_response('logout')
         self.assertEqual(response.status_code, 200)
 
     def test_client_can_access_clients_home(self):
@@ -149,11 +153,142 @@ class ClientPermissionsTest(HelperTest):
                                  kwargs={'username': 'client'})
         self.assertEqual(response.status_code, 200)
 
-    def test_client_cant_access_eff_report(self):
-        response = self.get_response('eff_report', args=['client'],
-                                 data=[('from_date', '2010-01-01'),
-                                       ('to_date', '2010-01-01')])
+    def test_client_can_access_profiles_edit(self):
+        response = self.get_response('profiles_edit')
         self.assertEqual(response.status_code, 200)
+
+    def test_client_can_access_password_reset(self):
+        response = self.get_response('password_reset')
+        self.assertEqual(response.status_code, 200)
+
+    def test_client_can_access_password_reset_done(self):
+        response = self.get_response('password_reset_done')
+        self.assertEqual(response.status_code, 200)
+
+    def test_client_can_access_password_reset_complete(self):
+        response = self.get_response('password_reset_complete')
+        self.assertEqual(response.status_code, 200)
+
+    def test_client_can_access_password_change(self):
+        response = self.get_response('password_change')
+        self.assertEqual(response.status_code, 200)
+
+    def test_client_can_access_password_change_done(self):
+        response = self.get_response('password_change_done')
+        self.assertEqual(response.status_code, 200)
+
+    def test_client_cant_access_checkperms(self):
+        response = self.get_response('checkperms', args=['client'])
+        self.assertRedirects(response,
+                             '/accounts/login/?next=/checkperms/client/')
+
+    def test_client_cant_access_update_hours(self):
+        response = self.get_response('update_hours', args=['client'])
+        self.assertRedirects(response,
+                             '/accounts/login/?next=/updatehours/client/')
+
+    def test_client_cant_access_eff(self):
+        response = self.get_response('eff')
+        self.assertRedirects(response,
+                             'accounts/login/?next=/efi/')
+
+    def test_client_cant_access_eff_previous_week(self):
+        response = self.get_response('eff_previous_week')
+        self.assertRedirects(response,
+                             'accounts/login/?next=/efi/semanaanterior/')
+
+    def test_client_cant_access_eff_current_week(self):
+        response = self.get_response('eff_current_week')
+        self.assertRedirects(response,
+                             'accounts/login/?next=/efi/semanaactual/')
+
+    def test_client_cant_access_eff_current_month(self):
+        response = self.get_response('eff_current_month')
+        self.assertRedirects(response,
+                             'accounts/login/?next=/efi/mesactual/')
+
+    def test_client_cant_access_eff_report(self):
+        response = self.get_response('eff_report', args=['client'])
+        self.assertRedirects(response,
+                             'accounts/login/?next=/efi/reporte/client/')
+
+    def test_client_cant_access_eff_last_month(self):
+        response = self.get_response('eff_last_month')
+        self.assertRedirects(response,
+                             'accounts/login/?next=/efi/mespasado/')
+
+    def test_client_cant_access_eff_extra_hours(self):
+        response = self.get_response('eff_extra_hours')
+        self.assertRedirects(response,
+                             'accounts/login/?next=/efi/horasextras/')
+
+    def test_client_cant_access_eff_next(self):
+        response = self.get_response('eff_next')
+        self.assertRedirects(response,
+                             'accounts/login/?next=/efi/next/')
+
+    def test_client_cant_access_eff_prev(self):
+        response = self.get_response('eff_prev')
+        self.assertRedirects(response,
+                             'accounts/login/?next=/efi/prev/')
+
+    def test_client_cant_access_eff_chart(self):
+        response = self.get_response('eff_chart', args=['client'])
+        self.assertRedirects(response,
+                             'accounts/login/?next=/efi/chart/client/')
+
+    def test_client_cant_access_eff_charts(self):
+        response = self.get_response('eff_charts')
+        self.assertRedirects(response,
+                             'accounts/login/?next=/efi/charts/')
+
+    def test_client_cant_access_eff_update_db(self):
+        response = self.get_response('eff_update_db')
+        self.assertRedirects(response,
+                             'accounts/login/?next=/efi/update-db/')
+
+    def test_client_cant_access_eff_administration(self):
+        response = self.get_response('eff_administration')
+        self.assertRedirects(response,
+                    'accounts/login/?next=/efi/administration/users_password/')
+
+    def test_client_cant_access_eff_admin_change_profile(self):
+        response = self.get_response('eff_admin_change_profile')
+        self.assertRedirects(response,
+                    'accounts/login/?next=/efi/administration/users_profile/')
+
+    def test_client_cant_access_eff_admin_add_user(self):
+        response = self.get_response('eff_admin_add_user')
+        self.assertRedirects(response,
+                            'accounts/login/?next=/efi/administration/add_user/')
+
+    def test_client_cant_access_eff_client_reports_admin(self):
+        response = self.get_response('eff_client_reports_admin')
+        self.assertRedirects(response, ('accounts/login/?next=/efi/'
+                                        'administration/client_reports/'))
+
+    def test_client_cant_access_eff_fixed_price_client_reports(self):
+        response = self.get_response('eff_fixed_price_client_reports')
+        self.assertRedirects(response, ('/accounts/login/?next=/efi/'
+                                        'administration/'
+                                        'fixed_price_client_reports/'))
+
+    def test_client_cant_access_eff_dump_csv_upload(self):
+        response = self.get_response('eff_dump_csv_upload')
+        self.assertRedirects(response, ('accounts/login/?next=/efi/'
+                                        'administration/'
+                                        'dump-csv-upload/'))
+
+    def test_client_cant_access_eff_client_report(self):
+        ClientFactory(name='FakeClient')
+        response = self.get_response('eff_client_report', args=['FakeClient'])
+        self.assertRedirects(response, ('accounts/login/?next=/efi/'
+                                        'reporte_cliente/FakeClient/'))
+
+    def test_client_cant_access_eff_admin_users_association(self):
+        response = self.get_response('eff_admin_users_association')
+        self.assertRedirects(response,
+                'accounts/login/?next=/efi/administration/users_association/')
 
 
 def suite():

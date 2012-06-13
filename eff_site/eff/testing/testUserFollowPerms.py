@@ -108,7 +108,7 @@ class UserFollowPermsTest(TestCase):
         query = query('table#queryTable td.name').text()
         names = map(lambda u: u.username, self.watcher.watches.all())
         names.append('watcher')
-        self.assertEqual(query.split(), names)
+        self.assertEqual(set(query.split()), set(names))
 
 
 def suite():
