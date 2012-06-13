@@ -169,6 +169,26 @@ def __enough_perms(u):
     return (u.has_perm('eff.view_billable') and u.has_perm('eff.view_wage'))
 
 
+def __enough_perms_or_follows(view_fun):
+    def _dec(request, user_name):
+        # req_user can access this view if he has required permissions or
+        # if he is following user, or if req_user = user
+        req_user = request.user
+        req_up = req_user.get_profile()
+        user = User.objects.get(username=user_name)
+        check = ((req_user.has_perm('eff.view_billable') and
+                 req_user.has_perm('eff.view_wage')) or
+                 user in req_up.watches.all() or
+                 user == req_user)
+
+        if check:
+            return view_fun(request, user_name)
+        else:
+            return redirect('login')
+
+    return _dec
+
+
 def __not_a_client(u):
     up = u.get_profile()
     return not up.is_client()
@@ -628,21 +648,22 @@ def eff_charts(request):
 
 @login_required
 @user_passes_test(__not_a_client, login_url='/accounts/login/')
+@__enough_perms_or_follows
 def eff_report(request, user_name):
 
     context = __process_dates(request)
     context['export_allowed'] = True
-    if not (request.user.has_perm('eff.view_billable') and \
-            request.user.has_perm('eff.view_wage')):
-        if request.user.username != user_name:
-            return HttpResponseRedirect('/accounts/login/?next=%s' % quote(
-                request.get_full_path()))
-        else:
-            if 'export' in request.GET:
-                return HttpResponseRedirect('/accounts/login/?next=%s' % quote(
-                    request.get_full_path()))
-            else:
-                del context['export_allowed']
+    # if not (request.user.has_perm('eff.view_billable') and \
+    #         request.user.has_perm('eff.view_wage')):
+    #     if request.user.username != user_name:
+    #         return HttpResponseRedirect('/accounts/login/?next=%s' % quote(
+    #             request.get_full_path()))
+    #     else:
+    if 'export' in request.GET:
+        return HttpResponseRedirect('/accounts/login/?next=%s' % quote(
+            request.get_full_path()))
+    else:
+        del context['export_allowed']
 
     from_date = context['from_date']
     to_date = context['to_date']
