@@ -30,11 +30,9 @@ from decimal import Decimal
 
 class Handle(models.Model):
     protocol = models.CharField(default="", max_length=100)
-    sort_name = models.CharField(default="", max_length=100)
-    description = models.TextField(default="", max_length=200, blank=True)
 
     def __unicode__(self):
-        return '%s' % (self.sort_name)
+        return '%s' % (self.protocol)
 
     class Meta:
         app_label = 'eff'

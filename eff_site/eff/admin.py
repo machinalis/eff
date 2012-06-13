@@ -198,7 +198,7 @@ class ExternalIdAdmin(admin.ModelAdmin):
 
 
 class HandleAdmin(admin.ModelAdmin):
-    list_display = ('protocol', 'sort_name', 'description')
+    list_display = ('protocol',)
 
 
 admin.site.unregister(User)
