@@ -40,3 +40,10 @@ DATABASES = {
 
 EMAIL_HOST = ''  # Set this as the host to use for sending e-mail
 EMAIL_PORT = 25  # Port to use for the SMTP server defined in EMAIL_HOST
+
+#When a client user change, send mail with
+CLIENT_CHANGE_FROM = 'from@domain.com'
+CLIENT_CHANGE_RECIPIENT = (
+    #'your_email@domain.com',
+    'recipient@domain.com',
+)
