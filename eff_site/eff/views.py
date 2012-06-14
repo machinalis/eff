@@ -1226,11 +1226,10 @@ def eff_admin_users_association(request):
 
 
 @login_required
-def edit_profile(request):
+def edit_profile(request, form_class):
     try:
         profile_obj = request.user.get_profile()
-        # can be used profile_obj.is_client()
-        if profile_obj.user_type == 'Client':
+        if profile_obj.is_client():
             # User Client
             if request.method == 'POST':
                 form = ClientUserProfileForm(data=request.POST,

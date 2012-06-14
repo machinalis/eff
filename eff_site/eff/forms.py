@@ -204,6 +204,17 @@ class UserAdminForm(forms.ModelForm):
     class Meta:
         model = User
 
+    def __init__(self, *args, **kwargs):
+        super(UserAdminForm, self).__init__(*args, **kwargs)
+        try:
+            profile = self.instance.get_profile()
+            self.fields['is_client'].initial = profile.is_client()
+            self.fields['company'].initial = profile.company
+        except User.DoesNotExist:
+            pass
+        except UserProfile.DoesNotExist:
+            pass
+
     def clean(self):
         cleaned_data = super(UserAdminForm, self).clean()
         is_client = cleaned_data.get("is_client")
@@ -213,12 +224,14 @@ class UserAdminForm(forms.ModelForm):
         last_name = cleaned_data.get("last_name")
         errors = False
 
-        if company and not is_client:
-            self._errors['company'] = self._errors.get('company',
-                ErrorList())
-            self._errors['company'].append("A default user not must have "\
-                "Company")
-            errors = True
+        # This code is commented for #109 correction. I dont erase this because
+        # in #140 is necessary
+#        if company and not is_client:
+#            self._errors['company'] = self._errors.get('company',
+#                ErrorList())
+#            self._errors['company'].append("A default user not must have "\
+#                "Company")
+#            errors = True
         if is_client and not company:
             self._errors['company'] = self._errors.get('company', ErrorList())
             self._errors['company'].append("A client user must have Company")
