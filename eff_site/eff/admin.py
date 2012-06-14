@@ -178,12 +178,21 @@ class UserProfileAdmin(admin.ModelAdmin):
     form = UserProfileAdminForm
     inlines = [ClientHandlesInline]
 
+    def get_form(self, request, obj=None, **kwargs):
+        self.exclude = []
+        if hasattr(obj, "is_client") and obj.is_client():
+            self.exclude.append('personal_email')
+        return super(UserProfileAdmin, self).get_form(request, obj, **kwargs)
+
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ('username', 'first_name', 'last_name')
     inlines = [WageInLine, AvgHoursInLine]
     ordering = ('username',)
     form = UserAdminForm
+
+    class Media:
+        js = ('/js/adminformFieldsValidations.js',)
 
 
 class CurrencyAdmin(admin.ModelAdmin):

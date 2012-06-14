@@ -76,12 +76,14 @@ class UserProfileForm(ModelForm):
 class ClientUserProfileForm(ModelForm):
     first_name = forms.CharField(required=False, label='First name')
     last_name = forms.CharField(required=False, label='Last name')
+    email = forms.CharField(required=False, label='Email')
 
     def __init__(self, *args, **kwargs):
         super(ClientUserProfileForm, self).__init__(*args, **kwargs)
         try:
             self.fields['first_name'].initial = self.instance.user.first_name
             self.fields['last_name'].initial = self.instance.user.last_name
+            self.fields['email'].initial = self.instance.user.email
         except User.DoesNotExist:
             pass
 
@@ -89,14 +91,15 @@ class ClientUserProfileForm(ModelForm):
         u = self.instance.user
         u.first_name = self.cleaned_data['first_name']
         u.last_name = self.cleaned_data['last_name']
+        u.email = self.cleaned_data['email']
         u.save()
         profile = super(ClientUserProfileForm, self).save(*args, **kwargs)
         return profile
 
     class Meta:
         model = UserProfile
-        fields = ('first_name', 'last_name', 'job_position','personal_email',
-            'city', 'state', 'country', 'address', 'phone_number')
+        fields = ('first_name', 'last_name', 'job_position', 'email',
+            'personal_email', 'phone_number')
 
 
 class UsersChangeProfileForm (UserProfileForm):
