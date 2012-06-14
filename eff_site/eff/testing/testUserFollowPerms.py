@@ -29,11 +29,10 @@ from urllib import urlencode
 
 from factories import UserProfileFactory, ProjectFactory, ClientFactory
 from factories import ProjectAssocFactory, ExternalSourceFactory, DumpFactory
-from factories import TimeLogFactory, AvgHoursFactory
+from factories import TimeLogFactory, AvgHoursFactory, AdminFactory
 
 
-class UserFollowPermsTest(TestCase):
-
+class HelperTest(TestCase):
     def setUp(self):
 
         # Disconnect signals so there's no problem to use UserProfileFactory
@@ -44,7 +43,7 @@ class UserFollowPermsTest(TestCase):
         self.test_client = TestClient()
 
         # Create some data for tests
-        # A external source
+        # An external source
         self.ext_src = ExternalSourceFactory(name='DotprojectMachinalis')
         # A dump
         dump = DumpFactory(date=date(2012, 05, 30), source=self.ext_src)
@@ -90,6 +89,11 @@ class UserFollowPermsTest(TestCase):
                                date=start_date + timedelta(days=d),
                                project=project2, dump=dump)
 
+
+class UserFollowingOthersTest(HelperTest):
+    def setUp(self):
+        super(UserFollowPermsTest, self).setUp()
+
         self.test_client.login(username='watcher', password='watcher')
 
     def get_response(self, from_date, to_date):
@@ -110,8 +114,22 @@ class UserFollowPermsTest(TestCase):
         names.append('watcher')
         self.assertEqual(query.split(), names)
 
+    def test_can_access_logged_hours_for_users_being_followed(self):
+        
+
+class UserWithPermissionsTest(HelperTest):
+    def setUp(self):
+        super(UserFollowPermsTest, self).setUp()
+
+        # Create an admin.
+        self.admin = AdminFactory(username='admin')
+        UserProfileFactory(user=self.admin)
+
+        self.test_client.login(username='admin', password='admin')
+
 
 def suite():
     suite = TestSuite()
-    suite.addTest(makeSuite(UserFollowPermsTest))
+    suite.addTest(makeSuite(UserFollowOthersTest))
+    suite.addTest(makeSuite(UserWithPermissionsTest))
     return suite
