@@ -1234,16 +1234,15 @@ def edit_profile(request, form_class):
             if request.method == 'POST':
                 form = ClientUserProfileForm(data=request.POST,
                     files=request.FILES, instance=profile_obj)
-                ctx_dict = {}
-                ctx_dict['first_name_old'] = request.user.first_name
-                ctx_dict['last_name_old'] = request.user.last_name
-                ctx_dict['job_position_old'] = profile_obj.job_position
-                ctx_dict['personal_email_old'] = profile_obj.personal_email
-                ctx_dict['city_old'] = profile_obj.city
-                ctx_dict['state_old'] = profile_obj.state
-                ctx_dict['country_old'] = profile_obj.country
-                ctx_dict['address_old'] = profile_obj.address
-                ctx_dict['phone_number_old'] = profile_obj.phone_number
+                ctx_dict = {
+                        'first_name_old': request.user.first_name,
+                        'last_name_old': request.user.last_name,
+                        'job_position_old': profile_obj.job_position,
+                        'email_old': profile_obj.user.email,
+                        'personal_email_old': profile_obj.personal_email,
+                        'phone_number_old': profile_obj.phone_number
+                    }
+
                 if form.is_valid():
                     send_email = False
                     if ctx_dict['first_name_old'] != \
@@ -1255,16 +1254,10 @@ def edit_profile(request, form_class):
                     if ctx_dict['job_position_old'] != \
                                             form.cleaned_data['job_position']:
                         send_email = True
+                    if ctx_dict['email_old'] != form.cleaned_data['email']:
+                        send_email = True
                     if ctx_dict['personal_email_old'] != \
                                             form.cleaned_data['personal_email']:
-                        send_email = True
-                    if ctx_dict['city_old'] != form.cleaned_data['city']:
-                        send_email = True
-                    if ctx_dict['state_old'] != form.cleaned_data['state']:
-                        send_email = True
-                    if ctx_dict['country_old'] != form.cleaned_data['country']:
-                        send_email = True
-                    if ctx_dict['address_old'] != form.cleaned_data['address']:
                         send_email = True
                     if ctx_dict['phone_number_old'] != \
                                             form.cleaned_data['phone_number']:
