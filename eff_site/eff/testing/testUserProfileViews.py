@@ -21,6 +21,7 @@ from unittest import TestSuite, makeSuite
 from django.test.client import Client as TestClient
 from django.contrib.auth.models import User
 from django.db.models import signals
+from eff._models.user_profile import create_profile_for_user
 from django.core.urlresolvers import reverse
 from pyquery import PyQuery
 
@@ -39,6 +40,12 @@ class HelperTest(TestCase):
             sender=User)
 
         self.test_client = TestClient()
+
+    def tearDown(self):
+        # re connect signals
+        signals.post_save.connect(
+            create_profile_for_user, sender=User,
+            dispatch_uid='eff._models.user_profile.create_profile_for_user')
 
 
 class ClientProfileTest(HelperTest):

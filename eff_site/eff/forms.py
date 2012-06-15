@@ -19,6 +19,7 @@
 from django import forms
 from django.forms import ModelForm
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
 from django.forms.util import ErrorList
 
 from eff_site.eff.models import UserProfile, Client, AvgHours, Wage
@@ -194,7 +195,7 @@ class WageModelForm(forms.ModelForm):
         exclude = ('user',)
 
 
-class UserAdminForm(forms.ModelForm):
+class UserAdminForm(UserCreationForm):
     is_client = forms.BooleanField(required=False, label="Client",
                                    help_text=("Designates whether this user"
                                               "should be treated as a Client."))
@@ -203,6 +204,11 @@ class UserAdminForm(forms.ModelForm):
 
     class Meta:
         model = User
+        # Needed to define an order
+        fields = ('username', 'password1', 'password2', 'is_client', 'company',
+                  'first_name', 'last_name', 'email', 'is_staff', 'is_active',
+                  'is_superuser', 'last_login', 'date_joined', 'groups',
+                  'user_permissions',)
 
     def __init__(self, *args, **kwargs):
         super(UserAdminForm, self).__init__(*args, **kwargs)
@@ -257,7 +263,7 @@ class UserAdminForm(forms.ModelForm):
     def save(self, *args, **kwargs):
         kwargs.pop('commit', None)
         instance = super(UserAdminForm, self).save(*args, commit=False,
-            **kwargs)
+                                                   **kwargs)
         instance.is_client = self.cleaned_data['is_client']
         if instance.is_client:
             instance.company = self.cleaned_data['company']

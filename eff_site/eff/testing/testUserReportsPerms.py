@@ -24,6 +24,7 @@ from pyquery import PyQuery
 from decimal import Decimal
 from datetime import date, timedelta
 from django.db.models import signals
+from eff._models.user_profile import create_profile_for_user
 from django.contrib.auth.models import User
 from urllib import urlencode
 
@@ -121,6 +122,11 @@ class HelperTest(TestCase):
 
         return self.test_client.get(url)
 
+    def tearDown(self):
+        # reconnect signals
+        signals.post_save.connect(
+            create_profile_for_user, sender=User,
+            dispatch_uid='eff._models.user_profile.create_profile_for_user')
 
 class UserFollowingOthersTest(HelperTest):
     def setUp(self):
