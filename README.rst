@@ -52,6 +52,7 @@ Configuring email settings
 --------------------------
 
 When a client change his data, eff send mail to/from
+Add this variables in local_settings.py to configure from/to
 
 # When a client user change, send mail from
 CLIENT_CHANGE_FROM = 'from@domain.com'
@@ -59,6 +60,7 @@ CLIENT_CHANGE_FROM = 'from@domain.com'
 # When a client user change, send mail to
 CLIENT_CHANGE_RECIPIENT = (
     'your_email@domain.com',
+    'another_email@domain.com',
 )
 
 Change template for client change email

@@ -4,11 +4,8 @@ Fields              Old data
 First name          {{first_name_old}}
 Last name           {{last_name_old}}
 Job position        {{job_position_old}}
+Email               {{email_old}}
 Personal Email      {{personal_email_old}}
-City                {{city_old}}
-State               {{state_old}}
-Country             {{country_old}}
-Address             {{address_old}}
 Phone number        {{phone_number_old}}
 
 ---------------------------------------------
@@ -17,9 +14,6 @@ Fields              New Data
 First name          {{first_name}}
 Last name           {{last_name}}
 Job position        {{job_position}}
+Email               {{email}}
 Personal Email      {{personal_email}}
-City                {{city}}
-State               {{state}}
-Country             {{country}}
-Address             {{address}}
 Phone number        {{phone_number}}
