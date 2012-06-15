@@ -554,7 +554,8 @@ class UserProfileTest(TestCase):
 
     def test_create_user_type_client(self):
         data = {'username': 'test1',
-                'password': 'test1',
+                'password1': 'test1',
+                'password2': 'test1',
                 'first_name': 'test1',
                 'last_name': 'test1',
                 'is_client': True,
