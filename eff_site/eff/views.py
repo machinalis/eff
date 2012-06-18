@@ -1246,10 +1246,10 @@ def edit_profile(request, form_class):
                         'personal_email_old': profile_obj.personal_email,
                         'phone_number_old': profile_obj.phone_number}
 
-                handles_form = HandlesFormSet(request.POST, prefix='handles',
+                formset_handles = HandlesFormSet(request.POST, prefix='handles',
                     instance=profile_obj)
-                if handles_form.is_valid():
-                    handles_form.save()
+                if formset_handles.is_valid():
+                    formset_handles.save()
 
                 if form.is_valid():
                     send_email = False
@@ -1275,18 +1275,18 @@ def edit_profile(request, form_class):
                         recipient_list = list(settings.CLIENT_CHANGE_RECIPIENT)
                         mail.send_mail(subject, message, from_email,
                             recipient_list)
-                    return HttpResponseRedirect(
-                        reverse('profiles_profile_detail',
-                            kwargs={'username': request.user.username}))
+                return HttpResponseRedirect(
+                    reverse('profiles_profile_detail',
+                        kwargs={'username': request.user.username}))
             else:
                 # request not POST
                 form = ClientUserProfileForm(instance=profile_obj)
-                form_handles = HandlesFormSet(instance=profile_obj,
+                formset_handles = HandlesFormSet(instance=profile_obj,
                     queryset=profile_obj.clienthandles_set.all(),
                     prefix='handles')
             return render_to_response('profiles/edit_profile.html',
                                       {'form': form, 'profile': profile_obj,
-                                        'form_handles': form_handles},
+                                        'form_handles': formset_handles},
                                       context_instance=RequestContext(request))
         else:
             # User Default, call to his view
