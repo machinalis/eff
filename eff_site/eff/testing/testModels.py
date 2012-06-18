@@ -612,7 +612,10 @@ class UserProfileTest(TestCase):
         response = response.client.post("/profiles/edit/",
             {'job_position': 'Job position 2',
              'first_name': self.user_client.first_name,
-             'last_name': self.user_client.last_name})
+             'last_name': self.user_client.last_name,
+             'handles-TOTAL_FORMS': '1',
+             'handles-INITIAL_FORMS': '0',
+             'handles-MAX_NUM_FORMS': '',})
         # Check that the response is 200 OK.
         self.assertEqual(response.status_code, 302)
         sent_email = False

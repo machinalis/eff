@@ -48,7 +48,7 @@ from reports import format_report_data
 from reports import format_report_data_user, FixedPriceClientReverseBilling
 
 from eff_site.eff.models import AvgHours, Wage, TimeLog, Project, Client
-from eff_site.eff.models import UserProfile
+from eff_site.eff.models import UserProfile, ClientHandles
 from eff_site.eff.models import ExternalId, ExternalSource, Dump
 
 from eff_site.eff.utils import overtime_period, previous_week, week, month
@@ -1199,10 +1199,14 @@ def eff_admin_users_association(request):
 
 @login_required
 def edit_profile(request, form_class):
+    attr_names = ('first_name', 'last_name', 'job_position', 'email',
+        'personal_email', 'phone_number')
     try:
         profile_obj = request.user.get_profile()
         if profile_obj.is_client():
             # User Client
+            HandlesFormSet = inlineformset_factory(UserProfile, ClientHandles,
+                extra=1)
             if request.method == 'POST':
                 form = ClientUserProfileForm(data=request.POST,
                     files=request.FILES, instance=profile_obj)
@@ -1212,31 +1216,20 @@ def edit_profile(request, form_class):
                         'job_position_old': profile_obj.job_position,
                         'email_old': profile_obj.user.email,
                         'personal_email_old': profile_obj.personal_email,
-                        'phone_number_old': profile_obj.phone_number
-                    }
+                        'phone_number_old': profile_obj.phone_number}
+
+                handles_form = HandlesFormSet(request.POST, prefix='handles',
+                    instance=profile_obj)
+                if handles_form.is_valid():
+                    handles_form.save()
 
                 if form.is_valid():
                     send_email = False
-                    if ctx_dict['first_name_old'] != \
-                                                form.cleaned_data['first_name']:
-                        send_email = True
-                    if ctx_dict['last_name_old'] != \
-                                                form.cleaned_data['last_name']:
-                        send_email = True
-                    if ctx_dict['job_position_old'] != \
-                                            form.cleaned_data['job_position']:
-                        send_email = True
-                    if ctx_dict['email_old'] != form.cleaned_data['email']:
-                        send_email = True
-                    if ctx_dict['personal_email_old'] != \
-                                            form.cleaned_data['personal_email']:
-                        send_email = True
-                    if ctx_dict['phone_number_old'] != \
-                                            form.cleaned_data['phone_number']:
-                        send_email = True
-
+                    for key in attr_names:
+                        if ctx_dict['%s_old' % key] != form.cleaned_data[key]:
+                            send_email = True
+                            break
                     ctx_dict.update(form.cleaned_data)
-
                     form.save()
 
                     if send_email:
@@ -1260,8 +1253,12 @@ def edit_profile(request, form_class):
             else:
                 # request not POST
                 form = ClientUserProfileForm(instance=profile_obj)
+                form_handles = HandlesFormSet(instance=profile_obj,
+                    queryset=profile_obj.clienthandles_set.all(),
+                    prefix='handles')
             return render_to_response('profiles/edit_profile.html',
-                                      {'form': form, 'profile': profile_obj, },
+                                      {'form': form, 'profile': profile_obj,
+                                        'form_handles': form_handles},
                                       context_instance=RequestContext(request))
         else:
             # User Default, call to his view
