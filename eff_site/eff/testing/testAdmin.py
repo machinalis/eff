@@ -151,7 +151,7 @@ class QueriesTest(TestCase):
         url = reverse('admin:eff_userprofile_change', args=(test_user.id,))
         response = self.test_client.get(url)
         post_data = {'user': test_user.user.id, 'watches': [admin_user.user.id],
-                     'user_type': 'Default',
+                     'user_type': UserProfile.KIND_OTHER,
                      'clienthandles_set-TOTAL_FORMS': '3',
                      'clienthandles_set-INITIAL_FORMS': '0',
                      'clienthandles_set-MAX_NUM_FORMS': ''}
@@ -200,6 +200,47 @@ class QueriesTest(TestCase):
         query = PyQuery(response.content)
         query = query("select#id_send_as")
         self.assertEqual(query.text(), 'TO CC BCC')
+
+    def test_password_set_in_user_add(self):
+        url = reverse('admin:auth_user_add')
+        response = self.test_client.get(url)
+        post_data = {'username': 'newUser', 'password1': 'pass',
+                     'password2': 'pass',
+                     'is_active': True,
+                     'last_login_0': '2012-06-15',
+                     'last_login_1': '16:29:51',
+                     'date_joined_0': '2012-06-15',
+                     'date_joined_1': '16:29:51',
+                     'wage_set-TOTAL_FORMS': '3',
+                     'wage_set-INITIAL_FORMS': '0',
+                     'wage_set-MAX_NUM_FORMS': '',
+                     'avghours_set-TOTAL_FORMS': '3',
+                     'avghours_set-INITIAL_FORMS': '0',
+                     'avghours_set-MAX_NUM_FORMS': ''}
+        self.test_client.post(url, post_data)
+        check = self.test_client.login(username='newUser', password='pass')
+        self.assertEqual(check, True)
+
+    def test_password_error_in_user_add(self):
+        url = reverse('admin:auth_user_add')
+        response = self.test_client.get(url)
+        post_data = {'username': 'newUser', 'password1': 'pass',
+                     'password2': 'anotherPass',
+                     'is_active': True,
+                     'last_login_0': '2012-06-15',
+                     'last_login_1': '16:29:51',
+                     'date_joined_0': '2012-06-15',
+                     'date_joined_1': '16:29:51',
+                     'wage_set-TOTAL_FORMS': '3',
+                     'wage_set-INITIAL_FORMS': '0',
+                     'wage_set-MAX_NUM_FORMS': '',
+                     'avghours_set-TOTAL_FORMS': '3',
+                     'avghours_set-INITIAL_FORMS': '0',
+                     'avghours_set-MAX_NUM_FORMS': ''}
+        response = self.test_client.post(url, post_data)
+        query = PyQuery(response.content)
+        query = query('ul.errorlist')
+        self.assertEqual(query.text(), "The two password fields didn't match.")
 
 
 def suite():

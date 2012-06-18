@@ -169,6 +169,33 @@ def __enough_perms(u):
     return (u.has_perm('eff.view_billable') and u.has_perm('eff.view_wage'))
 
 
+def __enough_perms_or_follows(view_fun):
+    def _dec(request, user_name):
+        logged_user = request.user
+        logged_up = logged_user.get_profile()
+        user = User.objects.get(username=user_name)
+
+        # If logged_user has required permissions he has full access to reports.
+        # otherwise, he can only access detailed reports (which means he can not
+        # see reports involving money), and he can only see reports for himself
+        # and users being followed by him.
+        if not (logged_user.has_perm('eff.view_billable') and \
+               logged_user.has_perm('eff.view_wage')):
+            if (user in logged_up.watches.all()) or (user == logged_user):
+                if ('export' in request.GET and not 'detailed' in request.GET):
+                    return HttpResponseRedirect('/accounts/login/?next=%s' %
+                                                quote(request.get_full_path()))
+                else:
+                    return view_fun(request, user_name)
+            else:
+                return HttpResponseRedirect('/accounts/login/?next=%s' %
+                                            quote(request.get_full_path()))
+        else:
+            return view_fun(request, user_name)
+
+    return _dec
+
+
 def __not_a_client(u):
     up = u.get_profile()
     return not up.is_client()
@@ -628,21 +655,22 @@ def eff_charts(request):
 
 @login_required
 @user_passes_test(__not_a_client, login_url='/accounts/login/')
+@__enough_perms_or_follows
 def eff_report(request, user_name):
 
     context = __process_dates(request)
-    context['export_allowed'] = True
-    if not (request.user.has_perm('eff.view_billable') and \
-            request.user.has_perm('eff.view_wage')):
-        if request.user.username != user_name:
-            return HttpResponseRedirect('/accounts/login/?next=%s' % quote(
-                request.get_full_path()))
-        else:
-            if 'export' in request.GET:
-                return HttpResponseRedirect('/accounts/login/?next=%s' % quote(
-                    request.get_full_path()))
-            else:
-                del context['export_allowed']
+    # context['export_allowed'] = True
+    # if not (request.user.has_perm('eff.view_billable') and \
+    #         request.user.has_perm('eff.view_wage')):
+    #     if request.user.username != user_name:
+    #         return HttpResponseRedirect('/accounts/login/?next=%s' % quote(
+    #             request.get_full_path()))
+    #     else:
+    # if 'export' in request.GET:
+    #     return HttpResponseRedirect('/accounts/login/?next=%s' % quote(
+    #         request.get_full_path()))
+    # else:
+    #     del context['export_allowed']
 
     from_date = context['from_date']
     to_date = context['to_date']

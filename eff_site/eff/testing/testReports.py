@@ -18,6 +18,7 @@
 
 from django.contrib.auth.models import User
 from django.db.models import signals
+from eff._models.user_profile import create_profile_for_user
 from django.test import TestCase
 from unittest import TestSuite, makeSuite
 
@@ -127,6 +128,12 @@ class HelperTest(TestCase):
         # project1 -> user2 hours: 15*4
         self.create_timelogs_for_users(15, [(self.user2.user, 4.0)],
                                        date(2008, 01, 01), project1)
+
+    def tearDown(self):
+        # re connect signals
+        signals.post_save.connect(
+            create_profile_for_user, sender=User,
+            dispatch_uid='eff._models.user_profile.create_profile_for_user')
 
 
 class UserReportTest(HelperTest):
