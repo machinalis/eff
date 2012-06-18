@@ -143,11 +143,9 @@ class UserPassChangeForm(forms.Form):
 class UserAddForm(forms.Form):
     """ Add user """
     username = forms.CharField(max_length=100, label='Username')
-    password = forms.CharField(max_length=100,
-                               widget=forms.PasswordInput,
+    password = forms.CharField(max_length=100, widget=forms.PasswordInput,
                                label='Password')
-    password2 = forms.CharField(max_length=100,
-                                widget=forms.PasswordInput,
+    password2 = forms.CharField(max_length=100, widget=forms.PasswordInput,
                                 label='Password confirmation')
 
     def clean(self):
@@ -207,7 +205,7 @@ class UserAdminForm(UserCreationForm):
 
     class Meta:
         model = User
-        # Needed to define an order
+        # Needed to define an order (hashed password not shown)
         fields = ('username', 'password1', 'password2', 'is_client', 'company',
                   'first_name', 'last_name', 'email', 'is_staff', 'is_active',
                   'is_superuser', 'last_login', 'date_joined', 'groups',
