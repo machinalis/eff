@@ -25,7 +25,7 @@ from django.core.exceptions import ValidationError
 from django.core import mail
 
 from eff.models import UserProfile, AvgHours, Project, TimeLog, ExternalSource
-from eff.models import Wage
+from eff.models import Wage, ClientHandles, Handle
 from eff.models import Client as EffClient, Dump
 from eff.views import Data
 
@@ -615,8 +615,8 @@ class UserProfileTest(TestCase):
              'last_name': self.user_client.last_name,
              'handles-TOTAL_FORMS': '1',
              'handles-INITIAL_FORMS': '0',
-             'handles-MAX_NUM_FORMS': '',})
-        # Check that the response is 200 OK.
+             'handles-MAX_NUM_FORMS': ''})
+        # Check that the response is 302 OK.
         self.assertEqual(response.status_code, 302)
         sent_email = False
         if count_mails < len(mail.outbox):
@@ -624,6 +624,73 @@ class UserProfileTest(TestCase):
         self.assertTrue(sent_email)
         self.assertEqual(mail.outbox[-1].subject,
             'Client first last has change')
+
+    def test_client_user_can_edit_his_profile_basic_data(self):
+        client = Client()
+        self.assertTrue(client.login(username='user_client',
+            password='user_client'))
+        response = client.get('/profiles/edit/')
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 200)
+        response = response.client.post("/profiles/edit/",
+            {'first_name': 'pepe',
+             'handles-TOTAL_FORMS': '1',
+             'handles-INITIAL_FORMS': '0',
+             'handles-MAX_NUM_FORMS': ''})
+        # Check that the response is 302 OK.
+        self.assertEqual(response.status_code, 302)
+        user_client_changed = User.objects.get(username='user_client')
+        self.assertEqual(user_client_changed.first_name, 'pepe')
+
+    def test_client_user_can_add_handle_data(self):
+        client = Client()
+        handle = Handle(protocol='msn')
+        handle.save()
+        self.assertTrue(client.login(username='user_client',
+            password='user_client'))
+        response = client.get('/profiles/edit/')
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 200)
+        response = response.client.post("/profiles/edit/",
+            {'handles-TOTAL_FORMS': '1',
+             'handles-INITIAL_FORMS': '0',
+             'handles-MAX_NUM_FORMS': '',
+
+             'handles-0-address': 'La calle de mi casa',
+             'handles-0-handle': handle.id
+             })
+        # Check that the response is 302 OK.
+        self.assertEqual(response.status_code, 302)
+        u = User.objects.get(username='user_client')
+        h = ClientHandles.objects.get(client=u.get_profile())
+        self.assertEqual(h.address, 'La calle de mi casa')
+
+    def test_client_user_can_edit_his_profile_handle_data(self):
+        client = Client()
+        handle = Handle(protocol='msn')
+        handle.save()
+        ch = ClientHandles(handle=handle, client=self.user_client.get_profile(),
+            address='La calle de mi barrio')
+        ch.save()
+        self.assertTrue(client.login(username='user_client',
+            password='user_client'))
+        response = client.get('/profiles/edit/')
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 200)
+        response = response.client.post("/profiles/edit/",
+            {'handles-TOTAL_FORMS': '2',
+             'handles-INITIAL_FORMS': '1',
+             'handles-MAX_NUM_FORMS': '',
+
+             'handles-0-address': 'Otra calle',
+             'handles-0-id': ch.id,
+             'handles-0-handle': handle.id
+             })
+        # Check that the response is 302 OK.
+        self.assertEqual(response.status_code, 302)
+        u = User.objects.get(username='user_client')
+        h = ClientHandles.objects.get(client=u.get_profile())
+        self.assertEqual(h.address, 'Otra calle')
 
 
 class ActiveTest(TestCase):
