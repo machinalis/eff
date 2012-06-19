@@ -1199,15 +1199,15 @@ def eff_admin_users_association(request):
 
 @login_required
 def edit_profile(request, form_class):
-    attr_names = ('first_name', 'last_name', 'job_position', 'email',
-        'personal_email', 'phone_number')
     try:
         profile_obj = request.user.get_profile()
         if profile_obj.is_client():
             # User Client
-            HandlesFormSet = inlineformset_factory(UserProfile, ClientHandles,
-                extra=1)
+            HandlesFormSet = inlineformset_factory(UserProfile, ClientHandles, extra=1)
             if request.method == 'POST':
+                # Initial data for the view client process
+                context_for_email = {'old_data': [], 'new_data': []}
+                send_email = False
                 form = ClientUserProfileForm(data=request.POST,
                     files=request.FILES, instance=profile_obj)
                 ctx_dict = {
@@ -1217,48 +1217,81 @@ def edit_profile(request, form_class):
                         'email_old': profile_obj.user.email,
                         'personal_email_old': profile_obj.personal_email,
                         'phone_number_old': profile_obj.phone_number}
+                clienth = ClientHandles.objects.filter(client=profile_obj)
+                for ch in clienth:
+                    ctx_dict['address_%s_old' % (ch.id)] = ch.address
+                    ctx_dict['handle_%s_old' % (ch.id)] = ch.handle
 
-                formset_handles = HandlesFormSet(request.POST, prefix='handles',
-                    instance=profile_obj)
+                formset_handles = HandlesFormSet(request.POST, prefix='handles', instance=profile_obj)
                 if formset_handles.is_valid():
+#                    print  formset_handles.cleaned_data
                     formset_handles.save()
+                    for client_handle in formset_handles:
+#                        print client_handle.cleaned_data['handle']
+                        ctx_dict['address_%s' % (client_handle.instance.id)] = client_handle.cleaned_data['address']
+                        ctx_dict['handle_%s' % (client_handle.instance.id)] = client_handle.cleaned_data['handle']
+
+                        if client_handle.has_changed():
+#                            print dir(client_handle)
+                            # Send email True because data has changed
+                            send_email = form.has_changed()
+                            # Populate the context for email template with changed
+                            # data
+                            for field in client_handle._changed_data:
+                                context_for_email['old_data'].append(
+                                    # tuple (fieldname, fieldvalue) for old data
+                                    (field, ctx_dict['%s_%s_old' % (field, client_handle.instance.id)])
+                                )
+                                context_for_email['new_data'].append(
+                                    # tuple (fieldname, fieldvalue) for new data
+                                    (field, ctx_dict['%s_%s' % (field, client_handle.instance.id)])
+                                )
 
                 if form.is_valid():
-                    send_email = False
-                    for key in attr_names:
-                        if ctx_dict['%s_old' % key] != form.cleaned_data[key]:
-                            send_email = True
-                            break
+                    # Merge old data and new data in the same dict
                     ctx_dict.update(form.cleaned_data)
                     form.save()
+                    if form.has_changed():
+                        # Send email True because data has changed
+                        send_email = form.has_changed()
+                        # Populate the context for email template with changed
+                        # data
+                        for field in form._changed_data:
 
-                    if send_email:
-                        subject = render_to_string('client_changed_subject.txt',
-                            ctx_dict)
-                        # Email subject *must not* contain newlines
-                        subject = ''.join(subject.splitlines())
-                        message = render_to_string('client_changed_message.txt',
-                            ctx_dict)
-                        # Need to define CLIENT_CHANGE_FROM string in
-                        # settings.py
-                        from_email = settings.CLIENT_CHANGE_FROM
-                        # Need to define CLIENT_CHANGE_DATA_RECIPIENT tuple
-                        # contains mails of recipients in settings.py
-                        recipient_list = list(settings.CLIENT_CHANGE_RECIPIENT)
-                        mail.send_mail(subject, message, from_email,
-                            recipient_list)
+                            context_for_email['old_data'].append(
+                                # tuple (fieldname, fieldvalue) for old data
+                                (field, ctx_dict['%s_old' % field])
+                            )
+                            context_for_email['new_data'].append(
+                                # tuple (fieldname, fieldvalue) for new data
+                                (field, ctx_dict[field])
+                            )
+                if send_email:
+                    subject = render_to_string('client_changed_subject.txt',
+                        context_for_email)
+                    # Email subject *must not* contain newlines
+                    subject = ''.join(subject.splitlines())
+                    message = render_to_string('client_changed_message.txt',
+                        context_for_email)
+                    # Need to define CLIENT_CHANGE_FROM string in
+                    # settings.py
+                    from_email = settings.CLIENT_CHANGE_FROM
+                    # Need to define CLIENT_CHANGE_DATA_RECIPIENT tuple
+                    # contains mails of recipients in settings.py
+                    recipient_list = list(settings.CLIENT_CHANGE_RECIPIENT)
+                    mail.send_mail(subject, message, from_email,
+                        recipient_list)
                 return HttpResponseRedirect(
                     reverse('profiles_profile_detail',
                         kwargs={'username': request.user.username}))
             else:
                 # request not POST
                 form = ClientUserProfileForm(instance=profile_obj)
-                formset_handles = HandlesFormSet(instance=profile_obj,
-                    queryset=profile_obj.clienthandles_set.all(),
-                    prefix='handles')
+                formset_handles = HandlesFormSet(instance=profile_obj, queryset=profile_obj.clienthandles_set.all(), prefix='handles')
             return render_to_response('profiles/edit_profile.html',
-                                      {'form': form, 'profile': profile_obj,
-                                        'form_handles': formset_handles},
+                                      {'form': form,
+                                       'profile': profile_obj,
+                                       'form_handles': formset_handles},
                                       context_instance=RequestContext(request))
         else:
             # User Default, call to his view
