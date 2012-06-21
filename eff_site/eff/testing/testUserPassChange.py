@@ -227,8 +227,12 @@ class PasswordChangeTest(HelperTest):
                                                       follow=True)
         query = PyQuery(response.content)
         query = query('div p')
-        msg = "Password change successful Your password was changed."
-        self.assertEqual(query.text(), msg)
+        q_msg = query.text()
+        msg = ("Password change successful Your password was changed. You can "
+               "now go back to home .")
+        self.assertEqual(q_msg, msg)
+        href = query('a').attr('href')
+        self.assertEqual(href, '/accounts/profile/')
 
     def test_password_change_worked(self):
         self.test_client.post(reverse('password_change'),

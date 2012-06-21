@@ -417,7 +417,24 @@ def eff_client_home(request):
     return render_to_response('client_home.html', context)
 
 
-def eff_login(request):
+@login_required
+@user_passes_test(lambda u: not __not_a_client(u), login_url='/accounts/login/')
+def eff_client_projects(request):
+    """
+    Renders a list of projects for a client.
+    """
+
+    context = __get_context(request)
+    context['title'] = "Listado de proyectos"
+    client = request.user.get_profile()
+    # Get all the projects related to this client's company.
+    context['projects'] = client.company.project_set.all()
+
+    return render_to_response('client_projects.html', context)
+
+
+@login_required
+def eff_home(request):
     """
     Checks whether the user is a client or not and redirects accordingly.
     """
@@ -659,19 +676,6 @@ def eff_charts(request):
 def eff_report(request, user_name):
 
     context = __process_dates(request)
-    # context['export_allowed'] = True
-    # if not (request.user.has_perm('eff.view_billable') and \
-    #         request.user.has_perm('eff.view_wage')):
-    #     if request.user.username != user_name:
-    #         return HttpResponseRedirect('/accounts/login/?next=%s' % quote(
-    #             request.get_full_path()))
-    #     else:
-    # if 'export' in request.GET:
-    #     return HttpResponseRedirect('/accounts/login/?next=%s' % quote(
-    #         request.get_full_path()))
-    # else:
-    #     del context['export_allowed']
-
     from_date = context['from_date']
     to_date = context['to_date']
     user = User.objects.get(username=user_name)

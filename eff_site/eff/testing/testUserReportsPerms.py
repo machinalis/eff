@@ -28,6 +28,7 @@ from eff._models.user_profile import create_profile_for_user
 from django.contrib.auth.models import User
 from urllib import urlencode
 
+
 from factories import UserProfileFactory, ProjectFactory, ClientFactory
 from factories import ProjectAssocFactory, ExternalSourceFactory, DumpFactory
 from factories import TimeLogFactory, AvgHoursFactory, AdminFactory
@@ -35,7 +36,6 @@ from factories import TimeLogFactory, AvgHoursFactory, AdminFactory
 
 class HelperTest(TestCase):
     def setUp(self):
-
         # Disconnect signals so there's no problem to use UserProfileFactory
         signals.post_save.disconnect(
             dispatch_uid='eff._models.user_profile.create_profile_for_user',
@@ -127,6 +127,7 @@ class HelperTest(TestCase):
         signals.post_save.connect(
             create_profile_for_user, sender=User,
             dispatch_uid='eff._models.user_profile.create_profile_for_user')
+
 
 class UserFollowingOthersTest(HelperTest):
     def setUp(self):

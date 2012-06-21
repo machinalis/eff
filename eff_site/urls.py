@@ -30,8 +30,8 @@ from eff_site.eff.views import (update_hours, eff, eff_check_perms,
     eff_administration, eff_client_report, eff_client_reports_admin,
     UserProfileForm, eff_last_month, eff_admin_add_user,
     eff_admin_change_profile, profile_detail, eff_dump_csv_upload,
-    eff_fixed_price_client_reports, eff_admin_users_association, eff_login,
-    eff_client_home, index)
+    eff_fixed_price_client_reports, eff_admin_users_association, eff_home,
+    eff_client_home, index, eff_client_projects)
 
 from os.path import join
 
@@ -46,12 +46,13 @@ images_dir = join(CURRENT_ABS_DIR, 'templates/images/')
 urlpatterns = patterns('',
     url(r'^$', index, name='root'),
     url(r'^clients/home/$', eff_client_home, name='clients_home'),
+    url(r'^clients/projects/$', eff_client_projects, name='clients_projects'),
     # django-profiles
     url(r'^accounts/login/$', login, {'template_name': 'login.html'},
         name='login'),
     url(r'^accounts/logout/$', logout, {'template_name': 'logout.html'},
         name='logout'),
-    url(r'^accounts/profile/$', eff_login, name='eff_login'),
+    url(r'^accounts/profile/$', eff_home, name='eff_home'),
     url(r'^login/$', redirect_to, {'url': '/accounts/login/'},
         name='redir_login'),
     url(r'^logout/$', redirect_to, {'url': '/accounts/logout/'},

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div id="wrapper">
+        <br/>
+        <div class="title">
+            <b>{{ title }}</b>
+        </div>
+        <br/>
+
+        <div id="content" style="width:80%;">
+
+          {% if projects %}
+            <table class="sortable" id="queryTable">
+                <thead>
+                    <tr>
+                        <th class="name"><abbr title="project detail">Nombre</abbr></th>
+                        <th class="members" style="width:50em;"><abbr title="members">Miembros</abbr></th>
+                        <th class="type"><abbr title="billing type">Tipo de billing</abbr></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for project in projects %}
+                    {% if project.billable %}
+                    <tr class="odd {{ project.efficiency_class }}">
+                      <td class="name">
+                        {{ project.name }}
+                      </td>
+                      <td class="members" style="width:50em;"> {{ project.members.all|join:" | " }}
+                      </td>
+                      <td class="type">
+                        {{ project.billing_type }}
+                      </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+          {% else %}
+          <p>No projects found</p>
+          {% endif %}
+        </div>
+    </div>
+
+{% endblock %}
