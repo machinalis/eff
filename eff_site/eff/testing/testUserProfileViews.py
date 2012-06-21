@@ -123,9 +123,11 @@ class ClientPermissionsTest(HelperTest):
 
     def setUp(self):
         super(ClientPermissionsTest, self).setUp()
-        # Create a Client User.
+        # A company client
+        client = ClientFactory(name='company')
+        # A Client User.
         self.client = UserFactory(username='client')
-        self.up = ClientProfileFactory(user=self.client)
+        self.up = ClientProfileFactory(user=self.client, company=client)
         self.test_client.login(username=self.client.username,
                                password=self.client.username)
 
@@ -182,6 +184,10 @@ class ClientPermissionsTest(HelperTest):
 
     def test_client_can_access_password_change_done(self):
         response = self.get_response('password_change_done')
+        self.assertEqual(response.status_code, 200)
+
+    def test_client_can_access_eff_clients_projects(self):
+        response = self.get_response('clients_projects')
         self.assertEqual(response.status_code, 200)
 
     def test_client_cant_access_checkperms(self):
