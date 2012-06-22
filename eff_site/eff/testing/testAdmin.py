@@ -203,7 +203,7 @@ class QueriesTest(TestCase):
 
     def test_password_set_in_user_add(self):
         url = reverse('admin:auth_user_add')
-        response = self.test_client.get(url)
+        self.test_client.get(url)
         post_data = {'username': 'newUser', 'password1': 'pass',
                      'password2': 'pass',
                      'is_active': True,
@@ -241,6 +241,29 @@ class QueriesTest(TestCase):
         query = PyQuery(response.content)
         query = query('ul.errorlist')
         self.assertEqual(query.text(), "The two password fields didn't match.")
+
+    def test_new_password_in_user_change(self):
+        user = User.objects.get(username='test1')
+        url = reverse('admin:auth_user_change', args=[user.id])
+        self.test_client.get(url)
+        post_data = {'username': 'test1', 'password1': 'newPass',
+                     'password2': 'newPass',
+                     'is_active': True,
+                     'last_login_0': '2012-06-15',
+                     'last_login_1': '16:29:51',
+                     'date_joined_0': '2012-06-15',
+                     'date_joined_1': '16:29:51',
+                     'wage_set-TOTAL_FORMS': '3',
+                     'wage_set-INITIAL_FORMS': '0',
+                     'wage_set-MAX_NUM_FORMS': '',
+                     'avghours_set-TOTAL_FORMS': '3',
+                     'avghours_set-INITIAL_FORMS': '0',
+                     'avghours_set-MAX_NUM_FORMS': ''}
+        response = self.test_client.post(url, post_data)
+        query = PyQuery(response.content)
+        print query('ul.errorlist').text()
+        check = self.test_client.login(username='test1', password='newPass')
+        self.assertEqual(check, True)
 
 
 def suite():

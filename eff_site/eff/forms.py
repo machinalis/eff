@@ -19,7 +19,7 @@
 from django import forms
 from django.forms import ModelForm
 from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.forms.util import ErrorList
 
 from eff_site.eff.models import UserProfile, Client, AvgHours, Wage
@@ -264,6 +264,75 @@ class UserAdminForm(UserCreationForm):
     def save(self, *args, **kwargs):
         kwargs.pop('commit', None)
         instance = super(UserAdminForm, self).save(*args, commit=False,
+                                                   **kwargs)
+        instance.is_client = self.cleaned_data['is_client']
+        if instance.is_client:
+            instance.company = self.cleaned_data['company']
+            instance.is_client = self.cleaned_data['is_client']
+        instance.save()
+        return instance
+
+
+class UserAdminChangeForm(UserChangeForm):
+    is_client = forms.BooleanField(required=False, label="Client",
+                                   help_text=("Designates whether this user"
+                                              "should be treated as a Client."))
+    company = forms.ModelChoiceField(required=False,
+                                     queryset=Client.objects.all())
+
+    class Meta:
+        model = User
+        # Needed to define an order (hashed password not shown)
+        # fields = ('username', 'password1', 'password2', 'is_client', 'company',
+        #           'first_name', 'last_name', 'email', 'is_staff', 'is_active',
+        #           'is_superuser', 'last_login', 'date_joined', 'groups',
+        #           'user_permissions',)
+
+    def __init__(self, *args, **kwargs):
+        super(UserAdminChangeForm, self).__init__(*args, **kwargs)
+        try:
+            profile = self.instance.get_profile()
+            self.fields['is_client'].initial = profile.is_client()
+            self.fields['company'].initial = profile.company
+        except User.DoesNotExist:
+            pass
+        except UserProfile.DoesNotExist:
+            pass
+
+    def clean(self):
+        cleaned_data = super(UserAdminChangeForm, self).clean()
+        is_client = cleaned_data.get("is_client")
+        company = cleaned_data.get("company")
+
+        first_name = cleaned_data.get("first_name")
+        last_name = cleaned_data.get("last_name")
+        errors = False
+
+        if is_client and not company:
+            self._errors['company'] = self._errors.get('company', ErrorList())
+            self._errors['company'].append("A client user must have Company")
+            errors = True
+        if is_client and not first_name:
+            self._errors['first_name'] = self._errors.get('first_name',
+                ErrorList())
+            self._errors['first_name'].append("A client user must have First " \
+                "name")
+            errors = True
+        if is_client and not last_name:
+            self._errors['last_name'] = self._errors.get('last_name',
+                ErrorList())
+            self._errors['last_name'].append("A client user must have Last " \
+                "name")
+            errors = True
+
+        if errors:
+            raise forms.ValidationError('Some field are invalid')
+
+        return cleaned_data
+
+    def save(self, *args, **kwargs):
+        kwargs.pop('commit', None)
+        instance = super(UserAdminChangeForm, self).save(*args, commit=False,
                                                    **kwargs)
         instance.is_client = self.cleaned_data['is_client']
         if instance.is_client:
