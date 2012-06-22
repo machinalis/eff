@@ -67,21 +67,10 @@
 			  {% endif %}
                         </td>
                         <td class="logged">
-                          {% if perms.eff.view_billable %}
-                            <a title="detailed hours report"
-                                   href="{% url eff_site.eff.views.eff_report object.username %}?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">
-                                    {{ object.worked_hours }}
-                            </a>
-			  {% else %}
-			    {% ifequal object.username user.username %}
                               <a title="detailed hours report"
                                  href="{% url eff_site.eff.views.eff_report object.username %}?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">
                                 {{ object.worked_hours }}
                               </a>
-			    {% else %}
-                              {{ object.worked_hours }}
-			    {% endifequal %}
-			  {% endif %}
                         </td>
                         {% if perms.eff.view_billable %}
                         <td class="billable"> {{ object.billable_hours }} </td>

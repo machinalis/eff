@@ -24,8 +24,9 @@ from eff_site.scripts import jira
 
 from testing import testUtils
 from testing import testModels
-from testing import testAdmin, testReports, testUserPassChange
-from testing import testUserFollowPerms, testUserProfileViews
+from testing import (testAdmin, testReports, testUserPassChange,
+                     testUserReportsPerms, testUserProfileViews,
+                     testClientProjects)
 
 
 def suite():
@@ -36,6 +37,7 @@ def suite():
     suite.addTest(testAdmin.suite())
     suite.addTest(testReports.suite())
     suite.addTest(testUserPassChange.suite())
-    suite.addTest(testUserFollowPerms.suite())
+    suite.addTest(testUserReportsPerms.suite())
     suite.addTest(testUserProfileViews.suite())
+    suite.addTest(testClientProjects.suite())
     return suite

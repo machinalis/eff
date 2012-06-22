@@ -21,6 +21,7 @@ from unittest import TestSuite, makeSuite
 from django.test.client import Client as TestClient
 from django.contrib.auth.models import User
 from django.db.models import signals
+from eff._models.user_profile import create_profile_for_user
 from django.core.urlresolvers import reverse
 from pyquery import PyQuery
 
@@ -39,6 +40,12 @@ class HelperTest(TestCase):
             sender=User)
 
         self.test_client = TestClient()
+
+    def tearDown(self):
+        # re connect signals
+        signals.post_save.connect(
+            create_profile_for_user, sender=User,
+            dispatch_uid='eff._models.user_profile.create_profile_for_user')
 
 
 class ClientProfileTest(HelperTest):
@@ -116,9 +123,11 @@ class ClientPermissionsTest(HelperTest):
 
     def setUp(self):
         super(ClientPermissionsTest, self).setUp()
-        # Create a Client User.
+        # A company client
+        client = ClientFactory(name='company')
+        # A Client User.
         self.client = UserFactory(username='client')
-        self.up = ClientProfileFactory(user=self.client)
+        self.up = ClientProfileFactory(user=self.client, company=client)
         self.test_client.login(username=self.client.username,
                                password=self.client.username)
 
@@ -175,6 +184,10 @@ class ClientPermissionsTest(HelperTest):
 
     def test_client_can_access_password_change_done(self):
         response = self.get_response('password_change_done')
+        self.assertEqual(response.status_code, 200)
+
+    def test_client_can_access_eff_clients_projects(self):
+        response = self.get_response('clients_projects')
         self.assertEqual(response.status_code, 200)
 
     def test_client_cant_access_checkperms(self):
