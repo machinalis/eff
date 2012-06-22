@@ -280,13 +280,20 @@ class UserAdminChangeForm(UserChangeForm):
     company = forms.ModelChoiceField(required=False,
                                      queryset=Client.objects.all())
 
+    password1 = forms.CharField(label=("Password"), widget=forms.PasswordInput,
+                                required=False)
+    password2 = forms.CharField(label=("Password confirmation"),
+                                widget=forms.PasswordInput, required=False,
+                                help_text=("Enter the same password as above, "
+                                           "for verification."))
+
     class Meta:
         model = User
         # Needed to define an order (hashed password not shown)
-        # fields = ('username', 'password1', 'password2', 'is_client', 'company',
-        #           'first_name', 'last_name', 'email', 'is_staff', 'is_active',
-        #           'is_superuser', 'last_login', 'date_joined', 'groups',
-        #           'user_permissions',)
+        fields = ('username', 'password1', 'password2', 'is_client', 'company',
+                  'first_name', 'last_name', 'email', 'is_staff', 'is_active',
+                  'is_superuser', 'last_login', 'date_joined', 'groups',
+                  'user_permissions',)
 
     def __init__(self, *args, **kwargs):
         super(UserAdminChangeForm, self).__init__(*args, **kwargs)
@@ -340,3 +347,10 @@ class UserAdminChangeForm(UserChangeForm):
             instance.is_client = self.cleaned_data['is_client']
         instance.save()
         return instance
+
+    def clean_password2(self):
+        password1 = self.cleaned_data.get("password1", "")
+        password2 = self.cleaned_data["password2"]
+        if password1 != password2:
+            raise forms.ValidationError("The two password fields didn't match.")
+        return password2
