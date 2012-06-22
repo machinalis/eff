@@ -76,7 +76,7 @@ class UserProfileForm(ModelForm):
 class ClientUserProfileForm(ModelForm):
     first_name = forms.CharField(required=False, label='First name')
     last_name = forms.CharField(required=False, label='Last name')
-    email = forms.CharField(required=False, label='Email')
+    email = forms.EmailField(required=False, label='Email')
 
     def __init__(self, *args, **kwargs):
         super(ClientUserProfileForm, self).__init__(*args, **kwargs)
@@ -87,12 +87,17 @@ class ClientUserProfileForm(ModelForm):
         except User.DoesNotExist:
             pass
 
-    def get_all_fields_names(self):                                                    # aksdfjaksdf
-        fields = []
-        for key in self.initial:
-            fields.append(key)
-        return fields
+    def clean_first_name(self):
+        data = self.cleaned_data['first_name']
+        if "" == data:
+            raise forms.ValidationError("This Field is required")
+        return data
 
+    def clean_last_name(self):
+        data = self.cleaned_data['last_name']
+        if "" == data:
+            raise forms.ValidationError("This Field is required")
+        return data
 
     def save(self, *args, **kwargs):
         u = self.instance.user
