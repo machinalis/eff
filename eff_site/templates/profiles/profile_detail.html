@@ -14,23 +14,23 @@
         </div>
 
         <div id="content">
-            <table class="sortable report">
+            <table class="sortable report" align="center">
                 <tbody>
-                <tr> <td> Nombre: </td> <td> {{ profile.user.first_name }} </td> </tr>
-                <tr> <td> Apellido: </td> <td> {{ profile.user.last_name }} </td> </tr>
-                <tr> <td> Email Personal: </td> <td> {{ profile.personal_email }} </td> </tr>
-                <tr> <td> Direccion: </td> <td> {{ profile.address }} </td> </tr> 
-                <tr> <td> Ciudad: </td> <td> {{ profile.city }} </td> </tr>
-                <tr> <td> Provincia: </td> <td> {{ profile.state }} </td> </tr>
-                <tr> <td> Pais: </td> <td> {{ profile.country }} </td> </tr>
-                <tr> <td> Telefono: </td> <td> {{ profile.phone_number }} </tds> </tr> 
+                <tr> <td> First name: </td> <td> {{ profile.user.first_name }} </td> </tr>
+                <tr> <td> Last name: </td> <td> {{ profile.user.last_name }} </td> </tr>
+                <tr> <td> Job position: </td> <td> {{ profile.user.last_name }} </td> </tr>
+                <tr> <td> Email: </td> <td> {{ profile.personal_email }} </td> </tr>
+                <tr> <td> Phone number: </td> <td> {{ profile.phone_number }} </td> </tr>
+                {% for handle in clienthandles %}
+                <tr> <td> {{ handle.handle }} </td> <td> {{ handle.address }} </td> </tr>
+                {% endfor %}
                 <tbody>
             </table>
             {% if not profile.is_client %}
             <p> <b>Cambios de Horas de Trabajo:</b> <br/> <small>(ordenado por fecha)</small> </p>
             <table class="extra-data">
                 {% for object in profile.user.avghours_set.all %}
-                <tr>    
+                <tr>
                     <td> {{ object.date }} </td>
                     <td> {{ object.hours }} </td>
                 <tr>
@@ -51,5 +51,5 @@
             {% endif %}
         </div>
 
-    </div>    
+    </div>
 {% endblock %}

@@ -1022,8 +1022,10 @@ def profile_detail(request, username):
     # Check if logged user can access UserProfile details from requested user.
     if __enough_perms(logged_user) or (logged_user == requested_user):
         p = get_object_or_404(UserProfile, user=requested_user)
+        clienthandles = p.clienthandles_set.all()
         return render_to_response('profiles/profile_detail.html',
-                                  {'user': request.user, 'profile': p})
+                                  {'user': request.user, 'profile': p,
+                                      'clienthandles': clienthandles})
     else:
         return redirect('/accounts/login/')
 

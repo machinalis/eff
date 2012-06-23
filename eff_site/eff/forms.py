@@ -112,7 +112,7 @@ class ClientUserProfileForm(ModelForm):
     class Meta:
         model = UserProfile
         fields = ('first_name', 'last_name', 'job_position', 'email',
-            'personal_email', 'phone_number')
+            'phone_number')
 
 
 class UsersChangeProfileForm (UserProfileForm):
