@@ -1,24 +1,24 @@
 Dependencies
 ============
+* django-profiles
+* mysqldb (if you use DotProject as source)
+* south
+* dateutil
+* relatorio
+* python-yaml
+* python-pycha 
 
-    * django-profiles
-    * mysqldb (if you use DotProject as source)
-    * south
-    * dateutil
-    * relatorio
-    * python-yaml
-    * python-pycha 
-
-    All of these are in the pip-requires file, you can install them by running:
-    * pip install -r pip-requires.txt
+All of these are in the pip-requires file, you can install them by running::
+    
+    pip install -r pip-requires.txt
 
 Install Procedure
-================
+=================
+Beware, this does not work with SQlite engine, since drop columns is not suuuported and therefore south fails.
 
- Beware, this does not work with SQlite engine, since drop columns is not suuuported
- and therefore south fails.
-
- * configure settings.py: (or you can setup local_settings.py)
+Configure DB
+------------
+Configure settings.py: (or you can setup local_settings.py)::
 
     DATABASES = {
         'default': {
@@ -31,7 +31,9 @@ Install Procedure
         }
     }
 
- * if you use a DotProject source, add the credentials to mysql in settings.py:
+DotProject
+----------
+If you use a DotProject source, add the credentials to mysql in settings.py::
 
    DOTPROJECT_DB_NAME = ''
    DOTPROJECT_DB_USER = ''
@@ -40,47 +42,48 @@ Install Procedure
    DOTPROJECT_DB_PORT = 3306
    DOTPROJECT_DB_CHARSET = 'latin1'
 
- * comment in settings.py the AUTH_PROFILE_MODULE = 'eff.userprofile' line
-
- * python manage.py syncdb
- 
- * python manage.py migrate
-
- * then uncomment the line AUTH_PROFILE_MODULE...
+* comment in settings.py the AUTH_PROFILE_MODULE = 'eff.userprofile' line
+* python manage.py syncdb
+* python manage.py migrate
+* then uncomment the line AUTH_PROFILE_MODULE...
  
 Configuring email settings
 --------------------------
+When a client change his data, eff send mail to/from.
 
-When a client change his data, eff send mail to/from
-Add this variables in local_settings.py to configure from/to
+Add this variables in local_settings.py to configure from/to::
 
-# When a client user change, send mail from
-CLIENT_CHANGE_FROM = 'from@domain.com'
-
-# When a client user change, send mail to
-CLIENT_CHANGE_RECIPIENT = (
-    'your_email@domain.com',
-    'another_email@domain.com',
-)
-
+    # When a client user change, send mail from
+    CLIENT_CHANGE_FROM = 'from@domain.com'
+    
+    # When a client user change, send mail to
+    CLIENT_CHANGE_RECIPIENT = (
+        'your_email@domain.com',
+        'another_email@domain.com',
+    )
+    
 Change template for client change email
 ---------------------------------------
+If you want change the email template of client change edit the following files:
 
-If you want change the email template of client change, edit:
+* eff_site/templates/client_changed_subject.txt
+* eff_site/templates/client_changed_message.txt 
 
- * eff_site/templates/client_changed_subject.txt
- * eff_site/templates/client_changed_message.txt 
+Load defaults Handles
+---------------------
+Run the follow if you want some default Handles (email, twitter, skype, phone number, mobile, linkedin)::
+
+    $python manage.py loaddata handle
 
 Optional
 --------
+This options is for test sending mails::
 
-This options is for test sending mails
-# Config Email for testing
-EMAIL_HOST = 'localhost'
-EMAIL_PORT = 1025
-
+    # Config Email for testing
+    EMAIL_HOST = 'localhost'
+    EMAIL_PORT = 1025
 
 Sources
 =======
 
- See scripts/config.py
+* See scripts/config.py
