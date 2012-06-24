@@ -147,7 +147,7 @@ class ClientPermissionsTest(HelperTest):
 
     def test_client_can_access_eff_root(self):
         response = self.get_response('root')
-        self.assertRedirects(response, 'accounts/login/')
+        self.assertEqual(response.status_code, 302)
 
     def test_client_can_access_eff_login(self):
         response = self.get_response('login')
@@ -158,6 +158,10 @@ class ClientPermissionsTest(HelperTest):
         self.assertEqual(response.status_code, 200)
 
     def test_client_can_access_clients_home(self):
+        response = self.get_response('clients_home')
+        self.assertEqual(response.status_code, 200)
+
+    def test_client_can_access_clients_profiles_detail(self):
         response = self.get_response('profiles_detail',
                                  kwargs={'username': 'client'})
         self.assertEqual(response.status_code, 200)

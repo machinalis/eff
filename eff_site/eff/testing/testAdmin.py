@@ -55,8 +55,8 @@ class QueriesTest(TestCase):
         # Add a superuser and some test users.
         for char in ['A', 'a', 'asd', 'one', 'two', '1', 'b', 'B']:
                 user = User.objects.create_user(
-                username='test' + char, email='test' + char + '@test.com',
-                        password='test' + char)
+                    username='test' + char, email='test' + char + '@test.com',
+                    password='test' + char)
                 user.save()
                 self.users.append(user)
 
@@ -223,7 +223,7 @@ class QueriesTest(TestCase):
 
     def test_password_error_in_user_add(self):
         url = reverse('admin:auth_user_add')
-        response = self.test_client.get(url)
+        #response = self.test_client.get(url)
         post_data = {'username': 'newUser', 'password1': 'pass',
                      'password2': 'anotherPass',
                      'is_active': True,
@@ -245,7 +245,10 @@ class QueriesTest(TestCase):
     def test_new_password_in_user_change(self):
         user = User.objects.get(username='test1')
         url = reverse('admin:auth_user_change', args=[user.id])
-        self.test_client.get(url)
+        response = self.test_client.get(url)
+        print response.content
+        print response.status_code
+        assert(True)
         post_data = {'username': 'test1', 'password1': 'newPass',
                      'password2': 'newPass',
                      'is_active': True,
@@ -260,8 +263,11 @@ class QueriesTest(TestCase):
                      'avghours_set-INITIAL_FORMS': '0',
                      'avghours_set-MAX_NUM_FORMS': ''}
         response = self.test_client.post(url, post_data)
-        query = PyQuery(response.content)
-        print query('ul.errorlist').text()
+        print response.content
+        # query = PyQuery(response.content)
+        # print query('ul.errorlist').text()
+        self.test_client.logout()
+        print user.is_authenticated()
         check = self.test_client.login(username='test1', password='newPass')
         self.assertEqual(check, True)
 

@@ -345,6 +345,9 @@ class UserAdminChangeForm(UserChangeForm):
         if instance.is_client:
             instance.company = self.cleaned_data['company']
             instance.is_client = self.cleaned_data['is_client']
+        password = self.cleaned_data["password1"]
+        if password:
+            instance.set_password(password)
         instance.save()
         return instance
 
