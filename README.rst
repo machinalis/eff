@@ -71,9 +71,9 @@ If you want change the email template of client change edit the following files:
 
 Load defaults Handles
 ---------------------
-Run the follow if you want some default Handles (email, twitter, skype, phone number, mobile, linkedin)::
-
-    $python manage.py loaddata handle
+When you run syncdb (or migrate if you have instaled south) the
+following default Handles (email, twitter, skype, phone number, mobile, linkedin)
+are loaded.
 
 Optional
 --------

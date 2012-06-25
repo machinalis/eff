@@ -1324,6 +1324,7 @@ def _clientform_changed(form, context_for_email, ctx_dict, send_email):
         - form: is UserProfileForm
         - context_for_email: is a dict with the old and new data for email sent
         - ctx_dict: is a dict with the old and new data of forms
+        - send_email: is a boolean that is used to decide send email or not
     return:
         - False: in case of no changed data
         - True: in case of changed data
@@ -1351,6 +1352,7 @@ def _handles_changed(formset_handles, context_for_email, ctx_dict, send_email):
         - formsets: is ClientHandles formsets for the userprofiles
         - context_for_email: is a dict with the old and new data for email sent
         - ctx_dict: is a dict with the old and new data of forms
+        - send_email: is a boolean that is used to decide send email or not
     return:
         - False: in case of no changed data
         - True: in case of changed data
@@ -1365,7 +1367,8 @@ def _handles_changed(formset_handles, context_for_email, ctx_dict, send_email):
             # Save the data of posted form
             if form_id != None:
                 for ch_field in form_fields:
-                    ctx_dict['%s_%s' % (form_id, ch_field)] = cleaned_dict[ch_field]
+                    ctx_dict['%s_%s' % (form_id, ch_field)] = cleaned_dict[
+                        ch_field]
 
             # Populate the context for email template with
             # old and new data changed
