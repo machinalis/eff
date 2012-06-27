@@ -77,13 +77,11 @@ are loaded.
 
 Weekly reports to users
 -----------------------
-Eff can send reports by emails weekly to users not clients and they have checked
- this opcion in his accounts, for that you have to configure a cron schedule in the weekday you want to send emails that excecute eff_site/scripts/send_report.py.
+Eff can send reports by emails weekly to users not clients and they have checked this opcion in his accounts, for that you have to configure a cron schedule in the weekday you want to send emails that excecute eff_site/scripts/send_report.py.
 
 You have to configure this script before to use, editing eff_site/scripts/send_report.py:
 
-Weekday emails sent by default is set to 0 (Monday), if cron calls the script
- on a day other than the set, are not going to send the mails::
+Weekday emails sent by default is set to 0 (Monday), if cron calls the script on a day other than the set, are not going to send the mails::
 
  # Set the day of a week to send emails
  SEND_DAY = 0
