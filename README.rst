@@ -75,6 +75,29 @@ When you run syncdb (or migrate if you have instaled south) the
 following default Handles (email, twitter, skype, phone number, mobile, linkedin)
 are loaded.
 
+Weekly reports to users
+-----------------------
+Eff can send reports by emails weekly to users not clients and they have checked
+ this opcion in his accounts, for that you have to configure a cron schedule in the weekday you want to send emails that excecute eff_site/scripts/send_report.py.
+
+You have to configure this script before to use, editing eff_site/scripts/send_report.py:
+
+Weekday emails sent by default is set to 0 (Monday), if cron calls the script
+ on a day other than the set, are not going to send the mails::
+
+ # Set the day of a week to send emails
+ SEND_DAY = 0
+
+Set the domain of you eff instance::
+
+ # URL of eff_site instance
+ DOMAIN = 'http://example.com'
+
+If you want run eff in developer enviroment::
+
+ # URL of eff_site instance
+ DOMAIN = 'http://localhost:8000'
+
 Optional
 --------
 This options is for test sending mails::
