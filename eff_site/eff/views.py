@@ -295,7 +295,12 @@ def chart_values(username_list, from_date, to_date, request_user):
 
 
 def index(request):
-    return redirect('login')
+    user = request.user
+
+    if user.is_authenticated():
+        return redirect('eff_home')
+    else:
+        return redirect('login')
 
 
 @login_required

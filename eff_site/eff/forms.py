@@ -243,14 +243,6 @@ class UserAdminForm(UserCreationForm):
         last_name = cleaned_data.get("last_name")
         errors = False
 
-        # This code is commented for #109 correction. I dont erase this because
-        # in #140 is necessary
-#        if company and not is_client:
-#            self._errors['company'] = self._errors.get('company',
-#                ErrorList())
-#            self._errors['company'].append("A default user not must have "\
-#                "Company")
-#            errors = True
         if is_client and not company:
             self._errors['company'] = self._errors.get('company', ErrorList())
             self._errors['company'].append("A client user must have Company")
@@ -283,3 +275,15 @@ class UserAdminForm(UserCreationForm):
             instance.is_client = self.cleaned_data['is_client']
         instance.save()
         return instance
+
+
+class UserAdminChangeForm(UserAdminForm):
+    password1 = forms.CharField(label=("Password"), widget=forms.PasswordInput,
+                                required=False)
+    password2 = forms.CharField(label=("Password confirmation"),
+                                widget=forms.PasswordInput, required=False,
+                                help_text=("Enter the same password as above, "
+                                           "for verification."))
+
+    def clean_username(self):
+        return self.cleaned_data["username"]

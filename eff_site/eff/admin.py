@@ -20,7 +20,7 @@ from eff_site.eff.models import Project, Client, ExternalSource, Wage, BillingEm
 from eff_site.eff.models import AvgHours, Currency, ProjectAssoc, TimeLog
 from eff_site.eff.models import Handle, ClientHandles
 from _models.user_profile import UserProfile
-from eff_site.eff.forms import UserAdminForm
+from eff_site.eff.forms import UserAdminForm, UserAdminChangeForm
 from django.contrib.auth.models import User
 from _models.dump import Dump
 from eff_site.eff._models.external_source import ExternalId
@@ -189,7 +189,15 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ('username', 'first_name', 'last_name')
     inlines = [WageInLine, AvgHoursInLine]
     ordering = ('username',)
-    form = UserAdminForm
+
+    def get_form(self, request, obj=None, **kwargs):
+        if not obj:
+            base_form = UserAdminForm
+        else:
+            base_form = UserAdminChangeForm
+        kwargs['form'] = base_form
+
+        return super(UserAdmin, self).get_form(request, obj, **kwargs)
 
     class Media:
         js = ('/js/adminformFieldsValidations.js',)
