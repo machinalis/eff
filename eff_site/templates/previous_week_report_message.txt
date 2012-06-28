@@ -1,0 +1,22 @@
+Report of hours logged between {{from_date}} to {{to_date}}
+--------------------------------------------------------
+{% if report %}
+List of logged hours
+--------------------
+
+Fecha | Proyecto | Tarea | Descripción | Horas
+{% for row in report %}
+{{ row.4 }} | {{ row.0 }} | {{ row.1 }} | {{ row.2|safe }} | {{ row.3 }}
+{% endfor %}
+
+----------------------------------
+Total: {{ total_hrs_detailed }}
+----------------------------------
+Ammount of loggable hours: {{num_loggable_hours}}
+----------------------------------
+{% else %}
+
+No se encuentran registros en este rango de fechas.
+
+{% endif %}
+

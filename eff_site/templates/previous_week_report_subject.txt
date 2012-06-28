@@ -1,0 +1,1 @@
+{{user.first_name}} {{user.last_name}} - Your report of previous week (from {{from_date}} to {{to_date}})

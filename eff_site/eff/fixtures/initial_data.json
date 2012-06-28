@@ -1,0 +1,44 @@
+[
+    {
+        "pk": 1, 
+        "model": "eff.handle", 
+        "fields": {
+            "protocol": "Email"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "eff.handle", 
+        "fields": {
+            "protocol": "Twitter"
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "eff.handle", 
+        "fields": {
+            "protocol": "Skype"
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "eff.handle", 
+        "fields": {
+            "protocol": "Phone number"
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "eff.handle", 
+        "fields": {
+            "protocol": "Mobile"
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "eff.handle", 
+        "fields": {
+            "protocol": "Linkedin"
+        }
+    }
+]

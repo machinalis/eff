@@ -602,7 +602,7 @@ class UserProfileTest(TestCase):
         form = UserAdminForm(data)
         self.assertFalse(form.is_valid())
 
-    def test_send_email_when_userprofile_changed(self):
+    def test_send_email_when_userprofile_basic_data_changed(self):
         client = Client()
         count_mails = len(mail.outbox)
         self.assertTrue(client.login(username='user_client',
@@ -626,6 +626,65 @@ class UserProfileTest(TestCase):
         self.assertEqual(mail.outbox[-1].subject,
             'Client first last has change')
 
+    def test_send_email_when_userprofile_handle_added(self):
+        client = Client()
+        handle = Handle(protocol='msn')
+        handle.save()
+        count_mails = len(mail.outbox)
+        self.assertTrue(client.login(username='user_client',
+            password='user_client'))
+        response = client.get('/profiles/edit/')
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 200)
+        response = response.client.post("/profiles/edit/",
+            {'handles-TOTAL_FORMS': '1',
+             'handles-INITIAL_FORMS': '0',
+             'handles-MAX_NUM_FORMS': '',
+
+             'handles-0-address': 'La calle de mi casa',
+             'handles-0-handle': handle.id
+            })
+        # Check that the response is 302 OK.
+        self.assertEqual(response.status_code, 200)
+        sent_email = False
+        if count_mails < len(mail.outbox):
+            sent_email = True
+        self.assertTrue(sent_email)
+        self.assertEqual(mail.outbox[-1].subject,
+            'Client first last has change')
+
+    def test_send_email_when_userprofile_handle_changed(self):
+        client = Client()
+        handle = Handle(protocol='msn')
+        handle.save()
+        clienthandle = ClientHandles(handle=handle,
+            client=self.user_client.get_profile(), address='Mi casita')
+        clienthandle.save()
+        handle2 = Handle(protocol='facebook')
+        handle2.save()
+        count_mails = len(mail.outbox)
+        self.assertTrue(client.login(username='user_client',
+            password='user_client'))
+        response = client.get('/profiles/edit/')
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 200)
+        response = response.client.post("/profiles/edit/",
+            {'handles-TOTAL_FORMS': '1',
+             'handles-INITIAL_FORMS': '0',
+             'handles-MAX_NUM_FORMS': '',
+
+             'handles-0-address': 'La calle de mi casa',
+             'handles-0-handle': handle2.id
+            })
+        # Check that the response is 302 OK.
+        self.assertEqual(response.status_code, 200)
+        sent_email = False
+        if count_mails < len(mail.outbox):
+            sent_email = True
+        self.assertTrue(sent_email)
+        self.assertEqual(mail.outbox[-1].subject,
+            'Client first last has change')
+
     def test_client_user_can_edit_his_profile_basic_data(self):
         client = Client()
         self.assertTrue(client.login(username='user_client',
@@ -635,6 +694,7 @@ class UserProfileTest(TestCase):
         self.assertEqual(response.status_code, 200)
         response = response.client.post("/profiles/edit/",
             {'first_name': 'pepe',
+             'last_name': self.user_client.last_name,
              'handles-TOTAL_FORMS': '1',
              'handles-INITIAL_FORMS': '0',
              'handles-MAX_NUM_FORMS': ''})
@@ -660,8 +720,8 @@ class UserProfileTest(TestCase):
              'handles-0-address': 'La calle de mi casa',
              'handles-0-handle': handle.id
              })
-        # Check that the response is 302 OK.
-        self.assertEqual(response.status_code, 302)
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 200)
         u = User.objects.get(username='user_client')
         h = ClientHandles.objects.get(client=u.get_profile())
         self.assertEqual(h.address, 'La calle de mi casa')
@@ -687,8 +747,8 @@ class UserProfileTest(TestCase):
              'handles-0-id': ch.id,
              'handles-0-handle': handle.id
              })
-        # Check that the response is 302 OK.
-        self.assertEqual(response.status_code, 302)
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 200)
         u = User.objects.get(username='user_client')
         h = ClientHandles.objects.get(client=u.get_profile())
         self.assertEqual(h.address, 'Otra calle')
