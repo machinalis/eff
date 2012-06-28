@@ -189,7 +189,6 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ('username', 'first_name', 'last_name')
     inlines = [WageInLine, AvgHoursInLine]
     ordering = ('username',)
-    #form = UserAdminForm
 
     def get_form(self, request, obj=None, **kwargs):
         if not obj:
