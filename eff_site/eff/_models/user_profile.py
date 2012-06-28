@@ -69,6 +69,8 @@ class UserProfile(models.Model):
     company = models.ForeignKey(Client, blank=True, null=True)
     job_position = models.CharField(default="", max_length=100, blank=True)
     handles = models.ManyToManyField(Handle, through="ClientHandles")
+    receive_report_email = models.BooleanField(default=True,
+        help_text="Receive weekly report by email")
 
     class Meta:
         app_label = 'eff'
