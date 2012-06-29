@@ -558,6 +558,7 @@ class UserProfileTest(TestCase):
                 'password2': 'test1',
                 'first_name': 'test1',
                 'last_name': 'test1',
+                'email': 'client@test.com',
                 'is_client': True,
                 'company': self.company.id,
                 'last_login': datetime.now(),

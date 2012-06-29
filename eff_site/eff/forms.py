@@ -284,14 +284,18 @@ class UserAdminForm(UserCreationForm):
 
     def save(self, *args, **kwargs):
         kwargs.pop('commit', None)
-        instance = super(UserAdminForm, self).save(*args, commit=False,
-                                                   **kwargs)
-        instance.is_client = self.cleaned_data['is_client']
-        if instance.is_client:
-            instance.company = self.cleaned_data['company']
-            instance.is_client = self.cleaned_data['is_client']
-        instance.save()
-        return instance
+        user = super(UserAdminForm, self).save(*args, commit=False,
+                                                      **kwargs)
+        password = self.cleaned_data["password1"]
+        if password:
+            user.set_password(password)
+
+        user.is_client = self.cleaned_data['is_client']
+        if user.is_client:
+            user.company = self.cleaned_data['company']
+            user.is_client = self.cleaned_data['is_client']
+        user.save()
+        return user
 
 
 class UserAdminChangeForm(UserAdminForm):
