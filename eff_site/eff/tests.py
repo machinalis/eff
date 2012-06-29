@@ -31,13 +31,13 @@ from testing import (testAdmin, testReports, testUserPassChange,
 
 def suite():
     suite = unittest.TestSuite()
-    suite.addTest(doctest.DocTestSuite(jira))
-    suite.addTest(testUtils.suite())
-    suite.addTest(testModels.suite())
+    # suite.addTest(doctest.DocTestSuite(jira))
+    # suite.addTest(testUtils.suite())
+    # suite.addTest(testModels.suite())
     suite.addTest(testAdmin.suite())
-    suite.addTest(testReports.suite())
-    suite.addTest(testUserPassChange.suite())
-    suite.addTest(testUserReportsPerms.suite())
-    suite.addTest(testUserProfileViews.suite())
-    suite.addTest(testClientProjects.suite())
+    # suite.addTest(testReports.suite())
+    # suite.addTest(testUserPassChange.suite())
+    # suite.addTest(testUserReportsPerms.suite())
+    # suite.addTest(testUserProfileViews.suite())
+    # suite.addTest(testClientProjects.suite())
     return suite

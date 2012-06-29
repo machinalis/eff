@@ -112,7 +112,7 @@ class ClientUserProfileForm(ModelForm):
     class Meta:
         model = UserProfile
         fields = ('first_name', 'last_name', 'job_position', 'email',
-            'phone_number')
+                  'phone_number')
 
 
 class UsersChangeProfileForm (UserProfileForm):
@@ -209,6 +209,8 @@ class WageModelForm(forms.ModelForm):
 
 
 class UserAdminForm(UserCreationForm):
+    email = forms.EmailField(required=True, label='E-mail address',
+                             max_length=254)
     is_client = forms.BooleanField(required=False, label="Client",
                                    help_text=("Designates whether this user"
                                               "should be treated as a Client."))
@@ -234,6 +236,14 @@ class UserAdminForm(UserCreationForm):
         except UserProfile.DoesNotExist:
             pass
 
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        username = self.cleaned_data.get('username')
+        users = User.objects.filter(email=email).exclude(username=username)
+        if email and users.count():
+            raise forms.ValidationError(u'Email address must be unique.')
+        return email
+
     def clean(self):
         cleaned_data = super(UserAdminForm, self).clean()
         is_client = cleaned_data.get("is_client")
@@ -258,6 +268,13 @@ class UserAdminForm(UserCreationForm):
                 ErrorList())
             self._errors['last_name'].append("A client user must have Last " \
                 "name")
+            errors = True
+
+        if company and not is_client:
+            self._errors['company'] = self._errors.get('company',
+                                                       ErrorList())
+            self._errors['company'].append("A default user not must have "\
+                                           "Company")
             errors = True
 
         if errors:
@@ -287,3 +304,12 @@ class UserAdminChangeForm(UserAdminForm):
 
     def clean_username(self):
         return self.cleaned_data["username"]
+
+    def clean_email(self):
+        # Get current user's name
+        username = self.instance.username
+        email = self.cleaned_data.get('email')
+        users = User.objects.filter(email=email).exclude(username=username)
+        if email and users.count():
+            raise forms.ValidationError(u'Email address must be unique.')
+        return email
