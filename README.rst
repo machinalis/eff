@@ -95,6 +95,12 @@ If you want run eff in developer enviroment::
 
  # URL of eff_site instance
  DOMAIN = 'http://localhost:8000'
+ 
+To customize the email template you need to edit the following files:
+
+* eff_site/templates/previous_week_report_message.txt
+* eff_site/templates/previous_week_report_subject.txt
+
 
 Optional
 --------
