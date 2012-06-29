@@ -137,7 +137,13 @@ class QueriesTest(TestCase):
                      'user_type': 'Default',
                      'clienthandles_set-TOTAL_FORMS': '3',
                      'clienthandles_set-INITIAL_FORMS': '0',
-                     'clienthandles_set-MAX_NUM_FORMS': ''}
+                     'clienthandles_set-MAX_NUM_FORMS': '',
+                     'projectassoc_set-TOTAL_FORMS': '1',
+                     'projectassoc_set-INITIAL_FORMS': '0',
+                     'projectassoc_set-MAX_NUM_FORMS': '',
+                     'externalid_set-TOTAL_FORMS': '1',
+                     'externalid_set-INITIAL_FORMS': '0',
+                     'externalid_set-MAX_NUM_FORMS': ''}
         response = self.test_client.post(url, post_data)
         error = "You are adding this user to watch himself, please don't"
         query = PyQuery(response.content)
@@ -154,7 +160,13 @@ class QueriesTest(TestCase):
                      'user_type': UserProfile.KIND_OTHER,
                      'clienthandles_set-TOTAL_FORMS': '3',
                      'clienthandles_set-INITIAL_FORMS': '0',
-                     'clienthandles_set-MAX_NUM_FORMS': ''}
+                     'clienthandles_set-MAX_NUM_FORMS': '',
+                     'projectassoc_set-TOTAL_FORMS': '1',
+                     'projectassoc_set-INITIAL_FORMS': '0',
+                     'projectassoc_set-MAX_NUM_FORMS': '',
+                     'externalid_set-TOTAL_FORMS': '1',
+                     'externalid_set-INITIAL_FORMS': '0',
+                     'externalid_set-MAX_NUM_FORMS': ''}
         response = self.test_client.post(url, post_data)
         error = "Don't add admin here"
         query = PyQuery(response.content)
