@@ -47,41 +47,49 @@ If you use a DotProject source, add the credentials to mysql in settings.py::
 * python manage.py migrate
 * then uncomment the line AUTH_PROFILE_MODULE...
  
-Configuring email settings
---------------------------
-When a client change his data, eff send mail to/from.
+Other configurations
+====================
+
+Sending email when a client user changes
+----------------------------------------
+When change a client user, the system send mail notifications.
 
 Add this variables in local_settings.py to configure from/to::
 
-    # When a client user change, send mail from
+    # When change a client user, send mail from
     CLIENT_CHANGE_FROM = 'from@domain.com'
     
-    # When a client user change, send mail to
+    # When change a client user, send mail to. This is a tuple of all recipients
     CLIENT_CHANGE_RECIPIENT = (
         'your_email@domain.com',
         'another_email@domain.com',
     )
     
-Change template for client change email
----------------------------------------
-If you want change the email template of client change edit the following files:
+Customize the template of the user mail exchange
+------------------------------------------------
+If you want change the email template of client change, you need to edit the following files:
 
 * eff_site/templates/client_changed_subject.txt
 * eff_site/templates/client_changed_message.txt 
 
 Load defaults Handles
 ---------------------
-When you run syncdb (or migrate if you have instaled south) the
-following default Handles (email, twitter, skype, phone number, mobile, linkedin)
-are loaded.
+When you run syncdb (or migrate if you have installed south) the following default Handles are loaded:
+
+* email
+* twitter
+* skype
+* phone number
+* mobile
+* linkedin
 
 Weekly reports to users
 -----------------------
-Eff can send reports by emails weekly to users not clients and they have checked this opcion in his accounts, for that you have to configure a cron schedule in the weekday you want to send emails that excecute eff_site/scripts/send_report.py.
+Eff can send reports by emails weekly to users not clients if they are checked this option in his settings. Your server need to call send_report.py script in the weekday you want to send emails.
 
 You have to configure this script before to use, editing eff_site/scripts/send_report.py:
 
-Weekday emails sent by default is set to 0 (Monday), if cron calls the script on a day other than the set, are not going to send the mails::
+The emails are sent the day of the week defined by the variable SEND_DAY (default is set to 0 (Monday)), if your server calls the script on a day other than the set, are not going to send the mails::
 
  # Set the day of a week to send emails
  SEND_DAY = 0
