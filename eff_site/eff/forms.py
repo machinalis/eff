@@ -32,10 +32,10 @@ class AvgHoursForm(forms.Form):
 
 class EffQueryForm(forms.Form):
     from_date = forms.DateField(required=True,
-                                widget=forms.DateTimeInput,
+                                widget=forms.DateInput,
                                 label='Desde')
     to_date = forms.DateField(required=True,
-                              widget=forms.DateTimeInput,
+                              widget=forms.DateInput,
                               label='Hasta')
 
 
