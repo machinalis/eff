@@ -284,7 +284,7 @@ class UserAdminForm(UserCreationForm):
 
     def save(self, *args, **kwargs):
         kwargs.pop('commit', None)
-        user = super(UserAdminForm, self).save(*args, commit=False,
+        user = super(UserCreationForm, self).save(*args, commit=False,
                                                       **kwargs)
         password = self.cleaned_data["password1"]
         if password:
