@@ -615,28 +615,27 @@ def eff_charts(request):
     if request.method == 'GET':
         get_data = request.GET.copy()
 
-        if get_data.has_key('monthly_nav'):
+        if ('monthly_nav' in get_data):
             del get_data['monthly_nav']
-        if get_data.has_key('overtime_nav'):
+        if ('overtime_nav' in get_data):
             del get_data['overtime_nav']
 
         # Find out what graph has been requested and clean the dictionary
         # accordingly
         # FIXME http://docs.python.org/library/stdtypes.html#dict.has_key
-        if get_data.has_key('MultGraph'):
+        if ('MultGraph.x' in get_data):
             # Multiple graphs
-            get_data.pop('MultGraph')
             get_data.pop('MultGraph.x')
             get_data.pop('MultGraph.y')
             get_type = 'multi'
-        elif get_data.has_key('SumGraph'):
+        elif ('SumGraph.x' in get_data):
             # Totalization Graphs
-            get_data.pop('SumGraph')
             get_data.pop('SumGraph.x')
             get_data.pop('SumGraph.y')
             get_type = 'sum'
         else:
             # Error
+            get_type = None
             context['errors'] = ["GET: Request de gráfico desconocido"]
 
         values = []
