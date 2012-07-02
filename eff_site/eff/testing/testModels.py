@@ -615,6 +615,7 @@ class UserProfileTest(TestCase):
             {'job_position': 'Job position 2',
              'first_name': self.user_client.first_name,
              'last_name': self.user_client.last_name,
+             'email': self.user_client.email,
              'handles-TOTAL_FORMS': '1',
              'handles-INITIAL_FORMS': '0',
              'handles-MAX_NUM_FORMS': ''})
@@ -696,6 +697,7 @@ class UserProfileTest(TestCase):
         response = response.client.post("/profiles/edit/",
             {'first_name': 'pepe',
              'last_name': self.user_client.last_name,
+             'email': self.user_client.email,
              'handles-TOTAL_FORMS': '1',
              'handles-INITIAL_FORMS': '0',
              'handles-MAX_NUM_FORMS': ''})

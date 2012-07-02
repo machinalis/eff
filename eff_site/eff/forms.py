@@ -77,7 +77,7 @@ class UserProfileForm(ModelForm):
 class ClientUserProfileForm(ModelForm):
     first_name = forms.CharField(required=False, label='First name')
     last_name = forms.CharField(required=False, label='Last name')
-    email = forms.EmailField(required=False, label='Email')
+    email = forms.EmailField(required=True, label='Email', max_length=254)
 
     def __init__(self, *args, **kwargs):
         super(ClientUserProfileForm, self).__init__(*args, **kwargs)
@@ -99,6 +99,15 @@ class ClientUserProfileForm(ModelForm):
         if "" == data:
             raise forms.ValidationError("This Field is required")
         return data
+
+    def clean_email(self):
+        # Get current user's username
+        username = self.instance.user.username
+        email = self.cleaned_data.get('email')
+        users = User.objects.filter(email=email).exclude(username=username)
+        if email and users.count():
+            raise forms.ValidationError(u'Email address must be unique.')
+        return email
 
     def save(self, *args, **kwargs):
         u = self.instance.user
@@ -310,7 +319,7 @@ class UserAdminChangeForm(UserAdminForm):
         return self.cleaned_data["username"]
 
     def clean_email(self):
-        # Get current user's name
+        # Get current user's username
         username = self.instance.username
         email = self.cleaned_data.get('email')
         users = User.objects.filter(email=email).exclude(username=username)
