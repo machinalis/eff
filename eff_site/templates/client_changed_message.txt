@@ -1,13 +1,17 @@
 ---------------------------------------------
 Fields              Old data
 ---------------------------------------------
+{% if old_data %}
 {% for field, value in old_data %}
-    {{field}}: {% if value %}{{ value }}{% else %}en blanco{% endif %}
+    {{field}}: {% if value %}{{ value }}{% else %}{% endif %}
 {% endfor %}
+{% else %}
+    No se modifico ningun dato existente.
+{% endif %}
 
 ---------------------------------------------
 Fields              New Data
 ---------------------------------------------
 {% for field, value in new_data %}
-    {{field}}: {% if value %}{{ value }}{% else %}en blanco{% endif %}
+    {{field}}: {% if value %}{{ value }}{% else %}{% endif %}
 {% endfor %}

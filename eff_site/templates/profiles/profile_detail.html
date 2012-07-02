@@ -18,11 +18,11 @@
                 <tbody>
                 <tr> <td> First name: </td> <td> {{ profile.user.first_name }} </td> </tr>
                 <tr> <td> Last name: </td> <td> {{ profile.user.last_name }} </td> </tr>
-                <tr> <td> Job position: </td> <td> {{ profile.user.last_name }} </td> </tr>
-                <tr> <td> Email: </td> <td> {{ profile.personal_email }} </td> </tr>
+                <tr> <td> Job position: </td> <td> {{ profile.job_position }} </td> </tr>
+                <tr> <td> Email: </td> <td> {{ profile.user.email }} </td> </tr>
                 <tr> <td> Phone number: </td> <td> {{ profile.phone_number }} </td> </tr>
                 {% for handle in clienthandles %}
-                <tr> <td> {{ handle.handle }} </td> <td> {{ handle.address }} </td> </tr>
+                <tr> <td> {{ handle.handle }}: </td> <td> {{ handle.address }} </td> </tr>
                 {% endfor %}
                 <tbody>
             </table>

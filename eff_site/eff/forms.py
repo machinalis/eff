@@ -32,10 +32,10 @@ class AvgHoursForm(forms.Form):
 
 class EffQueryForm(forms.Form):
     from_date = forms.DateField(required=True,
-                                widget=forms.DateTimeInput,
+                                widget=forms.DateInput,
                                 label='Desde')
     to_date = forms.DateField(required=True,
-                              widget=forms.DateTimeInput,
+                              widget=forms.DateInput,
                               label='Hasta')
 
 
@@ -61,7 +61,8 @@ class UserProfileForm(ModelForm):
     class Meta:
         model = UserProfile
         fields = ('first_name', 'last_name', 'personal_email', 'address',
-                  'city', 'state', 'country', 'phone_number', )
+                  'city', 'state', 'country', 'phone_number',
+                  'receive_report_email')
 
     first_name = forms.CharField(required=False, label='Nombre')
     last_name = forms.CharField(required=False, label='Apellido')
