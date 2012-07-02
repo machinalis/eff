@@ -39,7 +39,7 @@ from django.template.loader import render_to_string
 from django.core import mail
 
 
-from dateutil.relativedelta import relativedelta, MO
+from dateutil.relativedelta import relativedelta
 
 from profiles import views as profile_views
 
@@ -1391,47 +1391,3 @@ def _handles_changed(formset_handles, context_for_email, ctx_dict, send_email):
             # Send email True because data has changed
             send_email = True
     return send_email
-
-
-def hour_report_last_week(request):
-    userprofiles = UserProfile.objects.filter(
-            receive_report_email=True
-        ).exclude(
-            user_type=UserProfile.KIND_CLIENT
-        )
-    project = None
-    for userprofile in userprofiles:
-        _send_report_by_email(userprofile, project)
-    return HttpResponse(status=200)
-
-
-def _send_report_by_email(userprofile, project):
-    user = userprofile.user
-    context_for_email = {}
-    current_date = date.today()
-
-    previuos_date = current_date - relativedelta(weeks=+1)
-    from_date = previuos_date - relativedelta(weekday=MO(-1))
-    to_date = previuos_date - relativedelta(weekday=6)
-
-    context_for_email['user'] = user
-    context_for_email['from_date'] = from_date
-    context_for_email['to_date'] = to_date
-    context_for_email['report'] = userprofile.report(from_date,
-        to_date, project)
-
-    # detailed total of hours between [from_date, to_date]
-    total_hrs = 0
-    for r in context_for_email['report']:
-        total_hrs += r[3]
-    context_for_email['total_hrs_detailed'] = total_hrs
-    context_for_email['num_loggable_hours'] = userprofile.num_loggable_hours(
-        from_date, to_date)
-
-    subject = render_to_string('previous_week_report_subject.txt',
-        context_for_email)
-    # Email subject *must not* contain newlines
-    subject = ''.join(subject.splitlines())
-    message = render_to_string('previous_week_report_message.txt',
-        context_for_email)
-    user.email_user(subject, message)
