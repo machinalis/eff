@@ -21,13 +21,14 @@ from django.db.models import signals
 from eff._models.user_profile import create_profile_for_user
 from django.test import TestCase
 from unittest import TestSuite, makeSuite
-
-from factories import UserProfileFactory, ProjectFactory, ClientFactory
-from factories import ProjectAssocFactory, ExternalSourceFactory, DumpFactory
-from factories import TimeLogFactory
+from django.core.urlresolvers import reverse
+from django.test.client import Client as TestClient
+from urllib import urlencode
 from decimal import Decimal
 from eff.models import TimeLog
-
+from factories import (UserProfileFactory, ProjectFactory, ClientFactory,
+                       ProjectAssocFactory, ExternalSourceFactory, DumpFactory,
+                       TimeLogFactory, AdminFactory)
 from datetime import date, timedelta
 
 
@@ -317,8 +318,44 @@ class ClientReportTest(HelperTest):
         self.assertEqual(expected, report)
 
 
+class ChartsTest(HelperTest):
+
+    def setUp(self):
+        super(ChartsTest, self).setUp()
+        # Create an Admin User.
+        self.admin = AdminFactory(username='admin')
+
+        self.test_client = TestClient()
+        self.test_client.login(username=self.admin.username,
+                               password=self.admin.username)
+
+    def test_admin_can_access_eff_charts(self):
+        get_data = {'dates': '2010-09-01,2012-01-01'}
+        get_data = urlencode(get_data)
+        url = '%s?%s' % (reverse('eff_charts'), get_data)
+        response = self.test_client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_admin_can_access_acumulative_graph(self):
+        get_data = {'dates': '2010-09-01,2012-01-01', 'user1': 'checked',
+                    'user2': 'checked', 'SumGraph.y': '5', 'SumGraph.x': '8'}
+        get_data = urlencode(get_data)
+        url = '%s?%s' % (reverse('eff_charts'), get_data)
+        response = self.test_client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_admin_can_access_multiple_graphs(self):
+        get_data = {'dates': '2010-09-01,2012-01-01', 'user1': 'checked',
+                    'user2': 'checked', 'MultGraph.y': '5', 'MultGraph.x': '8'}
+        get_data = urlencode(get_data)
+        url = '%s?%s' % (reverse('eff_charts'), get_data)
+        response = self.test_client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+
 def suite():
     suite = TestSuite()
     suite.addTest(makeSuite(UserReportTest))
     suite.addTest(makeSuite(ClientReportTest))
+    suite.addTest(makeSuite(ChartsTest))
     return suite

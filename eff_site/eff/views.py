@@ -615,28 +615,27 @@ def eff_charts(request):
     if request.method == 'GET':
         get_data = request.GET.copy()
 
-        if get_data.has_key('monthly_nav'):
+        if ('monthly_nav' in get_data):
             del get_data['monthly_nav']
-        if get_data.has_key('overtime_nav'):
+        if ('overtime_nav' in get_data):
             del get_data['overtime_nav']
 
         # Find out what graph has been requested and clean the dictionary
         # accordingly
         # FIXME http://docs.python.org/library/stdtypes.html#dict.has_key
-        if get_data.has_key('MultGraph'):
+        if ('MultGraph.x' in get_data):
             # Multiple graphs
-            get_data.pop('MultGraph')
             get_data.pop('MultGraph.x')
             get_data.pop('MultGraph.y')
             get_type = 'multi'
-        elif get_data.has_key('SumGraph'):
+        elif ('SumGraph.x' in get_data):
             # Totalization Graphs
-            get_data.pop('SumGraph')
             get_data.pop('SumGraph.x')
             get_data.pop('SumGraph.y')
             get_type = 'sum'
         else:
             # Error
+            get_type = None
             context['errors'] = ["GET: Request de gráfico desconocido"]
 
         values = []
@@ -1264,7 +1263,6 @@ def edit_profile(request, form_class):
                 for ch in clienth:
                     ctx_dict['%s_address_old' % (ch.id)] = ch.address
                     ctx_dict['%s_handle_old' % (ch.id)] = ch.handle
-                    ctx_dict['%s_handle_old' % (ch.id)] = ch.handle
 
                 form = ClientUserProfileForm(data=request.POST,
                     files=request.FILES, instance=profile_obj)
@@ -1377,20 +1375,18 @@ def _handles_changed(formset_handles, context_for_email, ctx_dict, send_email):
 
             # Populate the context for email template with
             # old and new data changed
-            for field in client_handle._changed_data:
-                key_tuple = (form_id, field)
-                # example of key_old: '2_address_old'
-                key_old = '%s_%s_old' % key_tuple
-                # example of key_new: '2_address'
-                key_new = '%s_%s' % key_tuple
-                if key_old in ctx_dict:
-                    context_for_email['old_data'].append(
-                    # tuple (fieldname, fieldvalue) for old data
-                        (client_handle[field].label, ctx_dict[key_old]))
-                if key_new in ctx_dict:
-                    context_for_email['new_data'].append(
-                    # tuple (fieldname, fieldvalue) for new data
-                        (client_handle[field].label, ctx_dict[key_new]))
+            key_h = '%s_handle' % form_id
+            key_a = '%s_address' % form_id
+            if ((key_h + '_old') in ctx_dict) or ((key_a + '_old') in ctx_dict):
+                context_for_email['old_data'].append(
+                # tuple (fieldname, fieldvalue) for old data
+                    (ctx_dict['%s_handle_old' % (form_id)],
+                     ctx_dict['%s_address_old' % (form_id)]))
+            if (key_h in ctx_dict) or (key_a in ctx_dict):
+                context_for_email['new_data'].append(
+                # tuple (fieldname, fieldvalue) for new data
+                    (ctx_dict['%s_handle' % (form_id)],
+                     ctx_dict['%s_address' % (form_id)]))
             # Send email True because data has changed
             send_email = True
     return send_email

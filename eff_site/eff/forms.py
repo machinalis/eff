@@ -32,10 +32,10 @@ class AvgHoursForm(forms.Form):
 
 class EffQueryForm(forms.Form):
     from_date = forms.DateField(required=True,
-                                widget=forms.DateTimeInput,
+                                widget=forms.DateInput,
                                 label='Desde')
     to_date = forms.DateField(required=True,
-                              widget=forms.DateTimeInput,
+                              widget=forms.DateInput,
                               label='Hasta')
 
 
@@ -61,7 +61,8 @@ class UserProfileForm(ModelForm):
     class Meta:
         model = UserProfile
         fields = ('first_name', 'last_name', 'personal_email', 'address',
-                  'city', 'state', 'country', 'phone_number', )
+                  'city', 'state', 'country', 'phone_number',
+                  'receive_report_email')
 
     first_name = forms.CharField(required=False, label='Nombre')
     last_name = forms.CharField(required=False, label='Apellido')
@@ -77,7 +78,7 @@ class UserProfileForm(ModelForm):
 class ClientUserProfileForm(ModelForm):
     first_name = forms.CharField(required=False, label='First name')
     last_name = forms.CharField(required=False, label='Last name')
-    email = forms.EmailField(required=False, label='Email')
+    email = forms.EmailField(required=True, label='Email', max_length=254)
 
     def __init__(self, *args, **kwargs):
         super(ClientUserProfileForm, self).__init__(*args, **kwargs)
@@ -100,6 +101,15 @@ class ClientUserProfileForm(ModelForm):
             raise forms.ValidationError("This Field is required")
         return data
 
+    def clean_email(self):
+        # Get current user's username
+        username = self.instance.user.username
+        email = self.cleaned_data.get('email')
+        users = User.objects.filter(email=email).exclude(username=username)
+        if email and users.count():
+            raise forms.ValidationError(u'Email address must be unique.')
+        return email
+
     def save(self, *args, **kwargs):
         u = self.instance.user
         u.first_name = self.cleaned_data['first_name']
@@ -112,7 +122,7 @@ class ClientUserProfileForm(ModelForm):
     class Meta:
         model = UserProfile
         fields = ('first_name', 'last_name', 'job_position', 'email',
-            'phone_number')
+                  'phone_number')
 
 
 class UsersChangeProfileForm (UserProfileForm):
@@ -209,6 +219,8 @@ class WageModelForm(forms.ModelForm):
 
 
 class UserAdminForm(UserCreationForm):
+    email = forms.EmailField(required=True, label='E-mail address',
+                             max_length=254)
     is_client = forms.BooleanField(required=False, label="Client",
                                    help_text=("Designates whether this user"
                                               "should be treated as a Client."))
@@ -233,6 +245,14 @@ class UserAdminForm(UserCreationForm):
             pass
         except UserProfile.DoesNotExist:
             pass
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        username = self.cleaned_data.get('username')
+        users = User.objects.filter(email=email).exclude(username=username)
+        if email and users.count():
+            raise forms.ValidationError(u'Email address must be unique.')
+        return email
 
     def clean(self):
         cleaned_data = super(UserAdminForm, self).clean()
@@ -260,6 +280,13 @@ class UserAdminForm(UserCreationForm):
                 "name")
             errors = True
 
+        if company and not is_client:
+            self._errors['company'] = self._errors.get('company',
+                                                       ErrorList())
+            self._errors['company'].append("A default user not must have "\
+                                           "Company")
+            errors = True
+
         if errors:
             raise forms.ValidationError('Some field are invalid')
 
@@ -267,14 +294,18 @@ class UserAdminForm(UserCreationForm):
 
     def save(self, *args, **kwargs):
         kwargs.pop('commit', None)
-        instance = super(UserAdminForm, self).save(*args, commit=False,
-                                                   **kwargs)
-        instance.is_client = self.cleaned_data['is_client']
-        if instance.is_client:
-            instance.company = self.cleaned_data['company']
-            instance.is_client = self.cleaned_data['is_client']
-        instance.save()
-        return instance
+        user = super(UserCreationForm, self).save(*args, commit=False,
+                                                      **kwargs)
+        password = self.cleaned_data["password1"]
+        if password:
+            user.set_password(password)
+
+        user.is_client = self.cleaned_data['is_client']
+        if user.is_client:
+            user.company = self.cleaned_data['company']
+            user.is_client = self.cleaned_data['is_client']
+        user.save()
+        return user
 
 
 class UserAdminChangeForm(UserAdminForm):
@@ -287,3 +318,12 @@ class UserAdminChangeForm(UserAdminForm):
 
     def clean_username(self):
         return self.cleaned_data["username"]
+
+    def clean_email(self):
+        # Get current user's username
+        username = self.instance.username
+        email = self.cleaned_data.get('email')
+        users = User.objects.filter(email=email).exclude(username=username)
+        if email and users.count():
+            raise forms.ValidationError(u'Email address must be unique.')
+        return email
