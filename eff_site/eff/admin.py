@@ -17,8 +17,9 @@
 
 from django.contrib import admin
 from eff_site.eff.models import Project, Client, ExternalSource, Wage, BillingEmail
-from eff_site.eff.models import AvgHours, Currency, ProjectAssoc, TimeLog
-from eff_site.eff.models import Handle, ClientHandles
+from eff_site.eff.models import (AvgHours, Currency, ProjectAssoc, TimeLog,
+                                 Handle, ClientHandles, Billing, CreditNote,
+                                 Payment, ComercialDocumentBase)
 from _models.user_profile import UserProfile
 from eff_site.eff.forms import UserAdminForm, UserAdminChangeForm
 from django.contrib.auth.models import User
@@ -227,6 +228,38 @@ class HandleAdmin(admin.ModelAdmin):
     list_display = ('protocol',)
 
 
+class ComercialDocumentAdminForm(forms.ModelForm):
+    client = forms.ModelChoiceField(queryset=Client.objects.order_by('name'))
+
+    class Meta:
+        model = ComercialDocumentBase
+
+from django.contrib.admin import AdminDateWidget
+class BillingAdminForm(forms.ModelForm):
+    client = forms.ModelChoiceField(queryset=Client.objects.order_by('name'))
+    date = forms.DateField(label='Send Date', widget=AdminDateWidget)
+
+    class Meta:
+        model = Billing
+
+
+class BillingAdmin(admin.ModelAdmin):
+    search_fields = ('client', 'date', 'concept', 'amount')
+    ordering = ('client',)
+    form = BillingAdminForm
+
+
+class CreditNoteAdmin(admin.ModelAdmin):
+    search_fields = ('client', 'date', 'concept', 'amount')
+    ordering = ('client',)
+    form = ComercialDocumentAdminForm
+
+
+class PaymentAdmin(admin.ModelAdmin):
+    search_fields = ('client', 'date', 'concept', 'amount', 'status')
+    form = ComercialDocumentAdminForm
+
+
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 admin.site.register(Project, ProjectAdmin)
@@ -241,3 +274,6 @@ admin.site.register(ExternalId, ExternalIdAdmin)
 admin.site.register(TimeLog, TimeLogAdmin)
 admin.site.register(BillingEmail, BillingEmailAdmin)
 admin.site.register(Handle, HandleAdmin)
+admin.site.register(Billing, BillingAdmin)
+admin.site.register(CreditNote, CreditNoteAdmin)
+admin.site.register(Payment, PaymentAdmin)
