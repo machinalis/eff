@@ -859,7 +859,7 @@ class ProjectsTest(TestCase):
                            external_source=source)
         client.save()
         self.project = Project(name='projecto_test', billable=False,
-            client=client)
+            client=client, start_date=date.today())
         self.project.save()
 
     def tearDown(self):
@@ -885,7 +885,8 @@ class TimeLogsAttributesTest(TestCase):
             external_source=source)
         project = Project.objects.create(name='projecto_test',
                                          billable=False,
-                                         client=client)
+                                         client=client,
+                                         start_date=date.today())
         usr = User.objects.create(username='test1',
                                   email='test1@test.com',
                                   password='test1')

@@ -25,6 +25,7 @@ from django.contrib.auth.models import User
 from unittest import TestSuite, makeSuite
 from eff.models import Project, Client as EffClient, ExternalSource, UserProfile
 from django.template.defaultfilters import slugify
+from datetime import date
 
 
 class QueriesTest(TestCase):
@@ -69,7 +70,8 @@ class QueriesTest(TestCase):
                                                      external_source=source)
             client.save()
             self.clients.append(client)
-            project = Project.objects.create(name=project_name, client=client)
+            project = Project.objects.create(name=project_name, client=client,
+                start_date=date.today())
             project.save()
             self.projects.append(project)
 

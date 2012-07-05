@@ -52,9 +52,9 @@ class HelperTest(TestCase):
         client = ClientFactory(name='client', external_source=self.ext_src)
         # 2 projects
         project1 = ProjectFactory(name='Fake Project 1', client=client,
-                                  external_id='FP1')
+                                  external_id='FP1', start_date=date.today())
         project2 = ProjectFactory(name='Fake Project 2', client=client,
-                                  external_id='FP2')
+                                  external_id='FP2', start_date=date.today())
         # A 'watcher' UserProfile, the one who watches others and a projassoc.
         self.watcher = UserProfileFactory(user__username='watcher')
         start_date = date(2012, 01, 01)
