@@ -1,0 +1,15 @@
+# ExternalSource: DotprojectMachinalis
+# Client: Machinalis
+# Author: Eff Fetcher
+# From date: 1995-01-01 00:00:00
+# To date: 1995-01-10 00:00:00
+"1995-01-01","test_load_dump","test1","4.0","gravida dui eu lorem","Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+"1995-01-02","test_load_dump","test1","2.0","gravida dui eu lorem","Donec eleifend hendrerit purus, at porta erat cursus hendrerit."
+"1995-01-03","test_load_dump","test1","2.0","gravida dui eu lorem","Praesent mattis accumsan commodo. Nunc ultrices vestibulum libero, nec sollicitudin sapien aliquet ut."
+"1995-01-04","test_load_dump","test1","2.0","gravida dui eu lorem","Fusce malesuada, dolor quis luctus fringilla, ante enim pulvinar lectus, at tincidunt lorem lorem cursus velit."
+"1995-01-05","test_load_dump","test1","2.0","gravida dui eu lorem","Vestibulum gravida dui eu lorem consequat eu tempor mauris blandit."
+"1995-01-06","test_load_dump","test1","2.5","gravida dui eu lorem","Praesent malesuada, tortor in eleifend interdum, augue leo pretium nunc."
+"1995-01-07","test_load_dump","test1","2.25","gravida dui eu lorem","Curabitur sit amet massa velit. Nam tellus libero, cursus at congue id, aliquam eu augue. Nullam vulputate euismod risus sit amet ultricies"
+"1995-01-08","test_load_dump","test1","2.25","gravida dui eu lorem","Suspendisse potenti. Etiam scelerisque urna ac mi accumsan facilisis."
+"1995-01-09","test_load_dump","test1","2.25","gravida dui eu lorem","Mauris vel massa lacus, ac scelerisque felis. Nullam porta justo eu purus blandit pharetra."
+"1995-01-10","test_load_dump","test1","3.0","gravida dui eu lorem","Donec feugiat urna consequat orci tempus quis adipiscing leo iaculis. Sed quis venenatis augue."
