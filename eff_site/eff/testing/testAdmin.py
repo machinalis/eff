@@ -139,7 +139,13 @@ class QueriesTest(TestCase):
                      'user_type': 'Default',
                      'clienthandles_set-TOTAL_FORMS': '3',
                      'clienthandles_set-INITIAL_FORMS': '0',
-                     'clienthandles_set-MAX_NUM_FORMS': ''}
+                     'clienthandles_set-MAX_NUM_FORMS': '',
+                     'projectassoc_set-TOTAL_FORMS': '1',
+                     'projectassoc_set-INITIAL_FORMS': '0',
+                     'projectassoc_set-MAX_NUM_FORMS': '',
+                     'externalid_set-TOTAL_FORMS': '1',
+                     'externalid_set-INITIAL_FORMS': '0',
+                     'externalid_set-MAX_NUM_FORMS': ''}
         response = self.test_client.post(url, post_data)
         error = "You are adding this user to watch himself, please don't"
         query = PyQuery(response.content)
@@ -156,7 +162,13 @@ class QueriesTest(TestCase):
                      'user_type': UserProfile.KIND_OTHER,
                      'clienthandles_set-TOTAL_FORMS': '3',
                      'clienthandles_set-INITIAL_FORMS': '0',
-                     'clienthandles_set-MAX_NUM_FORMS': ''}
+                     'clienthandles_set-MAX_NUM_FORMS': '',
+                     'projectassoc_set-TOTAL_FORMS': '1',
+                     'projectassoc_set-INITIAL_FORMS': '0',
+                     'projectassoc_set-MAX_NUM_FORMS': '',
+                     'externalid_set-TOTAL_FORMS': '1',
+                     'externalid_set-INITIAL_FORMS': '0',
+                     'externalid_set-MAX_NUM_FORMS': ''}
         response = self.test_client.post(url, post_data)
         error = "Don't add admin here"
         query = PyQuery(response.content)
@@ -209,6 +221,7 @@ class QueriesTest(TestCase):
         post_data = {'username': 'newUser', 'password1': 'pass',
                      'password2': 'pass',
                      'is_active': True,
+                     'email': 'newUser@test.com',
                      'last_login_0': '2012-06-15',
                      'last_login_1': '16:29:51',
                      'date_joined_0': '2012-06-15',
@@ -228,6 +241,7 @@ class QueriesTest(TestCase):
         post_data = {'username': 'newUser', 'password1': 'pass',
                      'password2': 'anotherPass',
                      'is_active': True,
+                     'email': 'newUser@test.com',
                      'last_login_0': '2012-06-15',
                      'last_login_1': '16:29:51',
                      'date_joined_0': '2012-06-15',
@@ -250,6 +264,7 @@ class QueriesTest(TestCase):
         post_data = {'username': 'test1', 'password1': 'newPass',
                      'password2': 'newPass',
                      'is_active': True,
+                     'email': 'test1@test.com',
                      'last_login_0': '2012-06-15',
                      'last_login_1': '16:29:51',
                      'date_joined_0': '2012-06-15',
@@ -271,6 +286,7 @@ class QueriesTest(TestCase):
         post_data = {'username': 'test1', 'password1': 'pass',
                      'password2': 'notPassword1',
                      'is_active': True,
+                     'email': 'test1@test.com',
                      'last_login_0': '2012-06-15',
                      'last_login_1': '16:29:51',
                      'date_joined_0': '2012-06-15',
@@ -285,6 +301,159 @@ class QueriesTest(TestCase):
         query = PyQuery(response.content)
         query = query('ul.errorlist')
         self.assertEqual(query.text(), "The two password fields didn't match.")
+
+    def test_password_not_changed_while_changing_something_in_user_change(self):
+        check = self.test_client.login(username='test1', password='test1')
+        user = User.objects.get(username='test1')
+        url = reverse('admin:auth_user_change', args=[user.id])
+        post_data = {'username': 'test1',
+                     'is_active': True,
+                     'password1': '',
+                     'password2': '',
+                     'email': 'test1@test.com',
+                     'last_login_0': '2012-06-15',
+                     'last_login_1': '16:29:51',
+                     'date_joined_0': '2012-06-15',
+                     'date_joined_1': '16:29:51',
+                     'wage_set-TOTAL_FORMS': '3',
+                     'wage_set-INITIAL_FORMS': '0',
+                     'wage_set-MAX_NUM_FORMS': '',
+                     'avghours_set-TOTAL_FORMS': '3',
+                     'avghours_set-INITIAL_FORMS': '0',
+                     'avghours_set-MAX_NUM_FORMS': ''}
+        self.test_client.post(url, post_data)
+        check = self.test_client.login(username='test1', password='test1')
+        self.assertEqual(check, True)
+
+    def test_email_required_in_user_add(self):
+        url = reverse('admin:auth_user_add')
+        post_data = {'username': 'newUser', 'password1': 'pass',
+                     'password2': 'pass',
+                     'is_active': True,
+                     'email': '',
+                     'last_login_0': '2012-06-15',
+                     'last_login_1': '16:29:51',
+                     'date_joined_0': '2012-06-15',
+                     'date_joined_1': '16:29:51',
+                     'wage_set-TOTAL_FORMS': '3',
+                     'wage_set-INITIAL_FORMS': '0',
+                     'wage_set-MAX_NUM_FORMS': '',
+                     'avghours_set-TOTAL_FORMS': '3',
+                     'avghours_set-INITIAL_FORMS': '0',
+                     'avghours_set-MAX_NUM_FORMS': ''}
+        response = self.test_client.post(url, post_data)
+        query = PyQuery(response.content)
+        query = query('ul.errorlist')
+        self.assertEqual(query.text(), "This field is required.")
+
+    def test_email_unique_in_user_add(self):
+        url = reverse('admin:auth_user_add')
+        post_data = {'username': 'newUser', 'password1': 'pass',
+                     'password2': 'pass',
+                     'is_active': True,
+                     'email': 'test1@test.com',
+                     'last_login_0': '2012-06-15',
+                     'last_login_1': '16:29:51',
+                     'date_joined_0': '2012-06-15',
+                     'date_joined_1': '16:29:51',
+                     'wage_set-TOTAL_FORMS': '3',
+                     'wage_set-INITIAL_FORMS': '0',
+                     'wage_set-MAX_NUM_FORMS': '',
+                     'avghours_set-TOTAL_FORMS': '3',
+                     'avghours_set-INITIAL_FORMS': '0',
+                     'avghours_set-MAX_NUM_FORMS': ''}
+        response = self.test_client.post(url, post_data)
+        query = PyQuery(response.content)
+        query = query('ul.errorlist')
+        self.assertEqual(query.text(), "Email address must be unique.")
+
+    def test_email_unique_in_user_change(self):
+        user = User.objects.get(username='testA')
+        url = reverse('admin:auth_user_change', args=[user.id])
+        post_data = {'username': 'testA', 'password1': 'pass',
+                     'password2': 'pass',
+                     'is_active': True,
+                     'email': 'test1@test.com',
+                     'last_login_0': '2012-06-15',
+                     'last_login_1': '16:29:51',
+                     'date_joined_0': '2012-06-15',
+                     'date_joined_1': '16:29:51',
+                     'wage_set-TOTAL_FORMS': '3',
+                     'wage_set-INITIAL_FORMS': '0',
+                     'wage_set-MAX_NUM_FORMS': '',
+                     'avghours_set-TOTAL_FORMS': '3',
+                     'avghours_set-INITIAL_FORMS': '0',
+                     'avghours_set-MAX_NUM_FORMS': ''}
+        response = self.test_client.post(url, post_data)
+        query = PyQuery(response.content)
+        query = query('ul.errorlist')
+        self.assertEqual(query.text(), "Email address must be unique.")
+
+    def test_email_unique_in_user_change2(self):
+        user = User.objects.get(username='testA')
+        url = reverse('admin:auth_user_change', args=[user.id])
+        post_data = {'username': 'testA', 'password1': 'pass',
+                     'password2': 'pass',
+                     'is_active': True,
+                     'email': 'test1@test.com',
+                     'last_login_0': '2012-06-15',
+                     'last_login_1': '16:29:51',
+                     'date_joined_0': '2012-06-15',
+                     'date_joined_1': '16:29:51',
+                     'wage_set-TOTAL_FORMS': '3',
+                     'wage_set-INITIAL_FORMS': '0',
+                     'wage_set-MAX_NUM_FORMS': '',
+                     'avghours_set-TOTAL_FORMS': '3',
+                     'avghours_set-INITIAL_FORMS': '0',
+                     'avghours_set-MAX_NUM_FORMS': ''}
+        response = self.test_client.post(url, post_data)
+        query = PyQuery(response.content)
+        query = query('ul.errorlist')
+        self.assertEqual(query.text(), "Email address must be unique.")
+
+    def test_email_change_in_user_change(self):
+        user = User.objects.get(username='testA')
+        url = reverse('admin:auth_user_change', args=[user.id])
+        post_data = {'username': 'testA', 'password1': 'pass',
+                     'password2': 'pass',
+                     'is_active': True,
+                     'email': 'newEmail@test.com',
+                     'last_login_0': '2012-06-15',
+                     'last_login_1': '16:29:51',
+                     'date_joined_0': '2012-06-15',
+                     'date_joined_1': '16:29:51',
+                     'wage_set-TOTAL_FORMS': '3',
+                     'wage_set-INITIAL_FORMS': '0',
+                     'wage_set-MAX_NUM_FORMS': '',
+                     'avghours_set-TOTAL_FORMS': '3',
+                     'avghours_set-INITIAL_FORMS': '0',
+                     'avghours_set-MAX_NUM_FORMS': ''}
+        response = self.test_client.post(url, post_data, follow=True)
+        query = PyQuery(response.content)
+        msg = query("ul.messagelist").text()
+        self.assertEqual(msg, 'The user "testA" was changed successfully.')
+
+    def test_email_required_in_user_change(self):
+        user = User.objects.get(username='test1')
+        url = reverse('admin:auth_user_change', args=[user.id])
+        post_data = {'username': 'test1', 'password1': 'pass',
+                     'password2': 'pass',
+                     'is_active': True,
+                     'email': '',
+                     'last_login_0': '2012-06-15',
+                     'last_login_1': '16:29:51',
+                     'date_joined_0': '2012-06-15',
+                     'date_joined_1': '16:29:51',
+                     'wage_set-TOTAL_FORMS': '3',
+                     'wage_set-INITIAL_FORMS': '0',
+                     'wage_set-MAX_NUM_FORMS': '',
+                     'avghours_set-TOTAL_FORMS': '3',
+                     'avghours_set-INITIAL_FORMS': '0',
+                     'avghours_set-MAX_NUM_FORMS': ''}
+        response = self.test_client.post(url, post_data)
+        query = PyQuery(response.content)
+        query = query('ul.errorlist')
+        self.assertEqual(query.text(), "This field is required.")
 
 
 def suite():
