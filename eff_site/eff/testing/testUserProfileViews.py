@@ -79,6 +79,53 @@ class ClientProfileTest(HelperTest):
         error_msg = "Sorry, that's not a valid username or password"
         self.assertEqual(error, error_msg)
 
+    def test_client_can_modify_email_in_profiles_edit(self):
+        url = reverse('profiles_edit')
+        response = self.test_client.get(url)
+        self.assertEqual(response.status_code, 200)
+        post_data = {'first_name': self.client.first_name,
+                     'last_name': self.client.last_name,
+                     'email': 'newEmail@test.com',
+                     'handles-TOTAL_FORMS': '1',
+                     'handles-INITIAL_FORMS': '0',
+                     'handles-MAX_NUM_FORMS': ''}
+        self.test_client.post(url, post_data, follow=True)
+        client = User.objects.get(username=self.client.username)
+        self.assertEqual(client.email, 'newEmail@test.com')
+
+    def test_client_email_field_required_in_profiles_edit(self):
+        url = reverse('profiles_edit')
+        response = self.test_client.get(url)
+        self.assertEqual(response.status_code, 200)
+        post_data = {'first_name': self.client.first_name,
+                     'last_name': self.client.last_name,
+                     'email': '',
+                     'handles-TOTAL_FORMS': '1',
+                     'handles-INITIAL_FORMS': '0',
+                     'handles-MAX_NUM_FORMS': ''}
+        response = self.test_client.post(url, post_data)
+        query = PyQuery(response.content)
+        error = query('ul.errorlist').text()
+        self.assertEqual(error, 'This field is required.')
+
+    def test_client_email_must_be_unique_in_profiles_edit(self):
+        # Create another Client User.
+        client = UserFactory(username='client2', email='client2@test.com')
+        ClientProfileFactory(user=client)
+        url = reverse('profiles_edit')
+        response = self.test_client.get(url)
+        self.assertEqual(response.status_code, 200)
+        post_data = {'first_name': self.client.first_name,
+                     'last_name': self.client.last_name,
+                     'email': 'client2@test.com',
+                     'handles-TOTAL_FORMS': '1',
+                     'handles-INITIAL_FORMS': '0',
+                     'handles-MAX_NUM_FORMS': ''}
+        response = self.test_client.post(url, post_data)
+        query = PyQuery(response.content)
+        error = query('ul.errorlist').text()
+        self.assertEqual(error, 'Email address must be unique.')
+
 
 class UserProfileTest(HelperTest):
 

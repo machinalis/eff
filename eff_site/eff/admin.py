@@ -50,6 +50,11 @@ class ProjectAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
+class ProjectAssocInLine(admin.TabularInline):
+    model = ProjectAssoc
+    extra = 1
+
+
 class ProjectAssocAdmin(admin.ModelAdmin):
     list_display = ('project', 'member', 'from_date', 'to_date', 'client_rate',
                     'user_rate', )
@@ -58,7 +63,7 @@ class ProjectAssocAdmin(admin.ModelAdmin):
                      'member__user__first_name')
 
 
-class ProjectsInline(admin.TabularInline):
+class ProjectsInLine(admin.TabularInline):
     model = Project
     extra = 1
 
@@ -84,7 +89,7 @@ class BillingEmailsInLine(admin.TabularInline):
 
 
 class ClientAdmin(admin.ModelAdmin):
-    inlines = [BillingEmailsInLine, ProjectsInline]
+    inlines = [BillingEmailsInLine, ProjectsInLine]
     prepopulated_fields = {'slug': ('name',)}
     search_fields = ('name', 'city', 'country',
                      'currency__ccy_code', 'external_source__name',)
@@ -94,7 +99,6 @@ class ClientAdmin(admin.ModelAdmin):
 class ExternalSourceAdmin(admin.ModelAdmin):
     list_display = ('name', 'fetch_url', 'csv_directory', 'csv_filename')
     ordering = ('name',)
-    #inlines = [ProjectsInline2]
 
 
 class WageInLine(admin.TabularInline):
@@ -167,8 +171,13 @@ class UserProfileAdminForm(forms.ModelForm):
         model = UserProfile
 
 
-class ClientHandlesInline(admin.TabularInline):
+class ClientHandlesInLine(admin.TabularInline):
     model = ClientHandles
+
+
+class ExternalIdInLine(admin.TabularInline):
+    model = ExternalId
+    extra = 1
 
 
 class UserProfileAdmin(admin.ModelAdmin):
@@ -176,7 +185,7 @@ class UserProfileAdmin(admin.ModelAdmin):
     ordering = ('user__username',)
     search_fields = ('user__first_name', 'user__username',)
     form = UserProfileAdminForm
-    inlines = [ClientHandlesInline]
+    inlines = [ClientHandlesInLine, ProjectAssocInLine, ExternalIdInLine]
 
     def get_form(self, request, obj=None, **kwargs):
         self.exclude = []

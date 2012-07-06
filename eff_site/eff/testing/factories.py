@@ -60,13 +60,6 @@ class UserProfileFactory(factory.Factory):
     user_type = UserProfile.KIND_OTHER
 
 
-class ClientProfileFactory(factory.Factory):
-    FACTORY_FOR = UserProfile
-
-    user = factory.SubFactory(UserFactory)
-    user_type = UserProfile.KIND_CLIENT
-
-
 class CurrencyFactory(factory.Factory):
     FACTORY_FOR = Currency
 
@@ -90,6 +83,15 @@ class ClientFactory(factory.Factory):
     billing_email_address = factory.LazyAttribute(lambda o: '%s@test.com' \
                                                   % o.slug)
     external_source = factory.SubFactory(ExternalSourceFactory)
+
+
+class ClientProfileFactory(factory.Factory):
+    FACTORY_FOR = UserProfile
+
+    user = factory.SubFactory(UserFactory)
+    user_type = UserProfile.KIND_CLIENT
+    company = factory.SubFactory(ClientFactory)
+    #job_position = 'someposition'
 
 
 class ProjectFactory(factory.Factory):
