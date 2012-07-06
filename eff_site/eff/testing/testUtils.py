@@ -18,7 +18,8 @@
 
 from django.conf import settings
 from django.test import TestCase
-from eff.utils import overtime_period, period
+from django.contrib.auth.models import User
+from eff.utils import overtime_period, period, load_dump
 
 from unittest import TestSuite, makeSuite
 from datetime import date
@@ -186,6 +187,24 @@ class TestDateFormat(TestCase):
             settings.EFF_DATE_INPUT_FORMAT))
         _date = date.fromtimestamp(_date)
         self.assertEqual(aux_date, _date)
+
+
+class TestOtherFunctions(TestCase):
+
+    def setUp(self):
+        self.usr = User.objects.create_user(username='test1',
+                                            email='test1@test.com',
+                                            password='test1')
+
+    def test_load_dump(self):
+        eff_import = open('test_load_dump.csv')
+        load_res = load_dump(eff_import, is_api=True)
+        # ([], set(), set(), set(), None)
+        self.assertEqual([], load_res[0])
+        self.assertEqual(set(), load_res[1])
+        self.assertEqual(set(), load_res[2])
+        self.assertEqual(set(), load_res[3])
+        self.assertEqual(None, load_res[4])
 
 
 def suite():
