@@ -53,6 +53,10 @@ class Project(models.Model):
         default='HOUR')
     fixed_price = MoneyField(blank=True, null=True)
 
+    repository = models.URLField(default='', verify_exists=False, blank=True)
+    start_date = models.DateField(blank=False)
+    end_date = models.DateField(null=True, blank=True)
+
     class Meta:
         app_label = 'eff'
         ordering = ['client', 'name']

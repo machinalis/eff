@@ -64,9 +64,9 @@ class HelperTest(TestCase):
 
         # Create 2 projects
         project1 = ProjectFactory(name='Fake Project 42', client=self.client,
-                                  external_id='FP42')
+                                  external_id='FP42', start_date=date.today())
         project2 = ProjectFactory(name='Fake Project 10', client=self.client,
-                                  external_id='FP10')
+                                  external_id='FP10', start_date=date.today())
 
         # Add projectassocs
         ProjectAssocFactory(project=project1, member=self.user2,

@@ -57,15 +57,18 @@ class HelperTest(TestCase):
         # 3 projects. 2 billiable (HOUR, FIXED), and 1 not billiable.
         project1 = ProjectFactory(name='FakeProject1', client=client,
                                   external_id='FP1', billable=True,
-                                  billing_type='HOUR')
+                                  billing_type='HOUR',
+                                  start_date=date.today())
         ProjectFactory(name='FakeProject2', client=client, external_id='FP2',
-                       billable=True, billing_type='FIXED')
+                       billable=True, billing_type='FIXED',
+                       start_date=date.today())
         ProjectFactory(name='FakeProject3', client=client, external_id='FP3',
-                       billable=False)
+                       billable=False, start_date=date.today())
         self.b_projects = 'FakeProject1 FakeProject2'
 
         # 1 project not related to this client.
-        ProjectFactory(name='Fake Project 4', external_id='FP4', billable=False)
+        ProjectFactory(name='Fake Project 4', external_id='FP4', billable=False,
+                        start_date=date.today())
 
         # Some members for project 1.
         start_date = date(2012, 01, 01)
