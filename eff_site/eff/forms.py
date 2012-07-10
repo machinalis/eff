@@ -236,7 +236,7 @@ class UserAdminForm(UserCreationForm):
                   'user_permissions',)
 
     def __init__(self, *args, **kwargs):
-        super(UserAdminForm, self).__init__(*args, **kwargs)
+        super(UserCreationForm, self).__init__(*args, **kwargs)
         try:
             profile = self.instance.get_profile()
             self.fields['is_client'].initial = profile.is_client()
