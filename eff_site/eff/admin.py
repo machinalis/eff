@@ -19,7 +19,7 @@ from django.contrib import admin
 from eff_site.eff.models import Project, Client, ExternalSource, Wage, BillingEmail
 from eff_site.eff.models import (AvgHours, Currency, ProjectAssoc, TimeLog,
                                  Handle, ClientHandles, Billing, CreditNote,
-                                 Payment, ComercialDocumentBase)
+                                 Payment, CommercialDocumentBase)
 from _models.user_profile import UserProfile
 from eff_site.eff.forms import UserAdminForm, UserAdminChangeForm
 from django.contrib.auth.models import User
@@ -228,36 +228,43 @@ class HandleAdmin(admin.ModelAdmin):
     list_display = ('protocol',)
 
 
-class ComercialDocumentAdminForm(forms.ModelForm):
+class CommercialDocumentAdminForm(forms.ModelForm):
     client = forms.ModelChoiceField(queryset=Client.objects.order_by('name'))
 
     class Meta:
-        model = ComercialDocumentBase
+        model = CommercialDocumentBase
 
-from django.contrib.admin import AdminDateWidget
+
 class BillingAdminForm(forms.ModelForm):
     client = forms.ModelChoiceField(queryset=Client.objects.order_by('name'))
-    date = forms.DateField(label='Send Date', widget=AdminDateWidget)
+
+    def __init__(self, *args, **kwargs):
+        super(BillingAdminForm, self).__init__(*args, **kwargs)
+        self.fields['date'].label = 'Send Date'
 
     class Meta:
         model = Billing
 
 
 class BillingAdmin(admin.ModelAdmin):
+    list_display = ('client', 'amount', 'date', 'expire_date', 'payment_date',
+                    'concept')
     search_fields = ('client', 'date', 'concept', 'amount')
     ordering = ('client',)
     form = BillingAdminForm
 
 
 class CreditNoteAdmin(admin.ModelAdmin):
+    list_display = ('client', 'amount', 'date', 'concept')
     search_fields = ('client', 'date', 'concept', 'amount')
     ordering = ('client',)
-    form = ComercialDocumentAdminForm
+    form = CommercialDocumentAdminForm
 
 
 class PaymentAdmin(admin.ModelAdmin):
+    list_display = ('client', 'amount', 'date', 'status', 'concept')
     search_fields = ('client', 'date', 'concept', 'amount', 'status')
-    form = ComercialDocumentAdminForm
+    form = CommercialDocumentAdminForm
 
 
 admin.site.unregister(User)

@@ -23,5 +23,5 @@ from external_source import ExternalSource, ExternalId
 from wage import Wage
 from client import Client, Currency, BillingEmail
 from dump import Dump
-from comercial_documents import (Billing, CreditNote, Payment,
-                                 ComercialDocumentBase)
+from commercial_documents import (Billing, CreditNote, Payment,
+                                 CommercialDocumentBase)

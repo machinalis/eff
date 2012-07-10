@@ -28,6 +28,8 @@ from eff.models import UserProfile, AvgHours, Project, TimeLog, ExternalSource
 from eff.models import Wage, ClientHandles, Handle
 from eff.models import Client as EffClient, Dump
 from eff.views import Data
+from factories import (ClientFactory, BillingFactory, CreditNoteFactory,
+                       PaymentFactory, ExternalSourceFactory)
 
 from eff_site.eff.forms import UserAdminForm
 
@@ -903,6 +905,32 @@ class TimeLogsAttributesTest(TestCase):
             self.assert_(hasattr(self.log, attr))
 
 
+class CommercialDocumentsTest(TestCase):
+    def setUp(self):
+        # Create some data for tests
+        # An external source
+        ext_src = ExternalSourceFactory(name='DotprojectMachinalis')
+        # A client
+        client = ClientFactory(name='client', external_source=ext_src)
+        # Some commercial documents
+        self.billing = BillingFactory(client=client)
+        self.cnote = CreditNoteFactory(client=client)
+        self.payment = PaymentFactory(client=client)
+
+    def test_billing_has_attributes(self):
+        for attr in ('client', 'amount', 'date', 'concept', 'expire_date',
+                     'payment_date'):
+            self.assert_(hasattr(self.billing, attr))
+
+    def test_payment_has_attributes(self):
+        for attr in ('client', 'amount', 'date', 'concept', 'status'):
+            self.assert_(hasattr(self.payment, attr))
+
+    def test_credit_note_has_attributes(self):
+        for attr in ('client', 'amount', 'date', 'concept'):
+            self.assert_(hasattr(self.cnote, attr))
+
+
 def suite():
     suite = TestSuite()
     suite.addTest(makeSuite(QueriesTest))
@@ -913,4 +941,5 @@ def suite():
     suite.addTest(makeSuite(ProjectsTest))
     suite.addTest(makeSuite(TimeLogsAttributesTest))
     suite.addTest(makeSuite(UserProfileTest))
+    suite.addTest(makeSuite(CommercialDocumentsTest))
     return suite
