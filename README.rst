@@ -94,16 +94,6 @@ The emails are sent the day of the week defined by the variable SEND_DAY (defaul
  # Set the day of a week to send emails
  SEND_DAY = 0
 
-Set the domain of you eff instance::
-
- # URL of eff_site instance
- DOMAIN = 'http://example.com'
-
-If you want run eff in developer enviroment::
-
- # URL of eff_site instance
- DOMAIN = 'http://localhost:8000'
- 
 To customize the email template you need to edit the following files:
 
 * eff_site/templates/previous_week_report_message.txt
