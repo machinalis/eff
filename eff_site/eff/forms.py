@@ -125,7 +125,7 @@ class ClientUserProfileForm(ModelForm):
                   'phone_number')
 
 
-class UsersChangeProfileForm (UserProfileForm):
+class UsersChangeProfileForm(UserProfileForm):
     """ Users profile change  """
     user = forms.ModelChoiceField(queryset=User.objects.all(),
                                   empty_label="----")

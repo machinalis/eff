@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block jsscript %}
+        function toggle_visibility(id) {
+            $("#" + id).slideToggle("slow");
+            $("#" + id + "-arrow").toggleClass("expand");
+        }
+        function toggle_visibility_small(id) {
+            $("#" + id).slideToggle("slow");
+            $("#" + id + "-arrow").toggleClass("expand-small");
+        }
+{% endblock %}
+
+{% block header %}
+    <style type="text/css">
+    .dark_table_row {
+	background:#A9A9A9 none repeat scroll 0 0;
+    }
+
+    .bright_table_row {
+	background:#E7E7E7 none repeat scroll 0 0;
+    }
+
+    </style>
+
+{% endblock %}
+
+{% block title %}{{ block.super }} Resúmen de cuenta {% endblock %}
+
+{% block content %}
+    <div id="wrapper">
+        <div class="title">
+            {% ifequal from_date to_date  %} <p>Día {{ from_date }}</p>
+            {% else %} <p>Período: {{ from_date }} al {{ to_date }}</p> {% endifequal %}
+            {% if clientname %}
+            <p>Cliente: {{ clientname }}</p>
+            {% endif %}
+            <p>Empresa: {{ companyname }}</p>
+        </div>
+
+	{% if navs %}
+	    {% include 'nav-links.html' %}
+	{% endif %}
+
+        <div class="collapsable">
+            <div id="account-summary-arrow" class="collapse" onclick="toggle_visibility('account-summary')"></div>
+            <p><b>Resúmen de cuenta</b><br/><small>(ordenados por fecha)</small></p>
+        </div>
+	<br />
+        <div id="account_summary">
+
+	{% if account_summary %}
+        <table class="sortable summary" id="account-summary-table" preserve_style="row">
+            <thead>
+                <tr>
+                    <th class="date"> <abbr title="Fecha">Fecha</abbr> </th>
+                    <th class="description"> <abbr title="Concepto">Concepto</abbr> </th>
+                    <th class="money"> <abbr title="Ingreso">Ingreso</abbr> </th>
+                    <th class="money"> <abbr title="Egreso">Egreso</abbr> </th>
+                    <th class="money"> <abbr title="Subtotal">Subtotal</abbr> </th>
+                </tr>
+            </thead>
+            <tbody>
+	      {% for row in account_summary %}
+                <tr class="dark_table_row even">
+                    <td class="date">{{ row.date }}<br/>
+
+		      <div id="{{ companyname|slugify }}-doc-{{ row.doc.id }}" style="display: none;">
+
+			<table class="sortable summary" id="account-summary-table">
+			  <thead>
+			    <tr class="bright_table_row odd">
+			      <th class="horas"> <abbr title="Extra">Extra</abbr> </th>
+			    </tr>
+			  </thead>
+			  <tbody>
+			    {% for extra in row.extra %}
+			    <tr class="bright_table_row odd">
+			      <td style="vertical-align:top; padding:0.4em;">{{ extra }}</td>
+			    </tr>
+			    {% endfor %}
+			  </tbody>
+			</table>
+		      </div>
+
+		    </td>
+                    <td class="description" valign="top">{{ row.concept }}
+		      <div id="{{ companyname|slugify }}-doc-{{ row.doc.id }}-arrow" class="collapse-small" onclick="toggle_visibility_small('{{ companyname|slugify }}-doc-{{ row.doc.id }}')"></div>
+		    </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td> </td>
+                    <td> <b>Totales:</b> </td>
+                    <td> {{ in_total }} </td>
+                    <td> {{ out_total }} </td>
+                    <td> {{ total }} </td>
+                </tr>
+            </tfoot>
+        </table>
+        {% else %}
+        <p><i>No hay datos disponibles.</i></p>
+        {% endif %}
+        </div>
+
+        <br /><a href="{% url eff_client_summary_period %}"> Volver a Resúmen de Cuenta de Cliente </a><br />
+    </div>
+{% endblock %}

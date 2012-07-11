@@ -47,21 +47,22 @@ from relatorio.templates.opendocument import Template
 from reports import format_report_data
 from reports import format_report_data_user, FixedPriceClientReverseBilling
 
-from eff_site.eff.models import AvgHours, Wage, TimeLog, Project, Client
-from eff_site.eff.models import UserProfile, ClientHandles
-from eff_site.eff.models import ExternalId, ExternalSource, Dump
+from eff_site.eff.models import (AvgHours, Wage, TimeLog, Project, Client,
+                                 UserProfile, ClientHandles, ExternalId,
+                                 ExternalSource, Dump, CommercialDocumentBase)
 
 from eff_site.eff.utils import overtime_period, previous_week, week, month
 from eff_site.eff.utils import period, validate_header, _date_fmts
 from eff_site.eff.utils import Data, DataTotal, load_dump
 
-from eff_site.eff.forms import EffQueryForm, UserProfileForm
-from eff_site.eff.forms import ClientUserProfileForm
-from eff_site.eff.forms import UsersChangeProfileForm, UserPassChangeForm
-from eff_site.eff.forms import UserAddForm, ClientReportForm, DumpUploadForm
-from eff_site.eff.forms import WageModelForm, AvgHoursModelForm
+from eff_site.eff.forms import (EffQueryForm, UserProfileForm,
+                                ClientUserProfileForm, UsersChangeProfileForm,
+                                UserPassChangeForm, UserAddForm,
+                                ClientReportForm, DumpUploadForm, WageModelForm,
+                                AvgHoursModelForm)
 
 from django.forms.models import inlineformset_factory
+from django.db.models import Min
 
 cur_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -199,6 +200,15 @@ def __enough_perms_or_follows(view_fun):
 def __not_a_client(u):
     up = u.get_profile()
     return not up.is_client()
+
+
+def __is_client(u):
+    up = u.get_profile()
+    return up.is_client()
+
+
+def __enough_perms_or_client(u):
+    return (__enough_perms(u) or __is_client(u))
 
 
 def chart_values(username_list, from_date, to_date, request_user):
@@ -413,7 +423,7 @@ def update_hours(request, username):
 
 
 @login_required
-@user_passes_test(lambda u: not __not_a_client(u), login_url='/accounts/login/')
+@user_passes_test(lambda u: __is_client(u), login_url='/accounts/login/')
 def eff_client_home(request):
     """
     Manages client home page
@@ -423,7 +433,7 @@ def eff_client_home(request):
 
 
 @login_required
-@user_passes_test(lambda u: not __not_a_client(u), login_url='/accounts/login/')
+@user_passes_test(lambda u: __is_client(u), login_url='/accounts/login/')
 def eff_client_projects(request):
     """
     Renders a list of projects for a client.
@@ -436,6 +446,107 @@ def eff_client_projects(request):
     context['projects'] = client.company.project_set.all()
 
     return render_to_response('client_projects.html', context)
+
+
+@login_required
+@user_passes_test(lambda u: __enough_perms_or_client(u), login_url='/accounts/login/')
+def eff_client_summary_period(request):
+    """
+    Renders a period selection to get a client's account summary
+    """
+    context = __get_context(request)
+
+    if 'period' in request.GET:
+        if request.GET['period'] == 'current_month':
+            from_date, to_date = month(date.today())
+        elif request.GET['period'] == 'last_month':
+            from_date, to_date = month(
+                month(date.today())[0] - timedelta(days=1))
+    else:
+        if 'from_date' in request.GET and 'to_date' in request.GET:
+            from_date = __aux_mk_time(request.GET['from_date'])
+            to_date = __aux_mk_time(request.GET['to_date'])
+        else:
+            # By default: [first date, today] or current week
+            docs = CommercialDocumentBase.objects.all()
+            if docs:
+                fdate = docs.aggregate(oldest=Min('date'))
+                from_date = fdate['oldest']
+                to_date = date.today()
+            else:
+                from_date, to_date = week(date.today())
+
+    initial = {'from_date': from_date.strftime("%Y-%m-%d"),
+               'to_date': to_date.strftime("%Y-%m-%d")}
+
+    context['title'] = "Resúmen de cuenta"
+
+    user = request.user
+    if user.has_perm('eff.view_billable') and user.has_perm('eff.view_wage'):
+        client_summary_form = ClientReportForm(initial=initial)
+    else:
+        client_summary_form = EffQueryForm(initial=initial)
+
+    context['form'] = client_summary_form
+    if request.method == 'POST':
+        client_summary_form = ClientReportForm(request.POST)
+        context['form'] = client_summary_form
+        if client_summary_form.is_valid():
+            from_date = client_summary_form.cleaned_data['from_date']
+            to_date = client_summary_form.cleaned_data['to_date']
+            dates = '?from_date=%s&to_date=%s' % (from_date, to_date)
+            if (user.has_perm('eff.view_billable') and
+                user.has_perm('eff.view_wage')):
+                company = client_summary_form.cleaned_data['client']
+                redirect_to = ("/efi/administration/client_summary/%s/" %
+                               company.slug)
+                redirect_to += dates
+            else:
+                redirect_to = "/clients/account_summary/" + dates
+
+            if MONTHLY_FLAG in request.GET:
+                redirect_to += '&%s=%s' % (MONTHLY_FLAG,
+                                           request.GET[MONTHLY_FLAG])
+
+            return HttpResponseRedirect(redirect_to)
+
+    return render_to_response('admin_reportes_cliente.html', context)
+
+
+@login_required
+@user_passes_test(lambda u: __enough_perms_or_client(u), login_url='/accounts/login/')
+def eff_client_summary(request, company_slug=None):
+    """
+    Renders a client's account summary.
+    """
+    user = request.user
+    context = __process_dates(request)
+    from_date = context['from_date']
+    to_date = context['to_date']
+
+    # Get the company related to this client or the company selected by admin
+    if user.has_perm('eff.view_billable') and user.has_perm('eff.view_wage'):
+        company = get_object_or_404(Client, slug=company_slug)
+    else:
+        client = request.user.get_profile()
+        context['clientname'] = client.name
+        company = client.company
+
+    # Generate data related to company account summary in this period
+    rows, in_total, out_total, total = company.summary(from_date, to_date)
+    context['account_summary'] = rows
+    context['in_total'] = in_total
+    context['out_total'] = out_total
+    context['total'] = total
+    context['companyname'] = company.name
+
+    # Set stuff related to date navegation
+    if MONTHLY_FLAG in request.GET:
+        context[MONTHLY_FLAG] = request.GET[MONTHLY_FLAG]
+
+    context['navs'] = [('prev', 'previo', '«'), ('next', 'siguiente', '»')]
+
+    return render_to_response('client_summary.html', context)
 
 
 @login_required

@@ -31,7 +31,8 @@ from eff_site.eff.views import (update_hours, eff, eff_check_perms,
     UserProfileForm, eff_last_month, eff_admin_add_user,
     eff_admin_change_profile, profile_detail, eff_dump_csv_upload,
     eff_fixed_price_client_reports, eff_admin_users_association, eff_home,
-    eff_client_home, index, eff_client_projects)
+    eff_client_home, index, eff_client_projects, eff_client_summary,
+    eff_client_summary_period)
 
 from os.path import join
 
@@ -47,6 +48,10 @@ urlpatterns = patterns('',
     url(r'^$', index, name='root'),
     url(r'^clients/home/$', eff_client_home, name='clients_home'),
     url(r'^clients/projects/$', eff_client_projects, name='clients_projects'),
+    url(r'^clients/summary/period/$', eff_client_summary_period,
+        name='client_summary_period'),
+    url(r'^clients/summary/$', eff_client_summary,
+        name='client_summary'),
     # django-profiles
     url(r'^accounts/login/$', login, {'template_name': 'login.html'},
         name='login'),
@@ -137,5 +142,11 @@ urlpatterns = patterns('',
         name='eff_client_report'),
     url(r'^efi/administration/users_association/$',
         eff_admin_users_association, name='eff_admin_users_association'),
+    url(r'^efi/administration/client_summary/$',
+        eff_client_summary_period,
+        name='eff_client_summary_period'),
+    url(r'^efi/administration/client_summary/([-\w]+)/$',
+        eff_client_summary,
+        name='eff_client_summary'),
     url(r'^admin/', include(admin.site.urls)),
 )

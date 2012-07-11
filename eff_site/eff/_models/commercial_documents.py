@@ -17,6 +17,8 @@
 
 from django.db import models
 from customfields import MoneyField
+from model_utils.managers import InheritanceManager
+from decimal import Decimal
 
 
 class CommercialDocumentBase(models.Model):
@@ -25,12 +27,23 @@ class CommercialDocumentBase(models.Model):
     date = models.DateField()
     concept = models.TextField()
 
+    objects = InheritanceManager()
+
     class Meta:
         app_label = 'eff'
         ordering = ['client', '-date']
 
     def __unicode__(self):
-        return u'%s, -%s, %s' % (self.client, self.amount, self.date)
+        return u'%s, %s, %s' % (self.client, self.amount, self.date)
+
+    def get_data_for_summary(self):
+        data = {'date': self.date,
+                'concept': self.concept,
+                'income': Decimal('0.00'),
+                'outcome': self.amount,
+                'subtotal': -self.amount,
+                'extra': []}
+        return data
 
 
 class Billing(CommercialDocumentBase):
@@ -41,8 +54,20 @@ class Billing(CommercialDocumentBase):
         app_label = 'eff'
         ordering = ['client', '-date']
 
-    def __unicode__(self):
-        return u'%s, %s, %s' % (self.client, self.amount, self.date)
+    def get_data_for_summary(self):
+        extra = []
+        if self.expire_date:
+            extra.append('Fecha de vencimiento: %s' % self.expire_date)
+        if self.payment_date:
+            extra.append('Fecha de pago: %s' % self.payment_date)
+
+        data = super(Billing, self).get_data_for_summary()
+        data['income'] = self.amount
+        data['outcome'] = Decimal('0.00')
+        data['subtotal'] = self.amount
+        data['extra'] = extra
+
+        return data
 
 
 class CreditNote(CommercialDocumentBase):
@@ -68,3 +93,9 @@ class Payment(CommercialDocumentBase):
     class Meta:
         app_label = 'eff'
         ordering = ['client', '-date']
+
+    def get_data_for_summary(self):
+        data = super(Payment, self).get_data_for_summary()
+        data['extra'] = ['Estado: %s' % self.status]
+
+        return data
