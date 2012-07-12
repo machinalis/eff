@@ -92,24 +92,24 @@ class HelperTest(TestCase):
 
 class ClientProjectsTest(HelperTest):
     def test_projects_view_works(self):
-        response = self.test_client.get(reverse('clients_projects'))
+        response = self.test_client.get(reverse('client_projects'))
         self.assertEqual(response.status_code, 200)
 
     def test_not_billiable_projects_not_shown(self):
-        response = self.test_client.get(reverse('clients_projects'))
+        response = self.test_client.get(reverse('client_projects'))
         query = PyQuery(response.content)
         query = query('table#queryTable td.name').text()
         self.assertNotIn('FakeProject3', set(query.split()))
 
     def test_all_billiable_projects_shown(self):
-        response = self.test_client.get(reverse('clients_projects'))
+        response = self.test_client.get(reverse('client_projects'))
         query = PyQuery(response.content)
         query = query('table#queryTable td.name').text()
         self.assertEqual(set(('FakeProject1', 'FakeProject2')),
                          set(query.split()))
 
     def test_members_for_each_project_shown(self):
-        response = self.test_client.get(reverse('clients_projects'))
+        response = self.test_client.get(reverse('client_projects'))
         query = PyQuery(response.content)
         members = query('table#queryTable td.members').text()
         names = map(lambda i: 'test' + str(i), range(5))
@@ -117,7 +117,7 @@ class ClientProjectsTest(HelperTest):
         self.assertEqual(s_members, set(members.split(' | ')))
 
     def test_billing_types_for_each_project_shown(self):
-        response = self.test_client.get(reverse('clients_projects'))
+        response = self.test_client.get(reverse('client_projects'))
         query = PyQuery(response.content)
         query = query('table#queryTable td.type').text()
         self.assertEqual(set(('HOUR', 'FIXED')), set(query.split()))
@@ -128,7 +128,7 @@ class ClientProjectsTest(HelperTest):
         ClientProfileFactory(user=u_client, company=company)
         self.test_client.login(username=u_client.username,
                                password=u_client.username)
-        response = self.test_client.get(reverse('clients_projects'))
+        response = self.test_client.get(reverse('client_projects'))
         query = PyQuery(response.content)
         msg = query('div p').text()
         self.assertEqual(msg, 'No projects found')
