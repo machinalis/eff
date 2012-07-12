@@ -11,7 +11,7 @@
         th a.sortheader, h1 a { text-decoration: none }
 
         h1, #wrapper, #footer { text-align: center; }
-        #queryTable, #project-report-table, #detailed-report-table { margin: auto; }
+        #queryTable, #project-report-table, #detailed-report-table, #account-summary-table { margin: auto; }
 
         #wrapper { /*position: relative;*/ min-height: 80% }
         #content { width: 50%; margin: auto; }
@@ -49,6 +49,7 @@
         .report { border: 1px; padding: 5px; }
         .report .descripcion { display: block /* hack */; overflow: auto }
         .report .fecha, .report .horas { text-align: center; width: 10%}
+        .money { text-align: center}
         .sortable { width: 90%; clear: both }
 
         .logged, .loggable, .percent, .billable, .qbill { width: 5em; text-align: right }
@@ -185,8 +186,8 @@
 	  {% endif %}
 
           {% if  user.get_profile.is_client %}
-          <li><a href="{% url clients_projects %}">my projects</a></li>
-          <li><a href="{% url clients_summary_period %}">account summary</a></li>
+          <li><a href="{% url client_projects %}">my projects</a></li>
+          <li><a href="{% url client_summary_period %}">account summary</a></li>
           {% endif %}
 
           <li><a href="{% url logout %}">logout</a></li>

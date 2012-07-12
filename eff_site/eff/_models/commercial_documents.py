@@ -42,7 +42,7 @@ class CommercialDocumentBase(models.Model):
                 'income': Decimal('0.00'),
                 'outcome': self.amount,
                 'subtotal': -self.amount,
-                'extra': []}
+                'extra': {}}
         return data
 
 
@@ -55,11 +55,11 @@ class Billing(CommercialDocumentBase):
         ordering = ['client', '-date']
 
     def get_data_for_summary(self):
-        extra = []
+        extra = {}
         if self.expire_date:
-            extra.append('Fecha de vencimiento: %s' % self.expire_date)
+            extra['Fecha de vencimiento'] = self.expire_date
         if self.payment_date:
-            extra.append('Fecha de pago: %s' % self.payment_date)
+            extra['Fecha de pago'] = self.payment_date
 
         data = super(Billing, self).get_data_for_summary()
         data['income'] = self.amount
@@ -95,7 +95,9 @@ class Payment(CommercialDocumentBase):
         ordering = ['client', '-date']
 
     def get_data_for_summary(self):
+        extra = {}
         data = super(Payment, self).get_data_for_summary()
-        data['extra'] = ['Estado: %s' % self.status]
+        extra['Estado'] = self.status
+        data['extra'] = extra
 
         return data

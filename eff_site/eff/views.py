@@ -483,13 +483,17 @@ def eff_client_summary_period(request):
 
     user = request.user
     if user.has_perm('eff.view_billable') and user.has_perm('eff.view_wage'):
-        client_summary_form = ClientReportForm(initial=initial)
+        _Form = ClientReportForm
+        #client_summary_form = ClientReportForm(initial=initial)
     else:
-        client_summary_form = EffQueryForm(initial=initial)
+        _Form = EffQueryForm
+        #client_summary_form = EffQueryForm(initial=initial)
+
+    client_summary_form = _Form(initial=initial)
 
     context['form'] = client_summary_form
     if request.method == 'POST':
-        client_summary_form = ClientReportForm(request.POST)
+        client_summary_form = _Form(request.POST)
         context['form'] = client_summary_form
         if client_summary_form.is_valid():
             from_date = client_summary_form.cleaned_data['from_date']
@@ -499,10 +503,9 @@ def eff_client_summary_period(request):
                 user.has_perm('eff.view_wage')):
                 company = client_summary_form.cleaned_data['client']
                 redirect_to = ("/efi/administration/client_summary/%s/" %
-                               company.slug)
-                redirect_to += dates
+                               company.slug) + dates
             else:
-                redirect_to = "/clients/account_summary/" + dates
+                redirect_to = "/clients/summary/" + dates
 
             if MONTHLY_FLAG in request.GET:
                 redirect_to += '&%s=%s' % (MONTHLY_FLAG,
@@ -529,7 +532,7 @@ def eff_client_summary(request, company_slug=None):
         company = get_object_or_404(Client, slug=company_slug)
     else:
         client = request.user.get_profile()
-        context['clientname'] = client.name
+        context['clientname'] = client.user.get_full_name()
         company = client.company
 
     # Generate data related to company account summary in this period
@@ -615,13 +618,11 @@ def eff_horas_extras(request):
 
 
 @login_required
-@user_passes_test(__not_a_client)
 def eff_next(request):
     return __process_period(request, is_prev=False)
 
 
 @login_required
-@user_passes_test(__not_a_client)
 def eff_prev(request):
     return __process_period(request, is_prev=True)
 

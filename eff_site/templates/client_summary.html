@@ -47,56 +47,55 @@
             <p><b>Resúmen de cuenta</b><br/><small>(ordenados por fecha)</small></p>
         </div>
 	<br />
-        <div id="account_summary">
+        <div id="account-summary">
 
 	{% if account_summary %}
-        <table class="sortable summary" id="account-summary-table" preserve_style="row">
+
+        <table class="sortable report" id="account-summary-table" preserve_style="row">
             <thead>
                 <tr>
-                    <th class="date"> <abbr title="Fecha">Fecha</abbr> </th>
-                    <th class="description"> <abbr title="Concepto">Concepto</abbr> </th>
-                    <th class="money"> <abbr title="Ingreso">Ingreso</abbr> </th>
-                    <th class="money"> <abbr title="Egreso">Egreso</abbr> </th>
+                    <th class="fecha"> <abbr title="Fecha">Fecha</abbr> </th>
+                    <th class="descripcion"> <abbr title="Concepto">Concepto</abbr> </th>
+                    <th class="money"> <abbr title="Ingreso">+</abbr> </th>
+                    <th class="money"> <abbr title="Egreso">-</abbr> </th>
                     <th class="money"> <abbr title="Subtotal">Subtotal</abbr> </th>
                 </tr>
             </thead>
             <tbody>
 	      {% for row in account_summary %}
                 <tr class="dark_table_row even">
-                    <td class="date">{{ row.date }}<br/>
-
-		      <div id="{{ companyname|slugify }}-doc-{{ row.doc.id }}" style="display: none;">
-
-			<table class="sortable summary" id="account-summary-table">
-			  <thead>
-			    <tr class="bright_table_row odd">
-			      <th class="horas"> <abbr title="Extra">Extra</abbr> </th>
-			    </tr>
-			  </thead>
-			  <tbody>
-			    {% for extra in row.extra %}
-			    <tr class="bright_table_row odd">
-			      <td style="vertical-align:top; padding:0.4em;">{{ extra }}</td>
-			    </tr>
-			    {% endfor %}
-			  </tbody>
-			</table>
-		      </div>
-
+                    <td class="fecha" valign="top">{{ row.date }}<br/>
 		    </td>
-                    <td class="description" valign="top">{{ row.concept }}
+                    <td class="descripcion">{{ row.concept }}
+		    </td>
+                    <td class="money" valign="top"> {% ifnotequal row.income 0 %}{{ row.income }}{% endifnotequal %}
+                    </td>
+                    <td class="money" valign="top"> {% ifnotequal row.outcome 0 %}{{ row.outcome }}{% endifnotequal %}
+                    </td>
+                    <td class="money" valign="top"> {{ row.subtotal }}
 		      <div id="{{ companyname|slugify }}-doc-{{ row.doc.id }}-arrow" class="collapse-small" onclick="toggle_visibility_small('{{ companyname|slugify }}-doc-{{ row.doc.id }}')"></div>
-		    </td>
+                    </td>
+                    <tr class="bright_table_row odd">
+                      <td colspan="5">
+
+                        <div id="{{ companyname|slugify }}-doc-{{ row.doc.id }}" style="display: none;">
+                          {% for title, value in row.extra.items %}
+                          <p><b>{{ title }}:</b> {{ value }}</p>
+                          {% endfor %}
+                        </div>
+
+                      </td>
+                    </tr>
                 </tr>
               {% endfor %}
             </tbody>
             <tfoot>
                 <tr>
-                    <td> </td>
-                    <td> <b>Totales:</b> </td>
-                    <td> {{ in_total }} </td>
-                    <td> {{ out_total }} </td>
-                    <td> {{ total }} </td>
+                    <td class="total"></td>
+                    <td class="total"></td>
+                    <td class="total good"> {{ in_total }} </td>
+                    <td class="total good"> {{ out_total }} </td>
+                    <td class="total {% if total < 0 %}bad{% else %}good{% endif %}"> {{ total }} </td>
                 </tr>
             </tfoot>
         </table>

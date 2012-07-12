@@ -46,8 +46,8 @@ images_dir = join(CURRENT_ABS_DIR, 'templates/images/')
 
 urlpatterns = patterns('',
     url(r'^$', index, name='root'),
-    url(r'^clients/home/$', eff_client_home, name='clients_home'),
-    url(r'^clients/projects/$', eff_client_projects, name='clients_projects'),
+    url(r'^clients/home/$', eff_client_home, name='client_home'),
+    url(r'^clients/projects/$', eff_client_projects, name='client_projects'),
     url(r'^clients/summary/period/$', eff_client_summary_period,
         name='client_summary_period'),
     url(r'^clients/summary/$', eff_client_summary,
