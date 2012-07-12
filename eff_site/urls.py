@@ -31,7 +31,7 @@ from eff_site.eff.views import (update_hours, eff, eff_check_perms,
     UserProfileForm, eff_last_month, eff_admin_add_user,
     eff_admin_change_profile, profile_detail, eff_dump_csv_upload,
     eff_fixed_price_client_reports, eff_admin_users_association, eff_home,
-    eff_client_home, index, eff_client_projects)
+    eff_client_home, index, eff_client_projects, prueba)
 
 from os.path import join
 
@@ -138,4 +138,5 @@ urlpatterns = patterns('',
     url(r'^efi/administration/users_association/$',
         eff_admin_users_association, name='eff_admin_users_association'),
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^comments/', include('django.contrib.comments.urls')),
 )
