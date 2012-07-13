@@ -1,10 +1,21 @@
-<dl id="comments">
+<table class="report" clear="both" width="90%" id="comments_{{ row.doc.id }}" preserve_style="row" style="table-layout:fixed">
+  <thead>
+    <tr class="brigth_table_row odd">
+      <th>COMENTARIOS</th>
+    </tr>
+  </thead>
+  <tbody>
   {% for comment in comment_list %}
-    <dt id="c{{ comment.id }}">
-        {{ comment.submit_date }} - {{ comment.name }}
-    </dt>
-    <dd>
-        <p>{{ comment.comment }}</p>
-    </dd>
+  <tr class="dark_table_row odd">
+    <td style="text-align:left; padding:0.4em" width="100%">
+      <div class="comment_{{ comment.id }}" style="width:100%; word-wrap: break-word">
+        <p align="left">{{ comment.comment }}</p>
+        <p align="right">
+          (from <a href="javascript:alert('{{ comment.email }}')">{{ comment.user }}</a> - {{ comment.submit_date|timesince }} ago)
+        </p>
+      </div>
+    </td>
+  </tr>
   {% endfor %}
-</dl>
+  </tbody>
+</table>

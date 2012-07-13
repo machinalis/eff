@@ -1,8 +1,8 @@
-{% load comments %}
+{% load comments i18n %}
 <script type="text/javascript" charset="utf-8">
 function bindPostCommentHandler() {
     $('.comment_form form input.submit-preview').remove();
-    $('.comment_form form').submit(function() {
+    $('.comment_form form').submit(function f() {
         this_form = $(this);
         $.ajax({
             type: "POST",
@@ -21,7 +21,7 @@ function bindPostCommentHandler() {
         return false;
     });
 }
- 
+
 $(document).ready(function() {
     bindPostCommentHandler();
 });

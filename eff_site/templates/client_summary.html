@@ -63,30 +63,42 @@
             </thead>
             <tbody>
 	      {% for row in account_summary %}
-                <tr class="dark_table_row even">
-                    <td class="fecha" valign="top">{{ row.date }}<br/>
-		    </td>
-                    <td class="descripcion">{{ row.concept }}
-		    </td>
-                    <td class="money" valign="top"> {% ifnotequal row.income 0 %}{{ row.income }}{% endifnotequal %}
-                    </td>
-                    <td class="money" valign="top"> {% ifnotequal row.outcome 0 %}{{ row.outcome }}{% endifnotequal %}
-                    </td>
-                    <td class="money" valign="top"> {{ row.subtotal }}
-		      <div id="{{ companyname|slugify }}-doc-{{ row.doc.id }}-arrow" class="collapse-small" onclick="toggle_visibility_small('{{ companyname|slugify }}-doc-{{ row.doc.id }}')"></div>
-                    </td>
-                    <tr class="bright_table_row odd">
-                      <td colspan="5">
-
-                        <div id="{{ companyname|slugify }}-doc-{{ row.doc.id }}" style="display: none;">
-                          {% for title, value in row.extra.items %}
-                          <p><b>{{ title }}:</b> {{ value }}</p>
-                          {% endfor %}
-                        </div>
-
-                      </td>
-                    </tr>
-                </tr>
+              <tr class="dark_table_row even">
+                <td class="fecha" valign="top">{{ row.date }}<br/>
+                </td>
+                <td class="descripcion">{{ row.concept }}
+                </td>
+                <td class="money" valign="top"> {% ifnotequal row.income 0 %}{{ row.income }}{% endifnotequal %}
+                </td>
+                <td class="money" valign="top"> {% ifnotequal row.outcome 0 %}{{ row.outcome }}{% endifnotequal %}
+                </td>
+                <td class="money" valign="top"> {{ row.subtotal }}
+                <div id="{{ companyname|slugify }}-doc-{{ row.doc.id }}-arrow" class="collapse-small" onclick="toggle_visibility_small('extra-{{ companyname|slugify }}-doc-{{ row.doc.id }}')&toggle_visibility_small('comments-{{ companyname|slugify }}-doc-{{ row.doc.id }}')"></div>
+                </td>
+              </tr>
+              <tr class="bright_table_row odd">
+                <td colspan="5">
+                    
+                  <div id="extra-{{ companyname|slugify }}-doc-{{ row.doc.id }}" style="display: none;">
+                    {% for title, value in row.extra.items %}
+                    <p style="text-align: center"><b>{{ title }}:</b> {{ value }}</p>
+                    {% endfor %}
+                  </div>
+                  
+                </td>
+              </tr>
+              <tr class="bright_table_row odd">
+                <td colspan="5">
+                  <div id="comments-{{ companyname|slugify }}-doc-{{ row.doc.id }}" style="display: none" align="center">
+                    {% include 'comments/ajax_post_comment_handler.html' %}
+                    {% load comments i18n %}
+                    {% render_comment_list for row.doc %}
+                    {% get_comment_form for row.doc as form %}
+                    {% get_comment_count for row.doc as comment_count %}
+                    {% render_comment_form for row.doc %}
+                  </div>
+                </td>
+              </tr>
               {% endfor %}
             </tbody>
             <tfoot>

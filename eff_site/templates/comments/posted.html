@@ -1,0 +1,19 @@
+{% extends "comments/base.html" %}
+{% load comments i18n %}
+
+{% block title %}{% trans "Thanks for commenting" %}.{% endblock %}
+
+{% block content %}
+  <script type="text/javascript" charset="utf-8">
+    function addLastComment() {
+        html = '<tr class="dark_table_row odd"><td style="text-align:left; padding:0.4em" width="100%">' + 
+            '<div class="comment_{{ comment.id }}" style="width:100%; word-wrap: break-word; display: none"><p align="left">{{ comment.comment }}</p>' +
+            '<p align="right">(from <a href="javascript:alert(' + "'{{ comment.email }}'" +
+            ')">{{ comment.user }}</a> - {{ comment.submit_date|timesince }} ago) </p></div></td></tr>';
+  $('table#comments_{{ comment.object_pk }}').append(html);
+        $('.comment_{{ comment.id }}').fadeIn();
+    }
+    addLastComment();
+  </script>
+  {% render_comment_form for comment.content_object %}
+{% endblock %}
