@@ -286,16 +286,6 @@ class ClientPermissionsTest(HelperTest):
         self.assertRedirects(response,
                              'accounts/login/?next=/efi/horasextras/')
 
-    def test_client_cant_access_eff_next(self):
-        response = self.get_response('eff_next')
-        self.assertRedirects(response,
-                             'accounts/login/?next=/efi/next/')
-
-    def test_client_cant_access_eff_prev(self):
-        response = self.get_response('eff_prev')
-        self.assertRedirects(response,
-                             'accounts/login/?next=/efi/prev/')
-
     def test_client_cant_access_eff_chart(self):
         response = self.get_response('eff_chart', args=['client'])
         self.assertRedirects(response,
