@@ -1,8 +1,17 @@
 {% load comments i18n %}
 <script type="text/javascript" charset="utf-8">
-function bindPostCommentHandler() {
-    $('.comment_form form input.submit-preview').remove();
-    $('.comment_form form').submit(function f() {
+
+function addLastComment() {
+    html = '<tr class="dark_table_row odd"><td style="text-align:left; padding:0.4em" width="100%">' + 
+        '<div class="comment_{{ comment.id }}" style="width:100%; word-wrap: break-word; display: none"><p align="left">{{ comment.comment }}</p>' +
+        '<p align="right">(from <a href="javascript:alert(' + "'{{ comment.email }}'" +
+        ')">{{ comment.user }}</a> - {{ comment.submit_date|timesince }} ago) </p></div></td></tr>';
+    $('table#comments_{{ comment.object_pk }}').append(html);
+    $('.comment_{{ comment.id }}').fadeIn();
+}
+
+function bindPostCommentHandler(fid) {
+    $('#comment_form_' + fid).submit(function f() {
         this_form = $(this);
         $.ajax({
             type: "POST",
@@ -11,8 +20,14 @@ function bindPostCommentHandler() {
             cache: false,
             dataType: "html",
             success: function(html, textStatus) {
-                this_form.replaceWith(html);
-                bindPostCommentHandler();
+                var comment = this_form[0].comment;
+                if (comment.value != '') {
+                    $('#comments_' + fid).replaceWith(html);
+                    this_form.replaceWith('');
+                }
+                else {
+                    this_form.replaceWith(html);
+                }
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
                 this_form.replaceWith('Your comment was unable to be posted at this time.  We apologise for the inconvenience.');
@@ -22,7 +37,32 @@ function bindPostCommentHandler() {
     });
 }
 
-$(document).ready(function() {
-    bindPostCommentHandler();
-});
+function deleteCommentHandler(cid) {
+    var agree = confirm("Do you want to delete this comment?");
+    
+    if (agree){
+        $('#delete_form_' + cid).submit(function fd() {
+            this_form = $(this);
+            this_url = this_form.attr('action');
+            comment = this_form.parent();
+            $.ajax({
+                type: "POST",
+                data: this_form.serialize(),
+                url: this_url,
+                cache: false,
+                dataType: "html",
+                success: function(html, textStatus) {
+                    comment.parent().replaceWith('');
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    alert(errorThrown);
+                }
+            });
+            return false;
+        });
+    }
+    else
+        return false;
+}
+
 </script>

@@ -1,11 +1,7 @@
-{% extends "comments/base.html" %}
 {% load i18n %}
+{% load comments %}
 
-{% block title %}{% trans "Preview your comment" %}{% endblock %}
-
-{% block content %}
-  {% load comments %}
-  <form action="{% comment_form_target %}" method="post">{% csrf_token %}
+  <form id="comment_form_{{ form.data.object_pk }}" action="{% comment_form_target %}" method="post">{% csrf_token %}
     {% if next %}<div><input type="hidden" name="next" value="{{ next }}" /></div>{% endif %}
     {% if form.errors %}
     <b>{% blocktrans count form.errors|length as counter %}Please correct the error below{% plural %}Please correct the errors below{% endblocktrans %}</b>
@@ -29,8 +25,6 @@
       {% endif %}
     {% endfor %}
     <p class="submit">
-    <input type="submit" name="submit" class="submit-post" value="{% trans "Post new comment" %}" />
-    <input type="submit" name="preview" class="submit-preview" value="{% trans "Preview" %}" />
+    <input type="submit" name="submit" class="submit-post" value="{% trans "Post new comment" %}" onClick="javascript: bindPostCommentHandler({{ form.data.object_pk }})" />
     </p>
   </form>
-{% endblock %}

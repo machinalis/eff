@@ -1,0 +1,12 @@
+      <div class="comment_{{ comment.id }}" style="width:100%; word-wrap: break-word">
+
+        <p align="left">{{ comment.comment }}</p>
+        <p align="right">
+          (from <a href="javascript:alert('{{ comment.email }}')">{{ comment.user }}</a> - {{ comment.submit_date|timesince }} ago)
+        </p>
+
+        <form method="POST" action="{% url comments-delete comment.id %}" id="delete_form_{{ comment.id }}" name="deleteform" >
+          <input type="Submit" name="Delete" value="Delete" onClick="return deleteCommentHandler({{ comment.id }})"/>
+        </form>
+
+      </div>

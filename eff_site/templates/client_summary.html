@@ -92,10 +92,10 @@
                   <div id="comments-{{ companyname|slugify }}-doc-{{ row.doc.id }}" style="display: none" align="center">
                     {% include 'comments/ajax_post_comment_handler.html' %}
                     {% load comments i18n %}
-                    {% render_comment_list for row.doc %}
-                    {% get_comment_form for row.doc as form %}
-                    {% get_comment_count for row.doc as comment_count %}
-                    {% render_comment_form for row.doc %}
+                    {% with row.doc as doc %}
+                    {% render_comment_list for doc %}
+                    {% render_comment_form for doc %}
+                    {% endwith %}
                   </div>
                 </td>
               </tr>
