@@ -541,10 +541,12 @@ def eff_client_summary(request, company_slug=None):
     else:
         order_by = 'date'
 
-    if '-' in order_by:
-        context['order'] = ''
-    else:
-        context['order'] = '-'
+    for order in ['date', 'concept', 'amount']:
+        _order = '-' + order
+        if _order == order_by:
+            context['order_' + order] = order
+        else:
+            context['order_' + order] = _order
 
     # Get the company related to this client or the company selected by admin
     if user.has_perm('eff.view_billable') and user.has_perm('eff.view_wage'):

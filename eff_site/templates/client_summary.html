@@ -9,22 +9,32 @@
             $("#" + id).slideToggle("slow");
             $("#" + id + "-arrow").toggleClass("expand-small");
         }
-        function changeImage(img) {
+        function changeImage(img, ord) {
             lnk = img.parentNode.parentNode;
             var image_path = "/sortable/";
             var image_up = "arrowup.gif";
             var image_down = "arrowdown.gif";
             var image_none = "arrownone.gif";
 
-            var order = '{{ order }}'
-            if (lnk.getAttribute('href').match('order_by=-')) {
-                ARROW = '<img src="'+ image_path + image_up + '" alt="&uarr;"/>';
-                $(img).replaceWith(ARROW);
-            } else {
-                ARROW = '<img src="'+ image_path + image_down + '" alt="&darr;"/>';
-                $(img).replaceWith(ARROW);
-            }
+            var aux = '{{ request.get_full_path }}';
+            var ind = aux.search('order_by=');
 
+            if (ind != -1)
+                aux = aux.slice(ind);
+            else
+                aux = '';
+
+            if (aux.match(ord)) {
+                if (lnk.getAttribute('href').match('order_by=-')) {
+                    ARROW = '<img src="'+ image_path + image_up + '" alt="&uarr;"/>';
+                } else {
+                    ARROW = '<img src="'+ image_path + image_down + '" alt="&darr;"/>';
+                }
+            }
+            else {
+                ARROW = '<img src="'+ image_path + image_none + '" alt="&darr;"/>';
+            }
+            $(img).replaceWith(ARROW);
             return true;
         }
 {% endblock %}
@@ -75,10 +85,10 @@
                 <script type="text/javascript" charset="utf-8">
 
                 </script>
-                <th class="fecha"> <a class="sortheader" href="{{ ordering_url }}{{ order }}date"> <abbr title="Fecha">Fecha</abbr> <span class="sortarrow"><img onMouseOver="changeImage(this);" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
-                <th class="descripcion"> <a class="sortheader" href="{{ ordering_url }}{{ order }}concept"> <abbr title="Concepto">Concepto</abbr> <span class="sortarrow"><img onMouseOver="changeImage(this);" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
-                <th class="money"> <a class="sortheader" href="{{ ordering_url }}{{ order }}amount"> <abbr title="Ingreso">+</abbr> <span class="sortarrow"><img onMouseOver="changeImage(this);" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
-                <th class="money"> <a class="sortheader" href="{{ ordering_url }}{{ order }}amount"> <abbr title="Egreso">-</abbr> <span class="sortarrow"><img onMouseOver="changeImage(this);" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
+                <th class="fecha"> <a class="sortheader" href="{{ ordering_url }}{{ order_date }}"> <abbr title="Fecha">Fecha</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'date');" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
+                <th class="descripcion"> <a class="sortheader" href="{{ ordering_url }}{{ order_concept }}"> <abbr title="Concepto">Concepto</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'concept');" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
+                <th class="money"> <a class="sortheader" href="{{ ordering_url }}{{ order_amount }}"> <abbr title="Ingreso">+</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'amount');" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
+                <th class="money"> <a class="sortheader" href="{{ ordering_url }}{{ order_amount }}"> <abbr title="Egreso">-</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'amount');" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
                 <th class="money"> <abbr title="Subtotal">Subtotal</abbr> </th>
               </tr>
             </thead>
