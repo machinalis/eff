@@ -73,6 +73,16 @@ OVERTIME_FLAG = 'overtime_nav'
 MONTHLY_FLAG = 'monthly_nav'
 
 
+def __get_order_by(order_by):
+    _order_by = 'date'
+    orders = ['date', 'concept', 'amount']
+    orders += map(lambda x: '-' + x, orders)
+    if order_by in orders:
+        _order_by = order_by
+
+    return _order_by
+
+
 def __get_context(request):
     context = RequestContext(request)
     context['hostname'] = request.get_host()
@@ -484,10 +494,8 @@ def eff_client_summary_period(request):
     user = request.user
     if user.has_perm('eff.view_billable') and user.has_perm('eff.view_wage'):
         _Form = ClientReportForm
-        #client_summary_form = ClientReportForm(initial=initial)
     else:
         _Form = EffQueryForm
-        #client_summary_form = EffQueryForm(initial=initial)
 
     client_summary_form = _Form(initial=initial)
 
@@ -527,21 +535,39 @@ def eff_client_summary(request, company_slug=None):
     from_date = context['from_date']
     to_date = context['to_date']
 
+    # Set ordering accordingly, default to date ascending
+    if 'order_by' in request.GET:
+        order_by = __get_order_by(request.GET['order_by'])
+    else:
+        order_by = 'date'
+
+    if '-' in order_by:
+        context['order'] = ''
+    else:
+        context['order'] = '-'
+
     # Get the company related to this client or the company selected by admin
     if user.has_perm('eff.view_billable') and user.has_perm('eff.view_wage'):
         company = get_object_or_404(Client, slug=company_slug)
+        ordering_url = reverse('eff_client_summary', args=[company_slug])
     else:
         client = request.user.get_profile()
         context['clientname'] = client.user.get_full_name()
         company = client.company
+        ordering_url = reverse('client_summary')
+
+    _url = '?from_date=%s&to_date=%s&order_by=' % (from_date, to_date)
+    ordering_url += _url
 
     # Generate data related to company account summary in this period
-    rows, in_total, out_total, total = company.summary(from_date, to_date)
+    rows, in_total, out_total, total = company.summary(from_date, to_date,
+                                                       order_by)
     context['account_summary'] = rows
     context['in_total'] = in_total
     context['out_total'] = out_total
     context['total'] = total
     context['companyname'] = company.name
+    context['ordering_url'] = ordering_url
 
     # Set stuff related to date navegation
     if MONTHLY_FLAG in request.GET:

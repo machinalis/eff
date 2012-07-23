@@ -114,7 +114,6 @@ INSTALLED_APPS = (
     'eff_site.eff',
     'profiles',
     'south',
-    'attachments'
     #'debug_toolbar',
 )
 

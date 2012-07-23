@@ -101,15 +101,15 @@ class Client(models.Model):
 
         return zip(report_by_project, totalHrs)
 
-    def summary(self, from_date, to_date):
+    def summary(self, from_date, to_date, order_by):
         """
         Generates data to report an account summary
         """
-        # Get Billings, Payments and CreditNotes related to this company, sorted
-        # by date (descending).
+        # Get Billings, Payments and CreditNotes related to this company. Order
+        # this by the given order_by parameter
         docs = self.commercialdocumentbase_set.filter(Q(date__gte=from_date),
                                                       Q(date__lte=to_date))
-        docs = docs.order_by('date').select_subclasses()
+        docs = docs.order_by(order_by).select_subclasses()
 
         in_total = 0
         out_total = 0
