@@ -150,4 +150,5 @@ urlpatterns = patterns('',
         name='eff_client_summary'),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^comments/', include('django.contrib.comments.urls')),
+    url(r'^attachments/', include('attachments.urls')),
 )
