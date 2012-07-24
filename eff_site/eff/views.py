@@ -535,19 +535,6 @@ def eff_client_summary(request, company_slug=None):
     from_date = context['from_date']
     to_date = context['to_date']
 
-    # Set ordering accordingly, default to date ascending
-    if 'order_by' in request.GET:
-        order_by = __get_order_by(request.GET['order_by'])
-    else:
-        order_by = 'date'
-
-    for order in ['date', 'concept', 'amount']:
-        _order = '-' + order
-        if _order == order_by:
-            context['order_' + order] = order
-        else:
-            context['order_' + order] = _order
-
     # Get the company related to this client or the company selected by admin
     if user.has_perm('eff.view_billable') and user.has_perm('eff.view_wage'):
         company = get_object_or_404(Client, slug=company_slug)
@@ -561,6 +548,19 @@ def eff_client_summary(request, company_slug=None):
     _url = '?from_date=%s&to_date=%s&order_by=' % (from_date, to_date)
     ordering_url += _url
 
+    # Set ordering accordingly, default to date ascending
+    if 'order_by' in request.GET:
+        order_by = __get_order_by(request.GET['order_by'])
+    else:
+        order_by = 'date'
+
+    for order in ['date', 'concept', 'amount']:
+        _order = '-' + order
+        if _order == order_by:
+            context['order_' + order] = ordering_url + order
+        else:
+            context['order_' + order] = ordering_url + _order
+
     # Generate data related to company account summary in this period
     rows, in_total, out_total, total = company.summary(from_date, to_date,
                                                        order_by)
@@ -569,7 +569,6 @@ def eff_client_summary(request, company_slug=None):
     context['out_total'] = out_total
     context['total'] = total
     context['companyname'] = company.name
-    context['ordering_url'] = ordering_url
 
     # Set stuff related to date navegation
     if MONTHLY_FLAG in request.GET:

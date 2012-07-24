@@ -5,8 +5,15 @@
             $("#" + id).slideToggle("slow");
             $("#" + id + "-arrow").toggleClass("expand");
         }
+        function toggleDisplay(e) {
+            if (e.css('display') == 'none') {
+                e.css('display', 'table-row');}
+            else
+                e.css('display', 'none');
+        }
         function toggle_visibility_small(id) {
-            $("#" + id).slideToggle("slow");
+            toggleDisplay($("#" + 'extra-' + id));
+            toggleDisplay($("#" + 'comments-' + id));
             $("#" + id + "-arrow").toggleClass("expand-small");
         }
         function changeImage(img, ord) {
@@ -20,9 +27,9 @@
             var ind = aux.search('order_by=');
 
             if (ind != -1)
-                aux = aux.slice(ind);
+                aux = aux.slice(ind, ind + 20);
             else
-                aux = '';
+            aux = '';
 
             if (aux.match(ord)) {
                 if (lnk.getAttribute('href').match('order_by=-')) {
@@ -85,10 +92,10 @@
                 <script type="text/javascript" charset="utf-8">
 
                 </script>
-                <th class="fecha"> <a class="sortheader" href="{{ ordering_url }}{{ order_date }}"> <abbr title="Fecha">Fecha</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'date');" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
-                <th class="descripcion"> <a class="sortheader" href="{{ ordering_url }}{{ order_concept }}"> <abbr title="Concepto">Concepto</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'concept');" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
-                <th class="money"> <a class="sortheader" href="{{ ordering_url }}{{ order_amount }}"> <abbr title="Ingreso">+</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'amount');" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
-                <th class="money"> <a class="sortheader" href="{{ ordering_url }}{{ order_amount }}"> <abbr title="Egreso">-</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'amount');" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
+                <th class="fecha"> <a class="sortheader" href="{{ order_date }}"> <abbr title="Fecha">Fecha</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'date');" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
+                <th class="descripcion"> <a class="sortheader" href="{{ order_concept }}"> <abbr title="Concepto">Concepto</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'concept');" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
+                <th class="money"> <a class="sortheader" href="{{ order_amount }}"> <abbr title="Ingreso">+</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'amount');" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
+                <th class="money"> <a class="sortheader" href="{{ order_amount }}"> <abbr title="Egreso">-</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'amount');" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
                 <th class="money"> <abbr title="Subtotal">Subtotal</abbr> </th>
               </tr>
             </thead>
@@ -104,13 +111,14 @@
                 <td class="money" valign="top"> {% ifnotequal row.outcome 0 %}{{ row.outcome }}{% endifnotequal %}
                 </td>
                 <td class="money" valign="top"> {{ row.subtotal }}
-                <div id="{{ companyname|slugify }}-doc-{{ row.doc.id }}-arrow" class="collapse-small" onclick="toggle_visibility_small('extra-{{ companyname|slugify }}-doc-{{ row.doc.id }}')&toggle_visibility_small('comments-{{ companyname|slugify }}-doc-{{ row.doc.id }}')"></div>
+                <div id="{{ companyname|slugify }}-doc-{{ row.doc.id }}-arrow" class="collapse-small" onclick="toggle_visibility_small('{{ companyname|slugify }}-doc-{{ row.doc.id }}')"></div>
                 </td>
               </tr>
-              <tr class="bright_table_row odd">
+              {% if row.extra %}
+              <tr class="bright_table_row odd" id="extra-{{ companyname|slugify }}-doc-{{ row.doc.id }}" style="display: none">
                 <td colspan="5">
                     
-                  <div id="extra-{{ companyname|slugify }}-doc-{{ row.doc.id }}" style="display: none;">
+                  <div>
                     {% for title, value in row.extra.items %}
                     <p style="text-align: center"><b>{{ title }}:</b> {{ value }}</p>
                     {% endfor %}
@@ -118,9 +126,10 @@
                   
                 </td>
               </tr>
-              <tr class="bright_table_row odd">
+              {% endif %}
+              <tr class="bright_table_row odd" id="comments-{{ companyname|slugify }}-doc-{{ row.doc.id }}" style="display: none">
                 <td colspan="5">
-                  <div id="comments-{{ companyname|slugify }}-doc-{{ row.doc.id }}" style="display: none" align="center">
+                  <div align="center" >
                     {% include 'comments/ajax_post_comment_handler.html' %}
                     {% load comments i18n %}
                     {% with row.doc as doc %}
