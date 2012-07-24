@@ -38,6 +38,15 @@ class EffQueryForm(forms.Form):
                               widget=forms.DateInput,
                               label='Hasta')
 
+    def clean_to_date(self):
+        cleaned_data = super(EffQueryForm, self).clean()
+        from_date = cleaned_data.get('from_date')
+        to_date = cleaned_data.get('to_date')
+        if to_date < from_date:
+            raise forms.ValidationError("This date should be greater")
+
+        return to_date
+
 
 class UserProfileForm(ModelForm):
     """ Combines data from UserProfile """

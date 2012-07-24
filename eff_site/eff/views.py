@@ -562,8 +562,8 @@ def eff_client_summary(request, company_slug=None):
             context['order_' + order] = ordering_url + _order
 
     # Generate data related to company account summary in this period
-    rows, in_total, out_total, total = company.summary(from_date, to_date,
-                                                       order_by)
+    rows, in_total, out_total, total = company.get_summary(from_date, to_date,
+                                                           order_by)
     context['account_summary'] = rows
     context['in_total'] = in_total
     context['out_total'] = out_total

@@ -101,7 +101,7 @@ class Client(models.Model):
 
         return zip(report_by_project, totalHrs)
 
-    def summary(self, from_date, to_date, order_by):
+    def get_summary(self, from_date, to_date, order_by='date'):
         """
         Generates data to report an account summary
         """

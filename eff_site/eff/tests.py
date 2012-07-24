@@ -26,7 +26,7 @@ from testing import testUtils
 from testing import testModels
 from testing import (testAdmin, testReports, testUserPassChange,
                      testUserReportsPerms, testUserProfileViews,
-                     testClientProjects)
+                     testClientProjects, testClientSummary)
 
 
 def suite():
@@ -40,4 +40,5 @@ def suite():
     suite.addTest(testUserReportsPerms.suite())
     suite.addTest(testUserProfileViews.suite())
     suite.addTest(testClientProjects.suite())
+    suite.addTest(testClientSummary.suite())
     return suite
