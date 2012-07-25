@@ -96,7 +96,7 @@
                 <th class="descripcion"> <a class="sortheader" href="{{ order_concept }}"> <abbr title="Concepto">Concepto</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'concept');" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
                 <th class="money"> <a class="sortheader" href="{{ order_amount }}"> <abbr title="Ingreso">+</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'amount');" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
                 <th class="money"> <a class="sortheader" href="{{ order_amount }}"> <abbr title="Egreso">-</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'amount');" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
-                <th class="money"> <abbr title="Subtotal">Subtotal</abbr> </th>
+                <th class="subtotal"> <abbr title="Subtotal">Subtotal</abbr> </th>
               </tr>
             </thead>
             <tbody>
@@ -110,7 +110,7 @@
                 </td>
                 <td class="money" valign="top"> {% ifnotequal row.outcome 0 %}{{ row.outcome }}{% endifnotequal %}
                 </td>
-                <td class="money" valign="top"> {{ row.subtotal }}
+                <td class="subtotal" valign="top"> {{ row.subtotal }}
                 <div id="{{ companyname|slugify }}-doc-{{ row.doc.id }}-arrow" class="collapse-small" onclick="toggle_visibility_small('{{ companyname|slugify }}-doc-{{ row.doc.id }}')"></div>
                 </td>
               </tr>

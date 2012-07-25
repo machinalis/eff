@@ -531,6 +531,12 @@ def eff_client_summary(request, company_slug=None):
     Renders a client's account summary.
     """
     user = request.user
+    try:
+        if user.get_profile().is_client() and company_slug:
+            return redirect(reverse('login'))
+    except UserProfile.DoesNotExist:
+        pass
+
     context = __process_dates(request)
     from_date = context['from_date']
     to_date = context['to_date']
