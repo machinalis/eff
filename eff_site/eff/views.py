@@ -466,6 +466,10 @@ def eff_client_summary_period(request):
     """
     context = __get_context(request)
 
+    user = request.user
+    perms = (user.has_perm('eff.view_billable') and
+             user.has_perm('eff.view_wage'))
+
     if 'period' in request.GET:
         if request.GET['period'] == 'current_month':
             from_date, to_date = month(date.today())
@@ -478,7 +482,11 @@ def eff_client_summary_period(request):
             to_date = __aux_mk_time(request.GET['to_date'])
         else:
             # By default: [first date, today] or current week
-            docs = CommercialDocumentBase.objects.all()
+            if perms:
+                docs = CommercialDocumentBase.objects.all()
+            else:
+                docs = CommercialDocumentBase.objects.filter(
+                    client=user.get_profile().company)
             if docs:
                 fdate = docs.aggregate(oldest=Min('date'))
                 from_date = fdate['oldest']
@@ -491,8 +499,7 @@ def eff_client_summary_period(request):
 
     context['title'] = "Resúmen de cuenta"
 
-    user = request.user
-    if user.has_perm('eff.view_billable') and user.has_perm('eff.view_wage'):
+    if perms:
         _Form = ClientReportForm
     else:
         _Form = EffQueryForm
@@ -507,8 +514,7 @@ def eff_client_summary_period(request):
             from_date = client_summary_form.cleaned_data['from_date']
             to_date = client_summary_form.cleaned_data['to_date']
             dates = '?from_date=%s&to_date=%s' % (from_date, to_date)
-            if (user.has_perm('eff.view_billable') and
-                user.has_perm('eff.view_wage')):
+            if perms:
                 company = client_summary_form.cleaned_data['client']
                 redirect_to = ("/efi/administration/client_summary/%s/" %
                                company.slug) + dates
