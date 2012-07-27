@@ -18,7 +18,7 @@
 
 from django import forms
 from django.forms import ModelForm
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import UserCreationForm
 from django.forms.util import ErrorList
 
@@ -250,6 +250,9 @@ class UserAdminForm(UserCreationForm):
             profile = self.instance.get_profile()
             self.fields['is_client'].initial = profile.is_client()
             self.fields['company'].initial = profile.company
+
+            group_attachment = Group.objects.get(name='attachments')
+            self.fields['groups'].initial = group_attachment
         except User.DoesNotExist:
             pass
         except UserProfile.DoesNotExist:
