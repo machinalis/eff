@@ -204,11 +204,11 @@ class ClientPermissionsTest(HelperTest):
         response = self.get_response('logout')
         self.assertEqual(response.status_code, 200)
 
-    def test_client_can_access_clients_home(self):
-        response = self.get_response('clients_home')
+    def test_client_can_access_client_home(self):
+        response = self.get_response('client_home')
         self.assertEqual(response.status_code, 200)
 
-    def test_client_can_access_clients_profiles_detail(self):
+    def test_client_can_access_client_profiles_detail(self):
         response = self.get_response('profiles_detail',
                                  kwargs={'username': 'client'})
         self.assertEqual(response.status_code, 200)
@@ -237,8 +237,8 @@ class ClientPermissionsTest(HelperTest):
         response = self.get_response('password_change_done')
         self.assertEqual(response.status_code, 200)
 
-    def test_client_can_access_eff_clients_projects(self):
-        response = self.get_response('clients_projects')
+    def test_client_can_access_eff_client_projects(self):
+        response = self.get_response('client_projects')
         self.assertEqual(response.status_code, 200)
 
     def test_client_cant_access_checkperms(self):
@@ -285,16 +285,6 @@ class ClientPermissionsTest(HelperTest):
         response = self.get_response('eff_extra_hours')
         self.assertRedirects(response,
                              'accounts/login/?next=/efi/horasextras/')
-
-    def test_client_cant_access_eff_next(self):
-        response = self.get_response('eff_next')
-        self.assertRedirects(response,
-                             'accounts/login/?next=/efi/next/')
-
-    def test_client_cant_access_eff_prev(self):
-        response = self.get_response('eff_prev')
-        self.assertRedirects(response,
-                             'accounts/login/?next=/efi/prev/')
 
     def test_client_cant_access_eff_chart(self):
         response = self.get_response('eff_chart', args=['client'])

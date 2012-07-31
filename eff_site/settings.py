@@ -110,10 +110,18 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.admin',
+    'django.contrib.comments',
     'eff_site.eff',
     'profiles',
     'south',
     #'debug_toolbar',
+)
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.core.context_processors.auth',
+    'django.core.context_processors.i18n',
+    'django.core.context_processors.media',
+    'django.core.context_processors.request',
 )
 
 AUTH_PROFILE_MODULE = 'eff.userprofile'

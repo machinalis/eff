@@ -17,8 +17,9 @@
 
 from django.contrib import admin
 from eff_site.eff.models import Project, Client, ExternalSource, Wage, BillingEmail
-from eff_site.eff.models import AvgHours, Currency, ProjectAssoc, TimeLog
-from eff_site.eff.models import Handle, ClientHandles
+from eff_site.eff.models import (AvgHours, Currency, ProjectAssoc, TimeLog,
+                                 Handle, ClientHandles, Billing, CreditNote,
+                                 Payment, CommercialDocumentBase)
 from _models.user_profile import UserProfile
 from eff_site.eff.forms import UserAdminForm, UserAdminChangeForm
 from django.contrib.auth.models import User
@@ -227,6 +228,45 @@ class HandleAdmin(admin.ModelAdmin):
     list_display = ('protocol',)
 
 
+class CommercialDocumentAdminForm(forms.ModelForm):
+    client = forms.ModelChoiceField(queryset=Client.objects.order_by('name'))
+
+    class Meta:
+        model = CommercialDocumentBase
+
+
+class BillingAdminForm(forms.ModelForm):
+    client = forms.ModelChoiceField(queryset=Client.objects.order_by('name'))
+
+    def __init__(self, *args, **kwargs):
+        super(BillingAdminForm, self).__init__(*args, **kwargs)
+        self.fields['date'].label = 'Send Date'
+
+    class Meta:
+        model = Billing
+
+
+class BillingAdmin(admin.ModelAdmin):
+    list_display = ('client', 'amount', 'date', 'expire_date', 'payment_date',
+                    'concept')
+    search_fields = ('client', 'date', 'concept', 'amount')
+    ordering = ('client',)
+    form = BillingAdminForm
+
+
+class CreditNoteAdmin(admin.ModelAdmin):
+    list_display = ('client', 'amount', 'date', 'concept')
+    search_fields = ('client', 'date', 'concept', 'amount')
+    ordering = ('client',)
+    form = CommercialDocumentAdminForm
+
+
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ('client', 'amount', 'date', 'status', 'concept')
+    search_fields = ('client', 'date', 'concept', 'amount', 'status')
+    form = CommercialDocumentAdminForm
+
+
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 admin.site.register(Project, ProjectAdmin)
@@ -241,3 +281,6 @@ admin.site.register(ExternalId, ExternalIdAdmin)
 admin.site.register(TimeLog, TimeLogAdmin)
 admin.site.register(BillingEmail, BillingEmailAdmin)
 admin.site.register(Handle, HandleAdmin)
+admin.site.register(Billing, BillingAdmin)
+admin.site.register(CreditNote, CreditNoteAdmin)
+admin.site.register(Payment, PaymentAdmin)

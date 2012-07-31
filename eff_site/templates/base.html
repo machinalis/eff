@@ -11,7 +11,7 @@
         th a.sortheader, h1 a { text-decoration: none }
 
         h1, #wrapper, #footer { text-align: center; }
-        #queryTable, #project-report-table, #detailed-report-table { margin: auto; }
+        #queryTable, #project-report-table, #detailed-report-table, #account-summary-table { margin: auto; }
 
         #wrapper { /*position: relative;*/ min-height: 80% }
         #content { width: 50%; margin: auto; }
@@ -25,6 +25,13 @@
         #notice { background: #00e700 }
         #error { background: #e70000 }
         #dialog { background: #00e700 }
+
+        .alignleft {
+	    float: left;
+        }
+        .alignright {
+	    float: right;
+        }
 
         .collapsable { width: 22em; margin: auto; }
         .collapse { background-image: url('/templates/images/collapse.png'); }
@@ -49,7 +56,8 @@
         .report { border: 1px; padding: 5px; }
         .report .descripcion { display: block /* hack */; overflow: auto }
         .report .fecha, .report .horas { text-align: center; width: 10%}
-        .sortable { width: 90%; clear: both }
+        .money, .subtotal { text-align: center}
+        .customsort, .sortable { width: 90%; clear: both }
 
         .logged, .loggable, .percent, .billable, .qbill { width: 5em; text-align: right }
         .name { width: 20em; }
@@ -172,6 +180,7 @@
 
 	  <li> <a href="javascript:void(0)">administration</a>
 	    <ul class="main-menu-ul" style="display: none;">
+	      <li><a href="{% url eff_client_summary_period %}">client summary</a></li>
 	      <li><a href="{% url eff_site.eff.views.eff_client_reports_admin %}">client reports</a></li>
 	      <li><a href="{% url eff_site.eff.views.eff_fixed_price_client_reports %}">fixed price reports</a></li>
 	      <li><a href="{% url eff_site.eff.views.eff_admin_add_user %}">add user</a></li>
@@ -184,7 +193,8 @@
 	  {% endif %}
 
           {% if  user.get_profile.is_client %}
-          <li><a href="{% url clients_projects %}">my projects</a></li>
+          <li><a href="{% url client_projects %}">my projects</a></li>
+          <li><a href="{% url client_summary_period %}">account summary</a></li>
           {% endif %}
 
           <li><a href="{% url logout %}">logout</a></li>

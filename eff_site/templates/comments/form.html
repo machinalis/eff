@@ -1,0 +1,24 @@
+{% load comments i18n %}
+
+{% if user.is_authenticated %}
+  <form id="comment_form_{{ doc.id }}" action="{% comment_form_target %}" method="post" align="center">{% csrf_token %}
+  {% if next %}<div><input type="hidden" name="next" value="{{ next }}" /></div>{% endif %}
+    {% for field in form %}
+      {% if field.is_hidden %}
+      <div>{{ field }}</div>
+      {% else %}
+        {% if field.errors %}<p>{{ field.errors }}</p>{% endif %}
+        <p
+          {% if field.errors %}class="error"{% endif %}
+          {% if field.name in '("honeypot", "name", "email", "url")' %} style="display:none;"{% endif %}>
+          {{ field }}
+        </p>
+      {% endif %}
+    {% endfor %}
+    <p class="submit">
+      <input type="submit" name="post" class="submit-post" value="{% trans "Post new comment" %}" onClick="javascript: bindPostCommentHandler({{ doc.id }})" />
+    </p>
+  </form>
+{% else %}
+    I'm sorry, but you must be <a href="javascript:alert('send to login page')">logged in</a> to submit comments.
+{% endif %}

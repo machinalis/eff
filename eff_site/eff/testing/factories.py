@@ -18,8 +18,9 @@
 
 import factory
 from django.contrib.auth.models import User
-from eff.models import UserProfile, Client, ProjectAssoc, TimeLog, AvgHours
-from eff.models import Project, ExternalSource, Currency, Dump
+from eff.models import (UserProfile, Client, ProjectAssoc, TimeLog, AvgHours,
+                        Project, ExternalSource, Currency, Dump, Billing,
+                        Payment, CreditNote)
 from django.template.defaultfilters import slugify
 
 from decimal import Decimal
@@ -140,3 +141,31 @@ class AvgHoursFactory(factory.Factory):
     date = date.today()
     hours = Decimal('8.000')
     user = factory.SubFactory(UserFactory)
+
+
+class BillingFactory(factory.Factory):
+    FACTORY_FOR = Billing
+
+    client = factory.SubFactory(ClientFactory)
+    amount = Decimal('100.55')
+    date = date.today()
+    concept = factory.Sequence(lambda n: 'Concept %s' % n)
+
+
+class CreditNoteFactory(factory.Factory):
+    FACTORY_FOR = CreditNote
+
+    client = factory.SubFactory(ClientFactory)
+    amount = Decimal('100.55')
+    date = date.today()
+    concept = factory.Sequence(lambda n: 'Concept %s' % n)
+
+
+class PaymentFactory(factory.Factory):
+    FACTORY_FOR = Payment
+
+    client = factory.SubFactory(ClientFactory)
+    amount = Decimal('100.55')
+    date = date.today()
+    concept = factory.Sequence(lambda n: 'Concept %s' % n)
+    status = Payment.NOTIFIED

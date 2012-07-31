@@ -1,0 +1,35 @@
+{% load comments i18n %}
+
+<table id="comments_{{ doc.id }}" class="report" clear="both" width="90%" preserve_style="row" style="table-layout:fixed">
+  <thead>
+    <tr class="brigth_table_row odd">
+      {% if comment_list %}
+      <th>COMENTARIOS</th>
+      {% else %}
+      <th> No hay comentarios </th>
+      {% endif %}
+    </tr>
+  </thead>
+  <tbody>
+  {% for comment in comment_list %}
+  <tr class="dark_table_row odd">
+    <td style="text-align:left; padding:0.4em" width="100%">
+      <div class="comment_{{ comment.id }}" style="width:100%; word-wrap: break-word">
+
+        <p align="left">{{ comment.comment }}</p>
+        <p align="right">
+          (from <a href="javascript:alert('{{ comment.email }}')">{{ comment.user }}</a> - {{ comment.submit_date|timesince }} ago)
+        </p>
+
+        {% if user.is_superuser %}
+        <form method="POST" action="{% url comments-delete comment.id %}" id="delete_form_{{ comment.id }}" name="deleteform" >
+          <input type="Submit" name="Delete" value="Delete" onClick="return deleteCommentHandler({{ comment.id }})"/>
+        </form>
+        {% endif %}
+
+      </div>
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>

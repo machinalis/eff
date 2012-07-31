@@ -38,6 +38,15 @@ class EffQueryForm(forms.Form):
                               widget=forms.DateInput,
                               label='Hasta')
 
+    def clean_to_date(self):
+        cleaned_data = super(EffQueryForm, self).clean()
+        from_date = cleaned_data.get('from_date')
+        to_date = cleaned_data.get('to_date')
+        if to_date < from_date:
+            raise forms.ValidationError("This date should be greater")
+
+        return to_date
+
 
 class UserProfileForm(ModelForm):
     """ Combines data from UserProfile """
@@ -125,7 +134,7 @@ class ClientUserProfileForm(ModelForm):
                   'phone_number')
 
 
-class UsersChangeProfileForm (UserProfileForm):
+class UsersChangeProfileForm(UserProfileForm):
     """ Users profile change  """
     user = forms.ModelChoiceField(queryset=User.objects.all(),
                                   empty_label="----")
@@ -236,7 +245,7 @@ class UserAdminForm(UserCreationForm):
                   'user_permissions',)
 
     def __init__(self, *args, **kwargs):
-        super(UserAdminForm, self).__init__(*args, **kwargs)
+        super(UserCreationForm, self).__init__(*args, **kwargs)
         try:
             profile = self.instance.get_profile()
             self.fields['is_client'].initial = profile.is_client()

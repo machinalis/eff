@@ -18,6 +18,7 @@
 from django.db import models
 from log import TimeLog
 from project import Project
+from django.db.models import Q
 
 
 class Currency(models.Model):
@@ -99,6 +100,32 @@ class Client(models.Model):
                                 report_by_project)
 
         return zip(report_by_project, totalHrs)
+
+    def get_summary(self, from_date, to_date, order_by='date'):
+        """
+        Generates data to report an account summary
+        """
+        # Get Billings, Payments and CreditNotes related to this company. Order
+        # this by the given order_by parameter
+        docs = self.commercialdocumentbase_set.filter(Q(date__gte=from_date),
+                                                      Q(date__lte=to_date))
+        docs = docs.order_by(order_by).select_subclasses()
+
+        in_total = 0
+        out_total = 0
+        total = 0
+        rows = []
+        for doc in docs:
+            row = doc.get_data_for_summary()
+            row['doc'] = doc
+            # Update totals and subtotal
+            in_total += row['income']
+            out_total += row['outcome']
+            total += row['subtotal']
+            row['subtotal'] = total
+            rows.append(row)
+
+        return rows, in_total, out_total, total
 
 
 class BillingEmail(models.Model):

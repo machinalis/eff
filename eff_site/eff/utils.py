@@ -519,7 +519,8 @@ def load_dump(file_obj, date_format=None,
             if create_projects:
                 t_proj = Project.objects.create(name=row[1],
                                                 external_id=row[1],
-                                                client=client)
+                                                client=client,
+                                                start_date=d)
 
                 passoc = ProjectAssoc.objects.filter(project=t_proj,
                     member=user.get_profile())
