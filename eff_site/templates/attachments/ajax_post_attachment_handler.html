@@ -1,0 +1,24 @@
+{% load attachments_tags %}
+<script type="text/javascript" charset="utf-8">
+function bindPostAttachmentHandler2() {
+    $('#att_form_wrapper form').submit(function() {
+        this_form = $(this);
+        alert('hola');
+        $.ajax({
+            type: "POST",
+            data: this_form.serialize(),
+            url: this_form.attr('action'),
+            cache: false,
+            dataType: "html",
+            success: function(html, textStatus) {
+                this_form.replaceWith(html);
+                bindPostAttachmentHandler2();
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                $('#comment_form form').replaceWith('Your comment was unable to be posted at this time.  We apologise for the inconvenience.');
+            }
+        });
+        return false;
+    });
+}
+</script>

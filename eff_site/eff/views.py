@@ -112,7 +112,6 @@ def __process_dates(request):
         else:
             context['from_date'] = from_date
             context['to_date'] = to_date
-
     assert('from_date' in context and 'to_date' in context)
     return context
 

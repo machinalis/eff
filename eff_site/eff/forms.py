@@ -18,7 +18,7 @@
 
 from django import forms
 from django.forms import ModelForm
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import UserCreationForm
 from django.forms.util import ErrorList
 
@@ -302,6 +302,15 @@ class UserAdminForm(UserCreationForm):
         return cleaned_data
 
     def save(self, *args, **kwargs):
+        if self.instance.pk is None:
+            # Add new user to Attachment's group
+            try:
+                group_attachment = Group.objects.get(name='attachments')
+                if group_attachment not in self.cleaned_data['groups']:
+                    self.cleaned_data['groups'].append(group_attachment)
+            except Group.DoesNotExist:
+                pass
+
         kwargs.pop('commit', None)
         user = super(UserCreationForm, self).save(*args, commit=False,
                                                       **kwargs)
@@ -314,6 +323,7 @@ class UserAdminForm(UserCreationForm):
             user.company = self.cleaned_data['company']
             user.is_client = self.cleaned_data['is_client']
         user.save()
+        self.save_m2m(*args, **kwargs)
         return user
 
 
