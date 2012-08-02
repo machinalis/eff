@@ -26,6 +26,7 @@ from django.contrib.auth.models import User
 from _models.dump import Dump
 from eff_site.eff._models.external_source import ExternalId
 from django import forms
+from attachments.admin import AttachmentInlines
 
 
 class TimeLogAdminForm(forms.ModelForm):
@@ -252,6 +253,7 @@ class BillingAdmin(admin.ModelAdmin):
     search_fields = ('client', 'date', 'concept', 'amount')
     ordering = ('client',)
     form = BillingAdminForm
+    inlines = [AttachmentInlines]
 
 
 class CreditNoteAdmin(admin.ModelAdmin):
@@ -259,12 +261,14 @@ class CreditNoteAdmin(admin.ModelAdmin):
     search_fields = ('client', 'date', 'concept', 'amount')
     ordering = ('client',)
     form = CommercialDocumentAdminForm
+    inlines = [AttachmentInlines]
 
 
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ('client', 'amount', 'date', 'status', 'concept')
     search_fields = ('client', 'date', 'concept', 'amount', 'status')
     form = CommercialDocumentAdminForm
+    inlines = [AttachmentInlines]
 
 
 admin.site.unregister(User)

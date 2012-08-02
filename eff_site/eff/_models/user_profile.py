@@ -244,18 +244,6 @@ signals.post_save.connect(
     create_profile_for_user, sender=User,
     dispatch_uid='eff._models.user_profile.create_profile_for_user')
 
-
-def assign_group_to_user(sender, instance, created, *args, **kwargs):
-    try:
-        group_attachment = Group.objects.get(name='attachments')
-        instance.groups.add(group_attachment)
-        print "se asigno el grupo", group_attachment, 'para', instance, 'creado', created
-    except Group.DoesNotExist:
-        print "no existe el grupo"
-
-
-#signals.post_save.connect(assign_group_to_user, sender=User,
-#    dispatch_uid='eff._models.user_profile.assign_group_to_user')
 #-------------------------------------------------------------------------------
 
 

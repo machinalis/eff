@@ -19,6 +19,7 @@ from django.conf.urls.defaults import *
 from django.contrib.auth.views import login, logout
 from django.views.generic.simple import redirect_to
 from django.views.static import serve
+from django.conf import settings
 
 from django.contrib import admin
 admin.autodiscover()
@@ -152,3 +153,10 @@ urlpatterns = patterns('',
     url(r'^comments/', include('django.contrib.comments.urls')),
     url(r'^attachments/', include('attachments.urls')),
 )
+
+if settings.DEBUG:
+    urlpatterns += patterns('',
+        url(r'^attachments/(?P<path>.*)$', 'django.views.static.serve', {
+            'document_root': join(CURRENT_ABS_DIR, 'attachments'),
+        }),
+   )
