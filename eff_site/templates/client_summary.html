@@ -131,8 +131,8 @@
                 <td colspan="5">
                     <div>
                         <!-- Attachemtns -->
-
-                        {% load attachments_tags %}
+                        {% include 'attachments/ajax_attachment_handler.html' %}
+                        {% load attachments_tags_custom %}
                         <p style="text-align: center;"><b>Attachments</b></p>
                         
                         {% get_attachments_for row.doc as "attachments_list" %}
@@ -165,8 +165,8 @@
                         {% else %}
                         <p style="text-align: center">No attachments</p>
                         {% endif %}
-                        <div id="att_form_wrapper" style="margin-top: 15px;">
-                            <p style="text-align: center">{% attachment_form row.doc %}</p>
+                        <div id="attachment_form_wrapper_{{ row.doc.id }}" style="margin-top: 15px;">
+                          <p style="text-align: center">{% attachment_form row.doc %}</p>
                         </div>
                     </div>
                 </td>
@@ -174,7 +174,7 @@
               <tr class="bright_table_row odd" id="comments-{{ companyname|slugify }}-doc-{{ row.doc.id }}" style="display: none">
                 <td colspan="5">
                   <div align="center" >
-                    {% include 'comments/ajax_post_comment_handler.html' %}
+                    {% include 'comments/ajax_comment_handler.html' %}
                     {% load comments i18n %}
                     {% with row.doc as doc %}
                     {% render_comment_list for doc %}
