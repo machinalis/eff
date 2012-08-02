@@ -159,6 +159,8 @@
     </script>
     {% block header %} {% endblock %}
     <title>{% block title %}{{ title|default:"Efficiency"}}{% endblock %}</title>
+    <!-- Extra css -->
+    {% block extracss %}{% endblock extracss %}
   </head>
   <body>
       {% block footer %}

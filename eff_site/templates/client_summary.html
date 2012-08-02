@@ -1,5 +1,17 @@
 {% extends "base.html" %}
 
+<!-- Extra css -->
+{% block extracss %}
+<style type="text/css">
+.dark_table_row {
+    background:#A9A9A9 none repeat scroll 0 0;
+}
+.bright_table_row {
+    background:#E7E7E7 none repeat scroll 0 0;
+}
+</style>
+{% endblock extracss %}
+
 {% block jsscript %}
         function toggle_visibility(id) {
             $("#" + id).slideToggle("slow");
@@ -47,19 +59,7 @@
         }
 {% endblock %}
 
-{% block header %}
-    <style type="text/css">
-    .dark_table_row {
-	background:#A9A9A9 none repeat scroll 0 0;
-    }
-
-    .bright_table_row {
-	background:#E7E7E7 none repeat scroll 0 0;
-    }
-
-    </style>
-
-{% endblock %}
+{% block header %}{% endblock %}
 
 {% block title %}{{ block.super }} Resúmen de cuenta {% endblock %}
 

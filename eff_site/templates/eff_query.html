@@ -2,10 +2,13 @@
 
 {% load workedhours %}
 
-{% block header %}
-    <!-- calendar stylesheet -->
-    <script src="/js/ui.datepicker.js"></script>
-{% endblock %}
+<!-- Extra css -->
+{% block extracss %}
+<!-- calendar stylesheet -->
+<script src="/js/ui.datepicker.js"></script>    
+{% endblock extracss %}
+
+{% block header %}{% endblock %}
 
 {% block jsscript %}
     $(document).ready(function(){

@@ -1,9 +1,14 @@
 {% extends "base.html" %}
 
-{% block style %}
-  tr { background: #e7e7e7 }
-  td { text-align: right }
-{% endblock %}
+<!-- Extra css -->
+{% block extracss %}
+<style type="text/css">
+tr { background: #e7e7e7 }
+td { text-align: right }
+</style>
+{% endblock extracss %}
+
+{% block style %}{% endblock %}
 
 {% block title %}{{ block.super }} -- Profile Details {% endblock %}
 
