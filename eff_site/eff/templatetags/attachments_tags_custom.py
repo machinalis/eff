@@ -3,9 +3,9 @@ from attachments.forms import AttachmentForm
 from attachments.views import add_url_for_obj
 from django.core.urlresolvers import reverse
 from attachments.models import Attachment
+from django.template.loader import render_to_string
 
 register = Library()
-
 
 @register.inclusion_tag('attachments/add_form.html', takes_context=True)
 def attachment_form(context, obj):
@@ -15,16 +15,23 @@ The user must own ``attachments.add_attachment permission`` to add
 attachments.
 """
     if context['user'].has_perm('attachments.add_attachment'):
-        context.update({'form': AttachmentForm(),
-                        'form_url': add_url_for_obj(obj),
-                        'next': context['request'].build_absolute_uri(),
-                        'object_id': obj.id,
-                        })
+        template_context = {
+            'form': AttachmentForm(),
+            'form_url': add_url_for_obj(obj),
+            'next': context['request'].build_absolute_uri(),
+            'object_id': obj.id,
+            }
+        return render_to_string('attachments/add.html', template_context, context)
+        # return {
+        #     'form': AttachmentForm(),
+        #     'form_url': add_url_for_obj(obj),
+        #     'next': context['request'].build_absolute_uri(),
+        #     'object_id': obj.id,
+        # }
     else:
-        context['form'] = None
-
-    return context
-
+        return {
+            'form': None,
+        }
 
 @register.inclusion_tag('attachments/delete_link.html', takes_context=True)
 def attachment_delete_link(context, attachment):
@@ -43,7 +50,8 @@ attachments.
             'next': context['request'].build_absolute_uri(),
             'delete_url': reverse('delete_attachment', kwargs={'attachment_pk': attachment.pk})
         }
-    return {'delete_url': None}
+    return {'delete_url': None,}
+
 
 
 class AttachmentsForObjectNode(Node):
@@ -64,7 +72,6 @@ class AttachmentsForObjectNode(Node):
         context[var_name] = Attachment.objects.attachments_for_object(obj)
         return ''
 
-
 @register.tag
 def get_attachments_for(parser, token):
     """
@@ -84,7 +91,7 @@ Syntax::
 """
     def next_bit_for(bits, key, if_none=None):
         try:
-            return bits[bits.index(key) + 1]
+            return bits[bits.index(key)+1]
         except ValueError:
             return if_none
 

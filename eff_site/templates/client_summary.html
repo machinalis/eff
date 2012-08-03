@@ -131,8 +131,8 @@
                 <td colspan="5">
                     <div>
                         <!-- Attachemtns -->
-                        {% include 'attachments/ajax_attachment_handler.html' %}
-                        {% load attachments_tags_custom %}
+                        {% load attachments_tags %}
+
                         <p style="text-align: center;"><b>Attachments</b></p>
                         
                         {% get_attachments_for row.doc as "attachments_list" %}
@@ -165,9 +165,19 @@
                         {% else %}
                         <p style="text-align: center">No attachments</p>
                         {% endif %}
+
                         <div id="attachment_form_wrapper_{{ row.doc.id }}" style="margin-top: 15px;">
                           <p style="text-align: center">{% attachment_form row.doc %}</p>
                         </div>
+
+                        {% include 'attachments/ajax_attachment_handler.html' %}
+                        <script src="http://malsup.github.com/jquery.form.js"></script> 
+                        <script type="text/javascript" charset="utf-8">
+                          $(document).ready(function() {
+                              bindPostAttachmentHandler({{ row.doc.id }});
+                          });
+                        </script>
+
                     </div>
                 </td>
               </tr>
