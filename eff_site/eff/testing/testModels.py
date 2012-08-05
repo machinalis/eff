@@ -268,7 +268,9 @@ class PageTest(HelperTest):
         url = url[i:]
 
         today = date.today()
-        from_date = today - timedelta(days=today.isoweekday())
+        # last sunday
+        from_date = today - timedelta(days=today.isoweekday() % 7)
+        # next saturday
         to_date = from_date + timedelta(days=6)
         correct_url = "/efi/?from_date=%s&to_date=%s" % (from_date, to_date)
 
