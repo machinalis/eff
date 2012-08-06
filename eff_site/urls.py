@@ -32,7 +32,7 @@ from eff_site.eff.views import (update_hours, eff, eff_check_perms,
     eff_admin_change_profile, profile_detail, eff_dump_csv_upload,
     eff_fixed_price_client_reports, eff_admin_users_association, eff_home,
     eff_client_home, index, eff_client_projects, eff_client_summary,
-    eff_client_summary_period)
+    eff_client_summary_period, add_attachment_custom, delete_attachment_custom)
 
 from os.path import join
 
@@ -142,6 +142,10 @@ urlpatterns = patterns('',
         name='eff_client_summary'),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^comments/', include('django.contrib.comments.urls')),
+    url(r'^attachments/add-for/(?P<app_label>[\w\-]+)/(?P<module_name>[\w\-]+)/(?P<pk>\d+)/$',
+        add_attachment_custom, name="add_attachment_custom"),
+    url(r'^attachments/delete/(?P<attachment_pk>\d+)/$',
+        delete_attachment_custom, name="delete_attachment_custom"),
     url(r'^attachments/', include('attachments.urls')),
 )
 

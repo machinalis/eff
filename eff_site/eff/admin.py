@@ -27,6 +27,15 @@ from _models.dump import Dump
 from eff_site.eff._models.external_source import ExternalId
 from django import forms
 from attachments.admin import AttachmentInlines
+from attachments.models import Attachment
+
+
+class AttachmentAdmin(admin.ModelAdmin):
+    list_display = ('content_type', 'content_object', 'creator',
+                    'attachment_file', 'created', 'modified')
+    ordering = ('modified',)
+    search_fields = ('content_type', 'content_object', 'creator',
+                     'attachment_file', 'created', 'modified')
 
 
 class TimeLogAdminForm(forms.ModelForm):
@@ -288,3 +297,4 @@ admin.site.register(Handle, HandleAdmin)
 admin.site.register(Billing, BillingAdmin)
 admin.site.register(CreditNote, CreditNoteAdmin)
 admin.site.register(Payment, PaymentAdmin)
+admin.site.register(Attachment, AttachmentAdmin)
