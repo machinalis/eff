@@ -20,7 +20,7 @@
 from django.test import TestCase
 from django.test.client import Client
 from pyquery import PyQuery
-from django.contrib.auth.models import User, Permission
+from django.contrib.auth.models import User, Permission, Group
 from django.core.exceptions import ValidationError
 from django.core import mail
 
@@ -268,7 +268,9 @@ class PageTest(HelperTest):
         url = url[i:]
 
         today = date.today()
-        from_date = today - timedelta(days=today.isoweekday())
+        # last sunday
+        from_date = today - timedelta(days=today.isoweekday() % 7)
+        # next saturday
         to_date = from_date + timedelta(days=6)
         correct_url = "/efi/?from_date=%s&to_date=%s" % (from_date, to_date)
 
@@ -491,6 +493,28 @@ class PageTest(HelperTest):
             """
             self._test_prev_next_button('efi/chart/admin/?from_date=2008-03-04'\
                 '&to_date=2008-04-29')
+
+class UserCreationTest(TestCase):
+
+    def setUp(self):
+        self.group_attachment = Group()
+        self.group_attachment.name = 'attachments'
+        self.group_attachment.save()
+
+    def test_group_attachment_added_to_new_user(self):
+        data = {'username': 'test_att',
+                'password1': 'test_att',
+                'password2': 'test_att',
+                'email': 'test_att@test.com',
+                'last_login': datetime.now(),
+                'date_joined': datetime.now()}
+        form = UserAdminForm(data)
+        self.assertTrue(form.is_valid())
+        self.assertIsInstance(form.save(), User)
+        user = User.objects.get(username='test_att')
+        self.assertEqual(self.group_attachment, user.groups.get(
+                         name='attachments'))
+
 
 
 class UserProfileCreationTest(TestCase):
@@ -936,6 +960,7 @@ def suite():
     suite.addTest(makeSuite(QueriesTest))
     suite.addTest(makeSuite(PageTest))
     suite.addTest(makeSuite(UserProfileCreationTest))
+    suite.addTest(makeSuite(UserCreationTest))
     suite.addTest(makeSuite(ActiveTest))
     suite.addTest(makeSuite(ExternalSourceTest))
     suite.addTest(makeSuite(ProjectsTest))

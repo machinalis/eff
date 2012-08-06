@@ -1,113 +1,113 @@
 {% extends "base.html" %}
 
-{% block jsscript %}
-        function toggle_visibility(id) {
-            $("#" + id).slideToggle("slow");
-            $("#" + id + "-arrow").toggleClass("expand");
-        }
-        function toggle_visibility_small(id) {
-            $("#" + id).slideToggle("slow");
-            $("#" + id + "-arrow").toggleClass("expand-small");
-        }
-{% endblock %}
-
-{% block header %}
-    <style type="text/css">
-    .dark_table_row {
-	background:#A9A9A9 none repeat scroll 0 0;
+<!-- Extra js -->
+{% block extrajs %}
+<script type="text/javascript">
+    function toggle_visibility(id) {
+        $("#" + id).slideToggle("slow");
+        $("#" + id + "-arrow").toggleClass("expand");
     }
-
-    .bright_table_row {
-	background:#E7E7E7 none repeat scroll 0 0;
+    function toggle_visibility_small(id) {
+        $("#" + id).slideToggle("slow");
+        $("#" + id + "-arrow").toggleClass("expand-small");
     }
+</script>
+{% endblock extrajs %}
 
-    </style>
+<!-- Extra css -->
+{% block extracss %}
+<style type="text/css">
+.dark_table_row {
+background:#A9A9A9 none repeat scroll 0 0;
+}
 
-{% endblock %}
+.bright_table_row {
+background:#E7E7E7 none repeat scroll 0 0;
+}
+</style>
+{% endblock extracss %}
 
 {% block title %}{{ block.super }} -- Reporte de horas {% endblock %}
 
 {% block content %}
-    <div id="wrapper">
-        <div class="title">
-            {% ifequal from_date to_date  %} <p>Día {{ from_date }}</p>
-            {% else %} <p>Período: {{ from_date }} al {{ to_date }}</p> {% endifequal %}
-            <p>Cliente: {{ clientname }}</p>
-        </div>
-
-	{% if navs %}
-	    {% include 'nav-links.html' %}
-	{% endif %}
-
-        <div class="collapsable">
-            <div id="project-report-arrow" class="collapse" onclick="toggle_visibility('project-report')"></div>
-            <p><b>Reporte de horas logueadas</b><br/><small>(agrupadas por proyecto)</small></p>
-        </div>
-        Export Total Hours Report: <a href="?from_date={{from_date}}&to_date={{to_date}}&export=odt">ODT</a> | <a href="?from_date={{from_date}}&to_date={{to_date}}&export=csv">CSV</a><br />
-        Export Hours Detail Report: <a href="?from_date={{from_date}}&to_date={{to_date}}&export=odt&detailed">ODT</a> | <a href="?from_date={{from_date}}&to_date={{to_date}}&export=csv&detailed">CSV</a>
-	<br />
-        <div id="project-report">
-        {% if report_by_project %}
-
-        {% for project, total_hours in report_by_project %}
-
-	{% if project.0 %}
-        <p style="text-align: left; width:90%; margin:auto;"><b>Proyecto: </b>{{ project.0 }}</p>
-        <table class="sortable report" id="project-report-table" preserve_style="row">
-            <thead>
-                <tr>
-                    <th class="proyecto"> <abbr title="Usuario">Usuario</abbr> </th>
-                    <th class="horas"> <abbr title="Cantidad de horas logueadas">Horas</abbr> </th>
-                </tr>
-            </thead>
-            <tbody>
-	      {% for user_name, user_total_hs, user_hours_log in project.1 %}
-                <tr class="dark_table_row even">
-                    <td class="proyecto">{{ user_name }}<br/>
-
-		      <div id="user-report-{{ user_name }}-{{ project.0|slugify }}" style="display: none;">
-
-			<table class="sortable report" id="project-report-table">
-			  <thead>
-			    <tr class="bright_table_row odd">
-			      <th class="horas"> <abbr title="Fecha">Fecha</abbr> </th>
-			      <th class="proyecto"> <abbr title="Descripcion de la tarea">Descripcion</abbr> </th>
-			      <th class="horas"> <abbr title="Horas">Horas</abbr> </th>
-			    </tr>
-			  </thead>
-			  <tbody>
-			    {% for hours_log in user_hours_log %}
-			    <tr class="bright_table_row odd">
-			      <td style="vertical-align:top; padding:0.4em;">{{ hours_log.0|date:"d/m/Y" }}</td>
-			      <td style="text-align:left; padding:0.4em;">{{ hours_log.1 }}</td>
-			      <td style="vertical-align:top; padding:0.4em;">{{ hours_log.2 }}</td>
-			    </tr>
-			    {% endfor %}
-			  </tbody>
-			</table>
-		      </div>
-
-		    </td>
-                    <td class="horas" valign="top">{{ user_total_hs }}
-		      <div id="user-report-{{ user_name }}-{{ project.0|slugify }}-arrow" class="collapse-small" onclick="toggle_visibility_small('user-report-{{ user_name }}-{{ project.0|slugify }}')"></div>
-		    </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td> </td>
-                    <td> <b>Total:</b> {{ total_hours }} </td>
-                </tr>
-            </tfoot>
-        </table>
-	{% endif %}
-        {% endfor %}
-        {% else %}
-        <p><i>No data available for report grouped by project.</i></p>
-        {% endif %}
-        </div>
-
-        <br /><a href="{% url eff_site.eff.views.eff_client_reports_admin %}"> Volver a Client Reports </a><br />
+    <div class="title">
+        {% ifequal from_date to_date  %} <p>Día {{ from_date }}</p>
+        {% else %} <p>Período: {{ from_date }} al {{ to_date }}</p> {% endifequal %}
+        <p>Cliente: {{ clientname }}</p>
     </div>
+
+{% if navs %}
+    {% include 'nav-links.html' %}
+{% endif %}
+
+    <div class="collapsable">
+        <div id="project-report-arrow" class="collapse" onclick="toggle_visibility('project-report')"></div>
+        <p><b>Reporte de horas logueadas</b><br/><small>(agrupadas por proyecto)</small></p>
+    </div>
+    Export Total Hours Report: <a href="?from_date={{from_date}}&to_date={{to_date}}&export=odt">ODT</a> | <a href="?from_date={{from_date}}&to_date={{to_date}}&export=csv">CSV</a><br />
+    Export Hours Detail Report: <a href="?from_date={{from_date}}&to_date={{to_date}}&export=odt&detailed">ODT</a> | <a href="?from_date={{from_date}}&to_date={{to_date}}&export=csv&detailed">CSV</a>
+<br />
+    <div id="project-report">
+    {% if report_by_project %}
+
+    {% for project, total_hours in report_by_project %}
+
+{% if project.0 %}
+    <p style="text-align: left; width:90%; margin:auto;"><b>Proyecto: </b>{{ project.0 }}</p>
+    <table class="sortable report" id="project-report-table" preserve_style="row">
+        <thead>
+            <tr>
+                <th class="proyecto"> <abbr title="Usuario">Usuario</abbr> </th>
+                <th class="horas"> <abbr title="Cantidad de horas logueadas">Horas</abbr> </th>
+            </tr>
+        </thead>
+        <tbody>
+      {% for user_name, user_total_hs, user_hours_log in project.1 %}
+            <tr class="dark_table_row even">
+                <td class="proyecto">{{ user_name }}<br/>
+
+	      <div id="user-report-{{ user_name }}-{{ project.0|slugify }}" style="display: none;">
+
+		<table class="sortable report" id="project-report-table">
+		  <thead>
+		    <tr class="bright_table_row odd">
+		      <th class="horas"> <abbr title="Fecha">Fecha</abbr> </th>
+		      <th class="proyecto"> <abbr title="Descripcion de la tarea">Descripcion</abbr> </th>
+		      <th class="horas"> <abbr title="Horas">Horas</abbr> </th>
+		    </tr>
+		  </thead>
+		  <tbody>
+		    {% for hours_log in user_hours_log %}
+		    <tr class="bright_table_row odd">
+		      <td style="vertical-align:top; padding:0.4em;">{{ hours_log.0|date:"d/m/Y" }}</td>
+		      <td style="text-align:left; padding:0.4em;">{{ hours_log.1 }}</td>
+		      <td style="vertical-align:top; padding:0.4em;">{{ hours_log.2 }}</td>
+		    </tr>
+		    {% endfor %}
+		  </tbody>
+		</table>
+	      </div>
+
+	    </td>
+                <td class="horas" valign="top">{{ user_total_hs }}
+	      <div id="user-report-{{ user_name }}-{{ project.0|slugify }}-arrow" class="collapse-small" onclick="toggle_visibility_small('user-report-{{ user_name }}-{{ project.0|slugify }}')"></div>
+	    </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td> </td>
+                <td> <b>Total:</b> {{ total_hours }} </td>
+            </tr>
+        </tfoot>
+    </table>
+{% endif %}
+    {% endfor %}
+    {% else %}
+    <p><i>No data available for report grouped by project.</i></p>
+    {% endif %}
+    </div>
+
+    <br /><a href="{% url eff_site.eff.views.eff_client_reports_admin %}"> Volver a Client Reports </a><br />
 {% endblock %}

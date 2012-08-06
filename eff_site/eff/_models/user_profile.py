@@ -16,7 +16,7 @@
 # along with Eff.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from datetime import timedelta, datetime
 from avg_hours import AvgHours
 from client import Client

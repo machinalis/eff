@@ -18,7 +18,7 @@
 from django.conf.urls.defaults import *
 from django.contrib.auth.views import login, logout
 from django.views.generic.simple import redirect_to
-from django.views.static import serve
+from django.conf import settings
 
 from django.contrib import admin
 admin.autodiscover()
@@ -32,7 +32,7 @@ from eff_site.eff.views import (update_hours, eff, eff_check_perms,
     eff_admin_change_profile, profile_detail, eff_dump_csv_upload,
     eff_fixed_price_client_reports, eff_admin_users_association, eff_home,
     eff_client_home, index, eff_client_projects, eff_client_summary,
-    eff_client_summary_period)
+    eff_client_summary_period, add_attachment_custom, delete_attachment_custom)
 
 from os.path import join
 
@@ -118,14 +118,6 @@ urlpatterns = patterns('',
     url(r'^efi/charts/$', eff_charts, name='eff_charts'),
     url(r'^efi/reporte/([A-Za-z_0-9]*)/$', eff_report, name='eff_report'),
     url(r'^efi/update-db/$', eff_update_db, name='eff_update_db'),
-    (r'^js/(?P<path>.*)$', serve, {'document_root': js_dir}),
-    (r'^jscalendar/(?P<path>.*)$', serve, {'document_root': jscalendar_dir}),
-    (r'^jscalendar/lang/(?P<path>.*)$', serve,
-        {'document_root': jscalendar_lang_dir}),
-    (r'^simple-calendar/(?P<path>.*)$', serve, {'document_root': calendar_dir}),
-    (r'^sortable/(?P<path>.*)$', serve, {'document_root': sortable_dir}),
-    (r'^templates/(?P<path>.*)$', serve, {'document_root': templates_dir}),
-    (r'^images/(?P<path>.*)$', serve, {'document_root': images_dir}),
     url(r'^efi/administration/users_password/$', eff_administration,
         name='eff_administration'),
     url(r'^efi/administration/users_profile/$', eff_admin_change_profile,
@@ -150,4 +142,17 @@ urlpatterns = patterns('',
         name='eff_client_summary'),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^comments/', include('django.contrib.comments.urls')),
+    url(r'^attachments/add-for/(?P<app_label>[\w\-]+)/(?P<module_name>[\w\-]+)/(?P<pk>\d+)/$',
+        add_attachment_custom, name="add_attachment_custom"),
+    url(r'^attachments/delete/(?P<attachment_pk>\d+)/$',
+        delete_attachment_custom, name="delete_attachment_custom"),
+    url(r'^attachments/', include('attachments.urls')),
 )
+
+if settings.DEBUG:
+    urlpatterns += patterns('',
+        url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {
+            'document_root': settings.MEDIA_ROOT}),
+        url(r'^attachments/(?P<path>.*)$', 'django.views.static.serve',
+            {'document_root': join(CURRENT_ABS_DIR, 'attachments')}),
+   )

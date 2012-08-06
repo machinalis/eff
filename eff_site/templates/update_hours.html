@@ -1,34 +1,33 @@
 {% extends "base.html" %}
 
-{% block style %}
-  tr { background: #e7e7e7 }
-  td { text-align: right }
-  th { text-align: left }
-{% endblock %}
+<!-- Extra css -->
+{% block extracss %}
+<style type="text/css">
+tr { background: #e7e7e7 }
+td { text-align: right }
+th { text-align: left }
+</style>
+{% endblock extracss %}
 
 {% block title %}{{ block.super }} -- Edit Profile {% endblock %}
 
 {% block content %}
-    <div id="wrapper">
- 
-        <div class="title">
-            <p><b>Edit Profile and other info</b></p>
-        </div>
-
-       <div id="content">
-            <form method="post" action="">
-                <p> <b> Profile </b> </p>
-                <table class="extra-data">{{ profile_form.as_table }}</table>
-                <br/>
-                <p> <b> Cambio de Horas </b> </p>
-                <table class="extra-data">{{ avghours_form.as_table }}</table>
-                <br/>
-                <p> <b> Cambios de Salario </b> </p>
-                <table class="extra-data">{{ wage_form.as_table }}</table>
-                <br/>
-                <input type="submit" value="Update!"/>
-            </form>
-        </div>
+    <div class="title">
+        <p><b>Edit Profile and other info</b></p>
+    </div>
+    <div id="content">
+        <form method="post" action="">
+            <p><b> Profile </b></p>
+            <table class="extra-data">{{ profile_form.as_table }}</table>
+            <br/>
+            <p><b> Cambio de Horas </b></p>
+            <table class="extra-data">{{ avghours_form.as_table }}</table>
+            <br/>
+            <p><b> Cambios de Salario </b></p>
+            <table class="extra-data">{{ wage_form.as_table }}</table>
+            <br/>
+            <input type="submit" value="Update!"/>
+        </form>
     </div>
 {% endblock %}
  

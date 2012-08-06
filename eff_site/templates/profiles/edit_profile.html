@@ -3,19 +3,16 @@
 {% block title %}{{ block.super }} -- Edit your profile {% endblock %}
 
 {% block content %}
-    <div id="wrapper">
-        <div class="title">
-            <p><b>{{ profile.user.first_name }}'s Profile</b></p>
-        </div>
-
-        <div id="content">
-            <form method="post" action="">
-                <table class="extra-data">{{ form.as_table }}</table>
-                {% if form_handles %}
-                <table class="extra-data">{{ form_handles.as_table }}</table>
-                {% endif %}
-                <tr><td colspan="2"><input type="submit" value="Update!"/></td></tr>
-            </form>
-       </div>
-    <div/>
+    <div class="title">
+        <p><b>{{ profile.user.first_name }}'s Profile</b></p>
+    </div>
+    <div id="content">
+        <form method="post" action="">
+            <table class="extra-data">{{ form.as_table }}</table>
+        {% if form_handles %}
+            <table class="extra-data">{{ form_handles.as_table }}</table>
+        {% endif %}
+            <tr><td colspan="2"><input type="submit" value="Update!"/></td></tr>
+        </form>
+   </div>
 {% endblock %}

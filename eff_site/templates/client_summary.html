@@ -1,145 +1,158 @@
 {% extends "base.html" %}
 
-{% block jsscript %}
-        function toggle_visibility(id) {
-            $("#" + id).slideToggle("slow");
-            $("#" + id + "-arrow").toggleClass("expand");
-        }
-        function toggleDisplay(e) {
-            if (e.css('display') == 'none') {
-                e.css('display', 'table-row');}
-            else
-                e.css('display', 'none');
-        }
-        function toggle_visibility_small(id) {
-            toggleDisplay($("#" + 'extra-' + id));
-            toggleDisplay($("#" + 'comments-' + id));
-            $("#" + id + "-arrow").toggleClass("expand-small");
-        }
-        function changeImage(img, ord) {
-            lnk = img.parentNode.parentNode;
-            var image_path = "/sortable/";
-            var image_up = "arrowup.gif";
-            var image_down = "arrowdown.gif";
-            var image_none = "arrownone.gif";
+<!-- Extra css -->
+{% block extracss %}
+<style type="text/css">
+.dark_table_row {
+    background:#A9A9A9 none repeat scroll 0 0;
+}
+.bright_table_row {
+    background:#E7E7E7 none repeat scroll 0 0;
+}
+</style>
+{% endblock extracss %}
 
-            var aux = '{{ request.get_full_path }}';
-            var ind = aux.search('order_by=');
-
-            if (ind != -1)
-                aux = aux.slice(ind, ind + 20);
-            else
-            aux = '';
-
-            if (aux.match(ord)) {
-                if (lnk.getAttribute('href').match('order_by=-')) {
-                    ARROW = '<img src="'+ image_path + image_up + '" alt="&uarr;"/>';
-                } else {
-                    ARROW = '<img src="'+ image_path + image_down + '" alt="&darr;"/>';
-                }
-            }
-            else {
-                ARROW = '<img src="'+ image_path + image_none + '" alt="&darr;"/>';
-            }
-            $(img).replaceWith(ARROW);
-            return true;
-        }
-{% endblock %}
-
-{% block header %}
-    <style type="text/css">
-    .dark_table_row {
-	background:#A9A9A9 none repeat scroll 0 0;
+<!-- Extra js -->
+{% block extrajs %}
+<script type="text/javascript">
+    function toggle_visibility(id) {
+        $("#" + id).slideToggle("slow");
+        $("#" + id + "-arrow").toggleClass("expand");
     }
-
-    .bright_table_row {
-	background:#E7E7E7 none repeat scroll 0 0;
+    function toggleDisplay(e) {
+        if (e.css('display') == 'none') {
+            e.css('display', 'table-row');}
+        else
+            e.css('display', 'none');
     }
+    function toggle_visibility_small(id) {
+        toggleDisplay($("#" + 'extra-' + id));
+        toggleDisplay($("#" + 'comments-' + id));
+        toggleDisplay($("#" + 'attachments-' + id));
+        $("#" + id + "-arrow").toggleClass("expand-small");
+    }
+    function changeImage(img, ord) {
+        lnk = img.parentNode.parentNode;
+        var image_path = "/media/addons/sortable-table/";
+        var image_up = "arrowup.gif";
+        var image_down = "arrowdown.gif";
+        var image_none = "arrownone.gif";
 
-    </style>
+        var aux = '{{ request.get_full_path }}';
+        var ind = aux.search('order_by=');
 
-{% endblock %}
+        if (ind != -1)
+            aux = aux.slice(ind, ind + 20);
+        else
+        aux = '';
+
+        if (aux.match(ord)) {
+            if (lnk.getAttribute('href').match('order_by=-')) {
+                ARROW = '<img src="'+ image_path + image_up + '" alt="&uarr;"/>';
+            } else {
+                ARROW = '<img src="'+ image_path + image_down + '" alt="&darr;"/>';
+            }
+        }
+        else {
+            ARROW = '<img src="'+ image_path + image_none + '" alt="&darr;"/>';
+        }
+        $(img).replaceWith(ARROW);
+        return true;
+    }
+</script>
+<script type="text/javascript" src="/media/js/jquery.form.js"></script>               
+{% endblock extrajs %}
 
 {% block title %}{{ block.super }} Resúmen de cuenta {% endblock %}
 
 {% block content %}
-    <div id="wrapper">
-        <div class="title">
-            {% ifequal from_date to_date  %} <p>Día {{ from_date }}</p>
-            {% else %} <p>Período: {{ from_date }} al {{ to_date }}</p> {% endifequal %}
-            {% if clientname %}
-            <p>Cliente: {{ clientname }}</p>
-            {% endif %}
-            <p>Empresa: {{ companyname }}</p>
-        </div>
+    <div class="title">
+    {% ifequal from_date to_date %}
+        <p>Día {{ from_date }}</p>
+    {% else %}
+        <p>Período: {{ from_date }} al {{ to_date }}</p>
+    {% endifequal %}
+    {% if clientname %}
+        <p>Cliente: {{ clientname }}</p>
+    {% endif %}
+        <p>Empresa: {{ companyname }}</p>
+    </div>
 
-	{% if navs %}
-	    {% include 'nav-links.html' %}
-	{% endif %}
+    {% if navs %}
+    {% include 'nav-links.html' %}
+    {% endif %}
 
-        <div class="collapsable">
-            <div id="account-summary-arrow" class="collapse" onclick="toggle_visibility('account-summary')"></div>
-            <p><b>Resúmen de cuenta</b><br/><small>(ordenados por fecha)</small></p>
-        </div>
-	<br />
-        <div id="account-summary">
-
-	{% if account_summary %}
-        
+    <div class="collapsable">
+        <div id="account-summary-arrow" class="collapse" onclick="toggle_visibility('account-summary')"></div>
+        <p><b>Resúmen de cuenta</b><br/><small>(ordenados por fecha)</small></p>
+    </div>
+    <br />
+    <div id="account-summary">
+    {% if account_summary %}
         <table class="customsort report" id="account-summary-table" preserve_style="row">
             <thead>
-              <tr>
-                <script type="text/javascript" charset="utf-8">
-
-                </script>
-                <th class="fecha"> <a class="sortheader" href="{{ order_date }}"> <abbr title="Fecha">Fecha</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'date');" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
-                <th class="descripcion"> <a class="sortheader" href="{{ order_concept }}"> <abbr title="Concepto">Concepto</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'concept');" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
-                <th class="money"> <a class="sortheader" href="{{ order_amount }}"> <abbr title="Ingreso">+</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'amount');" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
-                <th class="money"> <a class="sortheader" href="{{ order_amount }}"> <abbr title="Egreso">-</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'amount');" src="/sortable/arrownone.gif" alt="&darr;"/></span></a> </th>
-                <th class="subtotal"> <abbr title="Subtotal">Subtotal</abbr> </th>
-              </tr>
+                <tr>
+                    <script type="text/javascript" charset="utf-8"></script>
+                    <th class="fecha"> <a class="sortheader" href="{{ order_date }}"> <abbr title="Fecha">Fecha</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'date');" src="/media/addons/sortable-table/arrownone.gif" alt="&darr;"/></span></a> </th>
+                    <th class="descripcion"> <a class="sortheader" href="{{ order_concept }}"> <abbr title="Concepto">Concepto</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'concept');" src="/media/addons/sortable-table/arrownone.gif" alt="&darr;"/></span></a> </th>
+                    <th class="money"> <a class="sortheader" href="{{ order_amount }}"> <abbr title="Ingreso">+</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'amount');" src="/media/addons/sortable-table/arrownone.gif" alt="&darr;"/></span></a> </th>
+                    <th class="money"> <a class="sortheader" href="{{ order_amount }}"> <abbr title="Egreso">-</abbr> <span class="sortarrow"><img onLoad="changeImage(this, 'amount');" src="/media/addons/sortable-table/arrownone.gif" alt="&darr;"/></span></a> </th>
+                    <th class="subtotal"> <abbr title="Subtotal">Subtotal</abbr> </th>
+                </tr>
             </thead>
             <tbody>
-	      {% for row in account_summary %}
-              <tr class="dark_table_row even">
-                <td class="fecha" valign="top">{{ row.date }}<br/>
-                </td>
-                <td class="descripcion">{{ row.concept }}
-                </td>
-                <td class="money" valign="top"> {% ifnotequal row.income 0 %}{{ row.income }}{% endifnotequal %}
-                </td>
-                <td class="money" valign="top"> {% ifnotequal row.outcome 0 %}{{ row.outcome }}{% endifnotequal %}
-                </td>
-                <td class="subtotal" valign="top"> {{ row.subtotal }}
-                <div id="{{ companyname|slugify }}-doc-{{ row.doc.id }}-arrow" class="collapse-small" onclick="toggle_visibility_small('{{ companyname|slugify }}-doc-{{ row.doc.id }}')"></div>
-                </td>
-              </tr>
-              {% if row.extra %}
-              <tr class="bright_table_row odd" id="extra-{{ companyname|slugify }}-doc-{{ row.doc.id }}" style="display: none">
-                <td colspan="5">
-                    
-                  <div>
-                    {% for title, value in row.extra.items %}
-                    <p style="text-align: center"><b>{{ title }}:</b> {{ value }}</p>
-                    {% endfor %}
-                  </div>
-                  
-                </td>
-              </tr>
-              {% endif %}
-              <tr class="bright_table_row odd" id="comments-{{ companyname|slugify }}-doc-{{ row.doc.id }}" style="display: none">
-                <td colspan="5">
-                  <div align="center" >
-                    {% include 'comments/ajax_post_comment_handler.html' %}
-                    {% load comments i18n %}
-                    {% with row.doc as doc %}
-                    {% render_comment_list for doc %}
-                    {% render_comment_form for doc %}
-                    {% endwith %}
-                  </div>
-                </td>
-              </tr>
-              {% endfor %}
+            {% for row in account_summary %}
+                <tr class="dark_table_row even">
+                    <td class="fecha" valign="top">{{ row.date }}<br/></td>
+                    <td class="descripcion">{{ row.concept }}</td>
+                    <td class="money" valign="top"> {% ifnotequal row.income 0 %}{{ row.income }}{% endifnotequal %}</td>
+                    <td class="money" valign="top"> {% ifnotequal row.outcome 0 %}{{ row.outcome }}{% endifnotequal %}</td>
+                    <td class="subtotal" valign="top"> {{ row.subtotal }}<div id="{{ companyname|slugify }}-doc-{{ row.doc.id }}-arrow" class="collapse-small" onclick="toggle_visibility_small('{{ companyname|slugify }}-doc-{{ row.doc.id }}')"></div></td>
+                </tr>
+            {% if row.extra %}
+                <tr class="bright_table_row odd" id="extra-{{ companyname|slugify }}-doc-{{ row.doc.id }}" style="display: none">
+                    <td colspan="5">
+                        <div>
+                        {% for title, value in row.extra.items %}
+                            <p style="text-align: center"><b>{{ title }}:</b> {{ value }}</p>
+                        {% endfor %}
+                        </div>
+                    </td>
+                </tr>
+            {% endif %}
+                <!-- Attachments -->
+                <tr class="bright_table_row odd" id="attachments-{{ companyname|slugify }}-doc-{{ row.doc.id }}" style="display: none">
+                    <td colspan="5">
+                        <div align="center">
+                            {% include 'attachments/ajax_attachment_handler.html' %}
+                            {% load attachments_tags_custom i18n %}
+                            <div id="attachments_wrapper_{{ row.doc.id }}" style="margin-top: 15px;">
+                            {% with row.doc as obj %}
+                            {% render_attachment_list for obj %}
+                            {% render_attachment_form for obj %}
+                            {% endwith %}
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <!-- END Attachments -->
+
+                <!-- Comments -->
+                <tr class="bright_table_row odd" id="comments-{{ companyname|slugify }}-doc-{{ row.doc.id }}" style="display: none">
+                    <td colspan="5">
+                        <div align="center" >
+                        {% include 'comments/ajax_comment_handler.html' %}
+                        {% load comments i18n %}
+                        {% with row.doc as doc %}
+                        {% render_comment_list for doc %}
+                        {% render_comment_form for doc %}
+                        {% endwith %}
+                        </div>
+                    </td>
+                </tr>
+                <!-- END Comments -->
+
+            {% endfor %}
             </tbody>
             <tfoot>
                 <tr>
@@ -151,11 +164,10 @@
                 </tr>
             </tfoot>
         </table>
-        {% else %}
+    {% else %}
         <p><i>No hay datos disponibles.</i></p>
-        {% endif %}
-        </div>
-
-        <br /><a href="{% url eff_client_summary_period %}"> Volver a Resúmen de Cuenta de Cliente </a><br />
+    {% endif %}
     </div>
+
+    <br /><a href="{% url eff_client_summary_period %}"> Volver a Resúmen de Cuenta de Cliente </a><br />
 {% endblock %}

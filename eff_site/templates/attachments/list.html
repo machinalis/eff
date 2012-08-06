@@ -1,0 +1,35 @@
+{% load attachments_tags_custom i18n %}
+
+<table id="attachments_{{ obj.id }}" style="text-align: center; width: 100%;">
+  <thead>
+    <tr>
+      {% if attachment_list %}
+      <th colspan="4"> ARCHIVOS ADJUNTOS </th>
+      {% else %}
+      <th> No hay archivos adjuntos </th>
+      {% endif %}
+    </tr>
+    {% if attachment_list %}
+    <tr>
+      <th>User</th>
+      <th>Date</th>
+      <th>File</th>
+      <th></th>
+    </tr>
+    {% endif %}
+  </thead>
+  <tbody>
+    {% for attachment in attachment_list %}
+    <tr>
+      <td>{{attachment.creator}}</td>
+      <td>{{attachment.created}}</td>
+      <td><a href="/{{ attachment.attachment_file.url }}">{{ attachment.filename }}</a></td>
+      <td>
+        <form id="del_attachment_{{ attachment.id }}" method="post" action="{% url delete_attachment attachment.id %}">
+          <input type="submit" name="Delete" value="Delete" onClick="return deleteAttachmentHandler({{ attachment.id }})"/>
+        </form>
+      </td>
+    </tr>
+    {% endfor%}
+  </tbody>
+</table>

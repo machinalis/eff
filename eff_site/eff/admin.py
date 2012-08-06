@@ -26,6 +26,16 @@ from django.contrib.auth.models import User
 from _models.dump import Dump
 from eff_site.eff._models.external_source import ExternalId
 from django import forms
+from attachments.admin import AttachmentInlines
+from attachments.models import Attachment
+
+
+class AttachmentAdmin(admin.ModelAdmin):
+    list_display = ('content_type', 'content_object', 'creator',
+                    'attachment_file', 'created', 'modified')
+    ordering = ('modified',)
+    search_fields = ('content_type', 'content_object', 'creator',
+                     'attachment_file', 'created', 'modified')
 
 
 class TimeLogAdminForm(forms.ModelForm):
@@ -210,7 +220,7 @@ class UserAdmin(admin.ModelAdmin):
         return super(UserAdmin, self).get_form(request, obj, **kwargs)
 
     class Media:
-        js = ('/js/adminformFieldsValidations.js',)
+        js = ('/media/js/adminformFieldsValidations.js',)
 
 
 class CurrencyAdmin(admin.ModelAdmin):
@@ -252,6 +262,7 @@ class BillingAdmin(admin.ModelAdmin):
     search_fields = ('client', 'date', 'concept', 'amount')
     ordering = ('client',)
     form = BillingAdminForm
+    inlines = [AttachmentInlines]
 
 
 class CreditNoteAdmin(admin.ModelAdmin):
@@ -259,12 +270,14 @@ class CreditNoteAdmin(admin.ModelAdmin):
     search_fields = ('client', 'date', 'concept', 'amount')
     ordering = ('client',)
     form = CommercialDocumentAdminForm
+    inlines = [AttachmentInlines]
 
 
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ('client', 'amount', 'date', 'status', 'concept')
     search_fields = ('client', 'date', 'concept', 'amount', 'status')
     form = CommercialDocumentAdminForm
+    inlines = [AttachmentInlines]
 
 
 admin.site.unregister(User)
@@ -284,3 +297,4 @@ admin.site.register(Handle, HandleAdmin)
 admin.site.register(Billing, BillingAdmin)
 admin.site.register(CreditNote, CreditNoteAdmin)
 admin.site.register(Payment, PaymentAdmin)
+admin.site.register(Attachment, AttachmentAdmin)

@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 
-{% block jsscript %}
-    
+<!-- Extra js -->
+{% block extrajs %}
+<script type="text/javascript">
   $(document).ready(function() {
       $('#id_user').change(function(){
           selected_val = $(this).val();
@@ -11,25 +12,23 @@
           window.location = redirect_to;
       });
   });
-
-{% endblock %}
+</script>
+{% endblock extrajs %}
 
 {% block content %}
-    <div id="wrapper">
-        <div class="title">
-            <p><b>{{ title }}</b></p>
-        </div>
-        <div id="content">
-	  <form id="user-admin-form" method="post" action="">
+    <div class="title">
+        <p><b>{{ title }}</b></p>
+    </div>
+    <div id="content">
+    	  <form id="user-admin-form" method="post" action="">
             <table class="extra-data">
-	      {{ form.as_table }}
-	      <tr>
-		<td colspan="2">
-		  <input id="update-settings" type="submit" value="Go" />
-		</td>
-	      </tr>
-	    </table>
-	  </form>
-	</div>
-    <div/>
+        	      {{ form.as_table }}
+        	      <tr>
+                		<td colspan="2">
+                		    <input id="update-settings" type="submit" value="Go" />
+                		</td>
+        	      </tr>
+    	      </table>
+    	  </form>
+    </div>
 {% endblock %}
