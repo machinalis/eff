@@ -30,6 +30,14 @@ from attachments.admin import AttachmentInlines
 from attachments.models import Attachment
 
 
+class AttachmentAdmin(admin.ModelAdmin):
+    list_display = ('content_type', 'content_object', 'creator',
+                    'attachment_file', 'created', 'modified')
+    ordering = ('modified',)
+    search_fields = ('content_type', 'content_object', 'creator',
+                     'attachment_file', 'created', 'modified')
+
+
 class TimeLogAdminForm(forms.ModelForm):
     user = forms.ModelChoiceField(queryset=User.objects.order_by('username'))
     dump = forms.ModelChoiceField(queryset=Dump.objects.order_by('-date'))
@@ -289,4 +297,4 @@ admin.site.register(Handle, HandleAdmin)
 admin.site.register(Billing, BillingAdmin)
 admin.site.register(CreditNote, CreditNoteAdmin)
 admin.site.register(Payment, PaymentAdmin)
-admin.site.register(Attachment)
+admin.site.register(Attachment, AttachmentAdmin)

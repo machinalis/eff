@@ -135,6 +135,7 @@
 
                         <p style="text-align: center;"><b>Attachments</b></p>
                         
+
                         {% get_attachments_for row.doc as "attachments_list" %}
                         {% if attachments_list %}
                         <table style="text-align: center; width: 100%;">
@@ -153,15 +154,14 @@
                                     <td>{{attachment.created}}</td>
                                     <td><a href="/{{ attachment.attachment_file.url }}">{{ attachment.filename }}</a></td>
                                     <td>
-                                        <form method="post" action="{% url delete_attachment attachment.pk %}">
-                                            <input type="hidden" name="next" value="{{ request.get_full_path }}"/>
-                                            <input type="submit" value="Delete"/>
-                                        </form>
+                                      <form id="del_attachment_{{ attachment.id }}" "method="post" action="{% url delete_attachment attachment.pk %}">
+                                        <input type="submit" name="Delete" value="Delete" onClick="return deleteAttachmentHandler({{ attachment.id }})"/>
+                                      </form>
                                     </td>
                                 </tr>
                                 {% endfor%}
                             </tbody>
-                        </table>    
+                        </table>
                         {% else %}
                         <p style="text-align: center">No attachments</p>
                         {% endif %}
