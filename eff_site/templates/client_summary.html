@@ -86,7 +86,6 @@
         <div id="account-summary">
 
 	{% if account_summary %}
-        
         <table class="customsort report" id="account-summary-table" preserve_style="row">
             <thead>
               <tr>
@@ -127,60 +126,28 @@
                 </td>
               </tr>
               {% endif %}
+
+              <!-- Attachments -->
               <tr class="bright_table_row odd" id="attachments-{{ companyname|slugify }}-doc-{{ row.doc.id }}" style="display: none">
                 <td colspan="5">
-                    <div>
-                        <!-- Attachemtns -->
-                        {% load attachments_tags %}
+                    <div align="center">
 
-                        <p style="text-align: center;"><b>Attachments</b></p>
-                        
+                      {% include 'attachments/ajax_attachment_handler.html' %}
+                      {% load attachments_tags_custom i18n %}
 
-                        {% get_attachments_for row.doc as "attachments_list" %}
-                        {% if attachments_list %}
-                        <table style="text-align: center; width: 100%;">
-                            <thead>
-                                <tr>
-                                    <th>User</th>
-                                    <th>Date</th>
-                                    <th>File</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for attachment in attachments_list %}
-                                <tr>
-                                    <td>{{attachment.creator}}</td>
-                                    <td>{{attachment.created}}</td>
-                                    <td><a href="/{{ attachment.attachment_file.url }}">{{ attachment.filename }}</a></td>
-                                    <td>
-                                      <form id="del_attachment_{{ attachment.id }}" "method="post" action="{% url delete_attachment attachment.pk %}">
-                                        <input type="submit" name="Delete" value="Delete" onClick="return deleteAttachmentHandler({{ attachment.id }})"/>
-                                      </form>
-                                    </td>
-                                </tr>
-                                {% endfor%}
-                            </tbody>
-                        </table>
-                        {% else %}
-                        <p style="text-align: center">No attachments</p>
-                        {% endif %}
-
-                        <div id="attachment_form_wrapper_{{ row.doc.id }}" style="margin-top: 15px;">
-                          <p style="text-align: center">{% attachment_form row.doc %}</p>
-                        </div>
-
-                        {% include 'attachments/ajax_attachment_handler.html' %}
-                        <script src="http://malsup.github.com/jquery.form.js"></script> 
-                        <script type="text/javascript" charset="utf-8">
-                          $(document).ready(function() {
-                              bindPostAttachmentHandler({{ row.doc.id }});
-                          });
-                        </script>
+                      <div id="attachments_wrapper_{{ row.doc.id }}" style="margin-top: 15px;">                        
+                        {% with row.doc as obj %}
+                        {% render_attachment_list for obj %}
+                        {% render_attachment_form for obj %}
+                        {% endwith %}
+                      </div>
 
                     </div>
                 </td>
               </tr>
+              <!-- END Attachments -->
+
+              <!-- Comments -->
               <tr class="bright_table_row odd" id="comments-{{ companyname|slugify }}-doc-{{ row.doc.id }}" style="display: none">
                 <td colspan="5">
                   <div align="center" >
@@ -193,6 +160,8 @@
                   </div>
                 </td>
               </tr>
+              <!-- END Comments -->
+
               {% endfor %}
             </tbody>
             <tfoot>

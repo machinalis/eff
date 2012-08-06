@@ -1561,7 +1561,8 @@ def add_url_for_obj(obj):
 @require_POST
 @login_required
 def add_attachment_custom(request, app_label, module_name, pk,
-                   template_name='attachments/add.html', extra_context={}):
+                          template_name='attachments/attachments.html',
+                          extra_context={}):
 
     next = request.POST.get('next', '/')
     model = get_model(app_label, module_name)
@@ -1574,12 +1575,14 @@ def add_attachment_custom(request, app_label, module_name, pk,
         form.save(request, obj)
         request.user.message_set.create(
             message=ugettext('Your attachment was uploaded.'))
+    # else:
+    #     template_name = 'attachments/add_form.html'
 
     template_context = {
         'form': form,
         'form_url': add_url_for_obj(obj),
         'next': next,
-        'doc': obj,
+        'obj': obj,
         'object_id': obj.id,
         }
     template_context.update(extra_context)
