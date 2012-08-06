@@ -211,7 +211,7 @@ class UserAdmin(admin.ModelAdmin):
         return super(UserAdmin, self).get_form(request, obj, **kwargs)
 
     class Media:
-        js = ('/js/adminformFieldsValidations.js',)
+        js = ('/media/js/adminformFieldsValidations.js',)
 
 
 class CurrencyAdmin(admin.ModelAdmin):

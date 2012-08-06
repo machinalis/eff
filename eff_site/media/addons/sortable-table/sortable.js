@@ -10,7 +10,7 @@ Version 1.5.7
 
 /* You can change these values */
 /*var image_path = "http://www.joostdevalk.nl/code/sortable-table/";*/
-var image_path = "/sortable/";
+var image_path = "/media/addons/sortable-table/";
 var image_up = "arrowup.gif";
 var image_down = "arrowdown.gif";
 var image_none = "arrownone.gif";

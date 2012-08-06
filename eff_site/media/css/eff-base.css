@@ -1,0 +1,77 @@
+/*!
+ * Custom CSS for Eff
+ *
+ */
+* { margin: 0; padding: 0; }
+html, body { height: 100% }
+body { background: #fff; color: #000; font-family: sans-serif; font-size: 12px; line-height: 18px }
+h1 { font-size: 24px; line-height: 36px; }
+th img { border: 0 }
+th a.sortheader, h1 a { text-decoration: none }
+
+h1, #wrapper, #footer { text-align: center; }
+#queryTable, #project-report-table, #detailed-report-table, #account-summary-table { margin: auto; }
+
+#wrapper { /*position: relative;*/ min-height: 80% }
+#content { width: 50%; margin: auto; }
+#footer { position: relative; font-size: 10px; line-height: 18px; height: 20px; margin-top: 1ex }
+
+.extra-data { margin: auto; padding: 15px; border-spacing: 10px; }
+#dates { margin-top: 20px }
+#prev, #next { font-style: italic; color: grey; }
+#prev { float: left }
+#next { float: right }
+#notice { background: #00e700 }
+#error { background: #e70000 }
+#dialog { background: #00e700 }
+
+.alignleft {float: left;}
+.alignright {float: right;}
+
+.collapsable { width: 22em; margin: auto; }
+.collapse { background-image: url('/media/img/collapse.png'); }
+.expand { background-image: url('/media/img/expand.png'); }
+.collapse-small { background-image: url('/media/img/collapse-small.png'); }
+.expand-small { background-image: url('/media/img/expand-small.png'); }
+.collapse, .expand {background-repeat: no-repeat;float: left;width: 20px; height: 20px;margin: 5px;}
+.collapse-small, .expand-small {background-repeat: no-repeat;float: right;width: 10px; height: 10px;margin: 5px;}
+
+.title { margin-bottom: 1ex; }
+.toolbar { text-align: right; width: 95%; height: 25px; }
+.report { border: 1px; padding: 5px; }
+.report .descripcion { display: block /* hack */; overflow: auto }
+.report .fecha, .report .horas { text-align: center; width: 10%}
+.money, .subtotal { text-align: center}
+.customsort, .sortable { width: 90%; clear: both }
+
+.logged, .loggable, .percent, .billable, .qbill { width: 5em; text-align: right }
+.name { width: 20em; }
+
+.img { min-width: 7px; min-height: 7px; background: no-repeat center center }
+
+#queryTable .even { background: #ddd }
+#queryTable .odd { background: #eee }
+
+.even { background: #A9A9A9 }
+.odd { background: #e7e7e7 }
+
+.chart { float: left }
+
+.good { color: #000 }
+.poor { color: #f70 }
+.bad { color: #f00 }
+
+.total { background: #000; font-weight: bold }
+.total td { padding: 2px; font-size: 14px }
+.total.good, .total.exceptional { color: #fff }
+
+.graphicsLeft { float: left; text-align: left }
+.graphicsRight { text-align: right }
+
+.main-menu-ul {list-style-image: url(none);list-style-position: outside;list-style-type: none;float: right;}
+#main-menu li {display: inline;float: left;margin: 0;position: relative;width: 120px;text-align: center;background-color: #EEEEEE;height: 22px;}
+#main-menu li a {color: #000000;display: block;padding: 2px 5px;text-decoration: none;width: 120px;background-color: #EEEEEE;}
+#main-menu li ul {display: none;position: absolute;}
+#main-menu li ul li {display: list-item;float: none;margin: 0;width: 120px;}
+
+#main-menu li a:hover, #main-menu li a:active {background-color: #DDDDDD;}

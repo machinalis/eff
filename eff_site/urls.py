@@ -18,7 +18,6 @@
 from django.conf.urls.defaults import *
 from django.contrib.auth.views import login, logout
 from django.views.generic.simple import redirect_to
-from django.views.static import serve
 from django.conf import settings
 
 from django.contrib import admin
@@ -148,20 +147,8 @@ urlpatterns = patterns('',
 
 if settings.DEBUG:
     urlpatterns += patterns('',
+        url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {
+            'document_root': settings.MEDIA_ROOT}),
         url(r'^attachments/(?P<path>.*)$', 'django.views.static.serve',
             {'document_root': join(CURRENT_ABS_DIR, 'attachments')}),
-        url(r'^js/(?P<path>.*)$', 'django.views.static.serve',
-            {'document_root': js_dir}),
-        url(r'^jscalendar/(?P<path>.*)$', 'django.views.static.serve',
-            {'document_root': jscalendar_dir}),
-        url(r'^jscalendar/lang/(?P<path>.*)$', 'django.views.static.serve',
-            {'document_root': jscalendar_lang_dir}),
-        url(r'^simple-calendar/(?P<path>.*)$', 'django.views.static.serve',
-            {'document_root': calendar_dir}),
-        url(r'^sortable/(?P<path>.*)$', 'django.views.static.serve',
-            {'document_root': sortable_dir}),
-        url(r'^templates/(?P<path>.*)$', 'django.views.static.serve',
-            {'document_root': templates_dir}),
-        url(r'^images/(?P<path>.*)$', 'django.views.static.serve',
-            {'document_root': images_dir}),
    )

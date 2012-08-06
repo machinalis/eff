@@ -1,235 +1,94 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" />
-    <style type="text/css">
-        * { margin: 0; padding: 0; }
-        html, body { height: 100% }
-        body { background: #fff; color: #000; font-family: sans-serif; font-size: 12px; line-height: 18px }
-        h1 { font-size: 24px; line-height: 36px; }
-        th img { border: 0 }
-        th a.sortheader, h1 a { text-decoration: none }
+    <head>
+        <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" />
 
-        h1, #wrapper, #footer { text-align: center; }
-        #queryTable, #project-report-table, #detailed-report-table, #account-summary-table { margin: auto; }
+        <!-- Stylesheet -->
+        <link rel="stylesheet" type="text/css" href="/media/css/eff-base.css" />
+        <!-- calendar stylesheet -->
+        <link rel="stylesheet" type="text/css" media="all" href="/media/addons/js/flora.datepicker.css" />
+        <!-- Extra css -->
+        {% block extracss %}{% endblock extracss %}
 
-        #wrapper { /*position: relative;*/ min-height: 80% }
-        #content { width: 50%; margin: auto; }
-        #footer { position: relative; font-size: 10px; line-height: 18px; height: 20px; margin-top: 1ex }
+        <script type="text/javascript" src="/media/js/jquery.js"></script>
+        <script type="text/javascript" src="/media/js/eff-base.js"></script>
+        <script type="text/javascript" src="/media/addons/sortable-table/sortable.js"></script>
 
-        .extra-data { margin: auto; padding: 15px; border-spacing: 10px; }
-        #dates { margin-top: 20px }
-        #prev, #next { font-style: italic; color: grey; }
-        #prev { float: left }
-        #next { float: right }
-        #notice { background: #00e700 }
-        #error { background: #e70000 }
-        #dialog { background: #00e700 }
-
-        .alignleft {
-	    float: left;
-        }
-        .alignright {
-	    float: right;
-        }
-
-        .collapsable { width: 22em; margin: auto; }
-        .collapse { background-image: url('/templates/images/collapse.png'); }
-        .expand { background-image: url('/templates/images/expand.png'); }
-        .collapse-small { background-image: url('/templates/images/collapse-small.png'); }
-        .expand-small { background-image: url('/templates/images/expand-small.png'); }
-        .collapse, .expand {
-            background-repeat: no-repeat;
-            float: left;
-            width: 20px; height: 20px;
-            margin: 5px;
-        }
-        .collapse-small, .expand-small {
-            background-repeat: no-repeat;
-            float: right;
-            width: 10px; height: 10px;
-            margin: 5px;
-        }
-
-        .title { margin-bottom: 1ex; }
-        .toolbar { text-align: right; width: 95%; height: 25px; }
-        .report { border: 1px; padding: 5px; }
-        .report .descripcion { display: block /* hack */; overflow: auto }
-        .report .fecha, .report .horas { text-align: center; width: 10%}
-        .money, .subtotal { text-align: center}
-        .customsort, .sortable { width: 90%; clear: both }
-
-        .logged, .loggable, .percent, .billable, .qbill { width: 5em; text-align: right }
-        .name { width: 20em; }
-
-        .img { min-width: 7px; min-height: 7px; background: no-repeat center center }
-
-        #queryTable .even { background: #ddd }
-        #queryTable .odd { background: #eee }
-
-        .even { background: #A9A9A9 }
-        .odd { background: #e7e7e7 }
-
-        .chart { float: left }
-
-        .good { color: #000 }
-        .poor { color: #f70 }
-        .bad { color: #f00 }
-
-        .total { background: #000; font-weight: bold }
-        .total td { padding: 2px; font-size: 14px }
-        .total.good, .total.exceptional { color: #fff }
-
-        .graphicsLeft { float: left; text-align: left }
-        .graphicsRight { text-align: right }
-
-	.main-menu-ul {
-	    list-style-image: url(none);
-	    list-style-position: outside;
-	    list-style-type: none;
-	    float: right;
-	}
-	#main-menu li {
-	    display: inline;
-	    float: left;
-	    margin: 0;
-	    position: relative;
-	    width: 120px;
-	    text-align: center;
-	    background-color: #EEEEEE;
-	    height: 22px;
-	}
-	#main-menu li a {
-	    color: #000000;
-	    display: block;
-	    padding: 2px 5px;
-	    text-decoration: none;
-	    width: 120px;
-	    background-color: #EEEEEE;
-	}
-	#main-menu li ul {
-	    display: none;
-	    position: absolute;
-	}
-	#main-menu li ul li {
-	    display: list-item;
-	    float: none;
-	    margin: 0;
-	    width: 120px;
-	}
-
-	#main-menu li a:hover, #main-menu li a:active {
-	    background-color: #DDDDDD;
-	}
-
-
-        {% block style %} {% endblock %}
-    </style>
-
-    <!-- calendar stylesheet -->
-    <link rel="stylesheet" type="text/css" media="all" href="/js/flora.datepicker.css" />
-
-    <script type="text/javascript" src="/js/jquery.js"></script>
-    <script type="text/javascript" src="/sortable/sortable.js"></script>
-
-    <script type="text/javascript">
-    <!--
-        function update_db() {
-            $.getJSON("{% url eff_site.eff.views.eff_update_db %}",function(json){
-                if (json.status == 'ok') {
-                    alert('Por favor espere, se está procesando el pedido');
-                } else {
-                    alert('Por favor espere, el ultimo pedido fue hecho: ' + json.last_update);
-                }
-            });
-        }
-
-      $(document).ready(function() {
-	  $('ul li:has(ul)').hover(
-	      function(e){
-		  $(this).find('ul').fadeIn();
-	      },
-	      function(e){
-		  $(this).find('ul').fadeOut();
-	      }
-	  );
-      });
-        {% block jsscript %} {% endblock %}
-    //-->
-    </script>
-    {% block header %} {% endblock %}
-    <title>{% block title %}{{ title|default:"Efficiency"}}{% endblock %}</title>
-    <!-- Extra css -->
-    {% block extracss %}{% endblock extracss %}
-  </head>
-  <body>
-      {% block footer %}
-        <div class="toolbar">
-          {% if user.is_authenticated %}
-
-
-          <ul class="main-menu-ul" id="main-menu">
-
-          <li style="width: 260px; background-color: #FFFFFF;line-height:22px;">Logged as: {{ user }}@{{ hostname|default:"localhost" }}</li>
-           <li><a href="{% url eff_home %}">home</a></li>
-           <li><a href="{% url password_change %}">change password</a></li>
-          <li><a href="{% url profiles_edit %}">edit your profile</a></li>
-
-	  {% if perms.eff.view_billable and perms.eff.view_wage %}
-
-          <li><a href="#" onclick="javscript:update_db()">update-db</a></li>
-
-
-	  <li> <a href="javascript:void(0)">administration</a>
-	    <ul class="main-menu-ul" style="display: none;">
-	      <li><a href="{% url eff_client_summary_period %}">client summary</a></li>
-	      <li><a href="{% url eff_site.eff.views.eff_client_reports_admin %}">client reports</a></li>
-	      <li><a href="{% url eff_site.eff.views.eff_fixed_price_client_reports %}">fixed price reports</a></li>
-	      <li><a href="{% url eff_site.eff.views.eff_admin_add_user %}">add user</a></li>
-	      <li><a href="{% url eff_site.eff.views.eff_admin_change_profile %}">users profile</a></li>
-	      <li><a href="{% url eff_site.eff.views.eff_administration %}">users password</a></li>
-	      <li><a href="{% url eff_site.eff.views.eff_dump_csv_upload %}">csv dump upload</a></li>
-	    </ul>
-	  </li>
-
-	  {% endif %}
-
-          {% if  user.get_profile.is_client %}
-          <li><a href="{% url client_projects %}">my projects</a></li>
-          <li><a href="{% url client_summary_period %}">account summary</a></li>
-          {% endif %}
-
-          <li><a href="{% url logout %}">logout</a></li>
-	  </ul>
-
-
-          {% else %}
-          <a href="{% url login %}">login</a>
-          {% endif %}
-
+        <!-- Extra js -->
+        {% block extrajs %}{% endblock extrajs %}
+        
+        <title>{% block title %}{{ title|default:"Efficiency"}}{% endblock %}</title>
+    </head>
+    <body>
+        <!-- BEGIN Header -->
+        <div id="header">
+        {% block header %}
+            <div class="toolbar">
+            {% if user.is_authenticated %}
+                <ul class="main-menu-ul" id="main-menu">
+                    <li style="width: 260px; background-color: #FFFFFF;line-height:22px;">Logged as: {{ user }}@{{ hostname|default:"localhost" }}</li>
+                    <li><a href="{% url eff_home %}">home</a></li>
+                    <li><a href="{% url password_change %}">change password</a></li>
+                    <li><a href="{% url profiles_edit %}">edit your profile</a></li>
+                {% if perms.eff.view_billable and perms.eff.view_wage %}
+                    <li><a href="#" onclick="javscript:update_db()">update-db</a></li>
+                    <li><a href="javascript:void(0)">administration</a>
+                        <ul class="main-menu-ul" style="display: none;">
+                            <li><a href="{% url eff_client_summary_period %}">client summary</a></li>
+                            <li><a href="{% url eff_site.eff.views.eff_client_reports_admin %}">client reports</a></li>
+                            <li><a href="{% url eff_site.eff.views.eff_fixed_price_client_reports %}">fixed price reports</a></li>
+                            <li><a href="{% url eff_site.eff.views.eff_admin_add_user %}">add user</a></li>
+                            <li><a href="{% url eff_site.eff.views.eff_admin_change_profile %}">users profile</a></li>
+                            <li><a href="{% url eff_site.eff.views.eff_administration %}">users password</a></li>
+                            <li><a href="{% url eff_site.eff.views.eff_dump_csv_upload %}">csv dump upload</a></li>
+                        </ul>
+                    </li>
+                {% endif %}
+                {% if  user.get_profile.is_client %}
+                    <li><a href="{% url client_projects %}">my projects</a></li>
+                    <li><a href="{% url client_summary_period %}">account summary</a></li>
+                {% endif %}
+                    <li><a href="{% url logout %}">logout</a></li>
+                </ul>
+            {% else %}
+                <a href="{% url login %}">login</a>
+            {% endif %}
+            </div>
+            <hr>
+        {% endblock header %}
         </div>
-        <hr>
-      {% endblock %}
-      <br />
-      <h1><a href="{% url eff_site.eff.views.eff %}">Efficiency</a></h1>
-
-      {% if notices or errors %}
-      <!-- messages -->
-      <div>
-        <ul>
-        {% for n in notices %}
-          <li id="notice"> Notice: <b> {{ n }} </b> </li>
-        {% endfor %}
-        </ul>
-        <br/>
-        <ul>
-        {% for e in errors %}
-          <li id="error"> Error: <b> {{ e }} </b> </li>
-        {% endfor %}
-        </ul>
-      </div>
-      {% endif %}
-
-      {% block content %} {% endblock %}
-  </body>
+        <!-- END Header -->
+        <br />
+        <h1><a href="{% url eff_site.eff.views.eff %}">Efficiency</a></h1>
+        <!-- BEGIN Message -->
+        <div id="message">
+        {% if notices or errors %}
+            <!-- messages -->
+            <div>
+                <ul>
+                {% for n in notices %}
+                    <li id="notice"> Notice: <b> {{ n }} </b> </li>
+                {% endfor %}
+                </ul>
+                <br/>
+                <ul>
+                {% for e in errors %}
+                    <li id="error"> Error: <b> {{ e }} </b> </li>
+                {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        </div>
+        <!-- END Message -->
+        <!-- BEGIN Content Wrapper -->
+        <div id="wrapper">
+        {% block content %}{% endblock content %}
+        </div>
+        <!-- END Content Wrapper -->
+        <!-- BEGIN Footer -->
+        <div id="footer">
+        {% block footer %}{% endblock footer %}
+        </div>
+        <!-- END Footer -->
+    </body>
 </html>

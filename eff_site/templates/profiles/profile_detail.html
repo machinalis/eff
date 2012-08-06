@@ -8,53 +8,48 @@ td { text-align: right }
 </style>
 {% endblock extracss %}
 
-{% block style %}{% endblock %}
-
 {% block title %}{{ block.super }} -- Profile Details {% endblock %}
 
 {% block content %}
-    <div id="wrapper">
-        <div class="title">
-            <p><b>{{ profile.user.first_name }}'s Profile</b> </p>
-        </div>
+    <div class="title">
+        <p><b>{{ profile.user.first_name }}'s Profile</b> </p>
+    </div>
 
-        <div id="content">
-            <table class="sortable report" align="center">
-                <tbody>
-                <tr> <td> First name: </td> <td> {{ profile.user.first_name }} </td> </tr>
-                <tr> <td> Last name: </td> <td> {{ profile.user.last_name }} </td> </tr>
-                <tr> <td> Job position: </td> <td> {{ profile.job_position }} </td> </tr>
-                <tr> <td> Email: </td> <td> {{ profile.user.email }} </td> </tr>
-                <tr> <td> Phone number: </td> <td> {{ profile.phone_number }} </td> </tr>
-                {% for handle in clienthandles %}
-                <tr> <td> {{ handle.handle }}: </td> <td> {{ handle.address }} </td> </tr>
-                {% endfor %}
-                <tbody>
-            </table>
-            {% if not profile.is_client %}
-            <p> <b>Cambios de Horas de Trabajo:</b> <br/> <small>(ordenado por fecha)</small> </p>
-            <table class="extra-data">
-                {% for object in profile.user.avghours_set.all %}
-                <tr>
-                    <td> {{ object.date }} </td>
-                    <td> {{ object.hours }} </td>
-                <tr>
-                {% endfor %}
-            </table>
-            {% endif %}
+    <div id="content">
+        <table class="sortable report" align="center">
+            <tbody>
+            <tr> <td> First name: </td> <td> {{ profile.user.first_name }} </td> </tr>
+            <tr> <td> Last name: </td> <td> {{ profile.user.last_name }} </td> </tr>
+            <tr> <td> Job position: </td> <td> {{ profile.job_position }} </td> </tr>
+            <tr> <td> Email: </td> <td> {{ profile.user.email }} </td> </tr>
+            <tr> <td> Phone number: </td> <td> {{ profile.phone_number }} </td> </tr>
+            {% for handle in clienthandles %}
+            <tr> <td> {{ handle.handle }}: </td> <td> {{ handle.address }} </td> </tr>
+            {% endfor %}
+            <tbody>
+        </table>
+        {% if not profile.is_client %}
+        <p> <b>Cambios de Horas de Trabajo:</b> <br/> <small>(ordenado por fecha)</small> </p>
+        <table class="extra-data">
+            {% for object in profile.user.avghours_set.all %}
+            <tr>
+                <td> {{ object.date }} </td>
+                <td> {{ object.hours }} </td>
+            <tr>
+            {% endfor %}
+        </table>
+        {% endif %}
 
-            {% if perms.eff.view_wage %}
-            <p> <b> Wage Changes: </b> </p>
-            <table class="extra-data">
-                {% for object in profile.user.wage_set.all %}
-                <tr>
-                    <td> {{ object.date }} </td>
-                    <td> {{ object.amount_per_hour }} </td>
-                <tr>
-                {% endfor %}
-            </table>
-            {% endif %}
-        </div>
-
+        {% if perms.eff.view_wage %}
+        <p> <b> Wage Changes: </b> </p>
+        <table class="extra-data">
+            {% for object in profile.user.wage_set.all %}
+            <tr>
+                <td> {{ object.date }} </td>
+                <td> {{ object.amount_per_hour }} </td>
+            <tr>
+            {% endfor %}
+        </table>
+        {% endif %}
     </div>
 {% endblock %}

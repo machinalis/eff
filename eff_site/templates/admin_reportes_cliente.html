@@ -1,33 +1,30 @@
 {% extends "base.html" %}
 
-{% block header %}
-    <!-- calendar stylesheet -->
-    <script src="/js/ui.datepicker.js"></script>
-{% endblock %}
-
-{% block jsscript %}
-    $(document).ready(function(){
-        $('#id_from_date').datepicker({ dateFormat: 'yy-mm-dd'});
-        $('#id_to_date').datepicker({ dateFormat: 'yy-mm-dd' });
-    });
-{% endblock %}
+<!-- Extra js -->
+{% block extrajs %}
+<!-- calendar stylesheet -->
+<script src="/media/addons/js/ui.datepicker.js"></script>    
+<script type="text/javascript">
+  $(document).ready(function(){
+      $('#id_from_date').datepicker({ dateFormat: 'yy-mm-dd'});
+      $('#id_to_date').datepicker({ dateFormat: 'yy-mm-dd' });
+  });
+</script>
+{% endblock extrajs %}
 
 {% block content %}
-    <div id="wrapper">
-        <div class="title">
-            <b>{{ title }}</b>
-        </div>
-	<div style="font-size:10px;">
-	  ( <a href="?period=current_month&monthly_nav=True">Mes en curso</a> / <a href="?period=last_month&monthly_nav=True">Mes pasado</a> )
-	</div>
-        <div id="content" >
-          <form method="POST" action="">
-            <table id="dates" class="extra-data">
-              {{ form.as_table }}
-              <tr><td colspan="2"> <input type="submit" value="Go!"/> </td></tr>
-            </table>
-          </form>
-
-        </div>
+    <div class="title">
+        <b>{{ title }}</b>
+    </div>
+    <div style="font-size:10px;">
+        ( <a href="?period=current_month&monthly_nav=True">Mes en curso</a> / <a href="?period=last_month&monthly_nav=True">Mes pasado</a> )
+    </div>
+    <div id="content" >
+        <form method="POST" action="">
+          <table id="dates" class="extra-data">
+            {{ form.as_table }}
+            <tr><td colspan="2"> <input type="submit" value="Go!"/> </td></tr>
+          </table>
+        </form>
     </div>
 {% endblock %}
