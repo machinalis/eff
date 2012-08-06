@@ -23,7 +23,7 @@
     <tr>
       <td>{{attachment.creator}}</td>
       <td>{{attachment.created}}</td>
-      <td><a href="/{{ attachment.attachment_file.url }}">{{ attachment.filename }}</a></td>
+      <td><a href="{{ attachment.attachment_file.url }}">{{ attachment.filename }}</a></td>
       <td>
         <form id="del_attachment_{{ attachment.id }}" method="post" action="{% url delete_attachment attachment.id %}">
           <input type="submit" name="Delete" value="Delete" onClick="return deleteAttachmentHandler({{ attachment.id }})"/>
