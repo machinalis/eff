@@ -1,13 +1,13 @@
-from django.template import Library, Node, Variable
 from attachments.forms import AttachmentForm
 from attachments.views import add_url_for_obj
 from django.core.urlresolvers import reverse
-from attachments.models import Attachment
 from django.template.loader import render_to_string
-
 from django.db.models import get_model
+from django import template
+from django.contrib.contenttypes.models import ContentType
+from django.utils.encoding import smart_unicode
 
-register = Library()
+register = template.Library()
 
 
 @register.inclusion_tag('attachments/delete_link.html', takes_context=True)
@@ -25,15 +25,10 @@ attachments.
            context['user'].has_perm('attachments.delete_attachment')):
         return {
             'next': context['request'].build_absolute_uri(),
-            'delete_url': reverse('delete_attachment', kwargs={'attachment_pk': attachment.pk})
+            'delete_url': reverse('delete_attachment',
+                                  kwargs={'attachment_pk': attachment.pk})
         }
     return {'delete_url': None}
-
-from django import template
-from django.contrib.contenttypes.models import ContentType
-from django.utils.encoding import smart_unicode
-
-register = template.Library()
 
 
 class BaseAttachmentNode(template.Node):
