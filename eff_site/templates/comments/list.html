@@ -18,7 +18,7 @@
 
         <p align="left">{{ comment.comment }}</p>
         <p align="right">
-          (from <a href="javascript:alert('{{ comment.email }}')">{{ comment.user }}</a> - {{ comment.submit_date|timesince }} ago)
+          (from <a href="mailto:{{ comment.email }}">{{ comment.user }}</a> - {{ comment.submit_date}} - {{ comment.submit_date|timesince }} ago)
         </p>
 
         {% if user.is_superuser %}
