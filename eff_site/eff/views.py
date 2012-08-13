@@ -957,10 +957,9 @@ def eff_update_db(request):
              ' %H:%M'))
         fd.close()
 
-        # We use a cron job to run the code below now
-        # args = (settings.PYTHON_BINARY, settings.FETCH_EXTERNALS_PATH)
-        # process = Popen(args, stdout=open(settings.DEBUG_FILE, 'w'),
-        #                 close_fds=True)
+        args = (settings.PYTHON_BINARY, settings.FETCH_EXTERNALS_PATH)
+        process = Popen(args, stdout=open(settings.DEBUG_FILE, 'w'),
+                         close_fds=True)
 
         response_data = dict(status='ok')
         return HttpResponse(simplejson.dumps(response_data),
