@@ -10,3 +10,4 @@ eff_site/updatedb.flag
 local_settings.py
 scripts/sources_csv/*
 !.gitignore
+tmpvar
