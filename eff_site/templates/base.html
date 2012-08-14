@@ -34,9 +34,10 @@
                     <li><a href="#" onclick="javscript:update_db()">update-db</a></li>
                     <li><a href="javascript:void(0)">administration</a>
                         <ul class="main-menu-ul" style="display: none;">
-                            <li><a href="{% url eff_client_summary_period %}">client summary</a></li>
                             <li><a href="{% url eff_site.eff.views.eff_client_reports_admin %}">client reports</a></li>
                             <li><a href="{% url eff_site.eff.views.eff_fixed_price_client_reports %}">fixed price reports</a></li>
+                            <li><a href="{% url eff_client_summary_period %}">client summary</a></li>
+                            <li><a>&nbsp</a></li>
                             <li><a href="{% url eff_site.eff.views.eff_admin_add_user %}">add user</a></li>
                             <li><a href="{% url eff_site.eff.views.eff_admin_change_profile %}">users profile</a></li>
                             <li><a href="{% url eff_site.eff.views.eff_administration %}">users password</a></li>
