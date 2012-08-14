@@ -1,6 +1,6 @@
 <!--
 function update_db() {
-    $.getJSON("{% url eff_site.eff.views.eff_update_db %}",function(json){
+    $.getJSON("/efi/update-db/",function(json){
         if (json.status == 'ok') {
             alert('Por favor espere, se está procesando el pedido');
         } else {
