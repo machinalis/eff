@@ -21,7 +21,6 @@ from os.path import dirname, join, abspath, normpath
 CURRENT_ABS_DIR = dirname(abspath(normpath(__file__)))
 
 DEBUG = True
-DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
