@@ -153,6 +153,4 @@ if settings.DEBUG:
     urlpatterns += patterns('',
         url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {
             'document_root': settings.MEDIA_ROOT}),
-        url(r'^attachments/(?P<path>.*)$', 'django.views.static.serve',
-            {'document_root': join(CURRENT_ABS_DIR, 'attachments')}),
    )
