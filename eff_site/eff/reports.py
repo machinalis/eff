@@ -60,7 +60,7 @@ def format_report_data(rep, client, from_date, to_date, detailed=False):
                           'hs': str(user[1].quantize(Decimal('.000')))}
                 # Include rates in report
                 if len(user) > 2:
-                    user_total = (user[1] * user[2]).quantize(Decimal('.000'))
+                    user_total = (user[1] * user[2]).quantize(Decimal('.00'))
                     total_sum += user_total
                     user_d.update(
                         {'rate': str(user[2].quantize(Decimal('.00'))),
