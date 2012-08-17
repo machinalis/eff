@@ -1,0 +1,95 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" />
+
+        <!-- Stylesheet -->
+        <link rel="stylesheet" type="text/css" href="/media/css/eff-base.css" />
+        <!-- calendar stylesheet -->
+        <link rel="stylesheet" type="text/css" media="all" href="/media/addons/js/flora.datepicker.css" />
+        <!-- Extra css -->
+        {% block extracss %}{% endblock extracss %}
+
+        <script type="text/javascript" src="/media/js/jquery.js"></script>
+        <script type="text/javascript" src="/media/js/eff-base.js"></script>
+        <script type="text/javascript" src="/media/addons/sortable-table/sortable.js"></script>
+
+        <!-- Extra js -->
+        {% block extrajs %}{% endblock extrajs %}
+        
+        <title>{% block title %}{{ title|default:"Efficiency"}}{% endblock %}</title>
+    </head>
+    <body>
+        <!-- BEGIN Header -->
+        <div id="header">
+        {% block header %}
+            <div class="toolbar">
+            {% if user.is_authenticated %}
+                <ul class="main-menu-ul" id="main-menu">
+                    <li style="width: 260px; background-color: #FFFFFF;line-height:22px;">Logged as: {{ user }}@{{ hostname|default:"localhost" }}</li>
+                    <li><a href="{% url eff_home %}">home</a></li>
+                    <li><a href="{% url password_change %}">change password</a></li>
+                    <li><a href="{% url profiles_edit %}">edit your profile</a></li>
+                {% if perms.eff.view_billable and perms.eff.view_wage %}
+                    <li><a href="#" onclick="javscript:update_db()">update-db</a></li>
+                    <li><a href="javascript:void(0)">administration</a>
+                        <ul class="main-menu-ul" style="display: none;">
+                            <li><a href="{% url eff_site.eff.views.eff_client_reports_admin %}">client reports</a></li>
+                            <li><a href="{% url eff_site.eff.views.eff_fixed_price_client_reports %}">fixed price reports</a></li>
+                            <li><a href="{% url eff_client_summary_period %}">client summary</a></li>
+                            <li><a>&nbsp</a></li>
+                            <li><a href="{% url eff_site.eff.views.eff_admin_add_user %}">add user</a></li>
+                            <li><a href="{% url eff_site.eff.views.eff_admin_change_profile %}">users profile</a></li>
+                            <li><a href="{% url eff_site.eff.views.eff_administration %}">users password</a></li>
+                            <li><a href="{% url eff_site.eff.views.eff_dump_csv_upload %}">csv dump upload</a></li>
+                        </ul>
+                    </li>
+                {% endif %}
+                {% if  user.get_profile.is_client %}
+                    <li><a href="{% url client_projects %}">my projects</a></li>
+                    <li><a href="{% url client_summary_period %}">account summary</a></li>
+                {% endif %}
+                    <li><a href="{% url logout %}">logout</a></li>
+                </ul>
+            {% else %}
+                <a href="{% url login %}">login</a>
+            {% endif %}
+            </div>
+            <hr>
+        {% endblock header %}
+        </div>
+        <!-- END Header -->
+        <br />
+        <h1><a href="{% url eff_site.eff.views.eff %}">Efficiency</a></h1>
+        <!-- BEGIN Message -->
+        <div id="message">
+        {% if notices or errors %}
+            <!-- messages -->
+            <div>
+                <ul>
+                {% for n in notices %}
+                    <li id="notice"> Notice: <b> {{ n }} </b> </li>
+                {% endfor %}
+                </ul>
+                <br/>
+                <ul>
+                {% for e in errors %}
+                    <li id="error"> Error: <b> {{ e }} </b> </li>
+                {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        </div>
+        <!-- END Message -->
+        <!-- BEGIN Content Wrapper -->
+        <div id="wrapper">
+        {% block content %}{% endblock content %}
+        </div>
+        <!-- END Content Wrapper -->
+        <!-- BEGIN Footer -->
+        <div id="footer">
+        {% block footer %}{% endblock footer %}
+        </div>
+        <!-- END Footer -->
+    </body>
+</html>

@@ -1,0 +1,25 @@
+#!/bin/bash
+# This clean migration folder of an app give in param
+# param $1 - Path to the django project
+# param $2 - Name of the django app
+
+if [ $# -eq 2 ] ; then
+    cd $1
+    # echo "Reset south db registers"
+    python manage.py reset south 
+
+    # echo "Load the eff register to migrate"
+    python manage.py syncdb
+
+    # Load the initial migrations faked
+    python manage.py migrate $2 --fake 0001
+
+    # Load the rest of eff migrations
+    python manage.py migrate $2
+    
+else                   
+    echo "You must pass to script the path to django project and appname by params."
+    echo "script-migration path/to/django/project appname"
+    echo "Ej. If your django project is in 'eff_site' and appname is 'eff'"
+    echo "Excecute 'script-migration eff_site eff'"
+fi

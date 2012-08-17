@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2009 - 2011 Machinalis: http://www.machinalis.com/
 #
 # This file is part of Eff.
@@ -16,31 +15,18 @@
 # You should have received a copy of the GNU General Public License
 # along with Eff.  If not, see <http://www.gnu.org/licenses/>.
 
-
-from os import environ, remove
-environ['DJANGO_SETTINGS_MODULE'] = 'eff_site.settings'
-import os.path
-
-from eff_site.eff.utils import debug
-from eff_site import settings
-
-from eff_site.scripts.fetch_all import run
+from django.db import models
 
 
-def do_all():
-    if not os.path.exists(settings.LOCK_FILE):
-        open(settings.LOCK_FILE, 'w').close()
-        debug("created lock")
-        try:
-            run()
-        finally:
-            debug("removed lock")
-            remove(settings.LOCK_FILE)
-    else:
-        debug("lock exists, did nothing")
+class Dump(models.Model):
+    date = models.DateField()
+    creator = models.CharField(max_length=100)
+    source = models.ForeignKey('ExternalSource', null=True)
 
-    if os.path.exists(settings.FLAG_FILE):
-        remove(settings.FLAG_FILE)
+    class Meta:
+        app_label = 'eff'
 
-if __name__ == '__main__':
-    do_all()
+    def __unicode__(self):
+        return u'Dump - source: %s, created by: %s, date: %s' % (self.source,
+                                                                 self.creator,
+                                                                 self.date)

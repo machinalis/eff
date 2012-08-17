@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2009 - 2011 Machinalis: http://www.machinalis.com/
 #
 # This file is part of Eff.
@@ -16,31 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with Eff.  If not, see <http://www.gnu.org/licenses/>.
 
-
-from os import environ, remove
-environ['DJANGO_SETTINGS_MODULE'] = 'eff_site.settings'
-import os.path
-
-from eff_site.eff.utils import debug
-from eff_site import settings
-
-from eff_site.scripts.fetch_all import run
-
-
-def do_all():
-    if not os.path.exists(settings.LOCK_FILE):
-        open(settings.LOCK_FILE, 'w').close()
-        debug("created lock")
-        try:
-            run()
-        finally:
-            debug("removed lock")
-            remove(settings.LOCK_FILE)
-    else:
-        debug("lock exists, did nothing")
-
-    if os.path.exists(settings.FLAG_FILE):
-        remove(settings.FLAG_FILE)
-
-if __name__ == '__main__':
-    do_all()
+from user_profile import UserProfile, Handle, ClientHandles
+from project import Project, ProjectAssoc
+from log import TimeLog
+from avg_hours import AvgHours
+from external_source import ExternalSource, ExternalId
+from wage import Wage
+from client import Client, Currency, BillingEmail
+from dump import Dump
+from commercial_documents import (Billing, CreditNote, Payment,
+                                 CommercialDocumentBase)

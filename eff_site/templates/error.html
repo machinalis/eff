@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+<!-- Extra css -->
+{% block extracss %}
+<style type="text/css">
+  #notice { background: #00e700 }
+  #error { background: #e70000 }
+</style>
+{% endblock extracss %}
+
+{% block content %}
+    <div align="center">
+        <ul>
+        {% for n in notices %}
+            <li id="notice"> Notice: <b> {{ n }} </b> </li>
+        {% endfor %}
+        <ul>
+        <br/>
+        <ul>
+        {% for e in errors %}
+            <li id="error"> Error: <b> {{ e }} </b> </li>
+        {% endfor %}
+        <ul>
+        <br/>
+        <a href="{% url eff_site.eff.views.eff_current_week %}"> Volver a efficiency </a>
+    </div>
+{% endblock %}

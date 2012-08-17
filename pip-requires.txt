@@ -1,0 +1,10 @@
+MySQL-python==1.2.3
+django-profiles 
+django==1.2
+python-dateutil
+south 
+relatorio  
+pyyaml 
+pycha
+zope.interface
+zope.testbrowser

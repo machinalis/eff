@@ -1,0 +1,62 @@
+<script type="text/javascript" charset="utf-8">
+
+function bindPostAttachmentHandler(fid) {
+    var this_form = '#attachments_wrapper_' + fid + ' form';
+    var options = {
+        // target element to be updated with server response
+        target: $('#attachments_wrapper_' + fid),
+        clearForm: true, // clear all form fields after successful submit
+    };
+
+    // bind to the form's submit event
+    $(this_form).submit(function() {
+        // inside event callbacks 'this' is the DOM element so we first
+        // wrap it in a jQuery object and then invoke ajaxSubmit
+        $(this).ajaxSubmit(options);
+
+        // return false to prevent standard browser submit and page navigation
+        return false;
+    });
+}
+
+function deleteAttachmentHandler(fid) {
+    // get the form, the row containing the attachment, the table and the
+    // number of rows
+    var this_form = '#del_attachment_' + fid;
+    var this_row = $(this_form).parent().parent();
+    var this_table = $(this_row).parent().parent();
+
+    var agree = confirm("Do you want to delete this attachment?");
+    var options = {
+        // target element to be updated with server response
+        target: this_row,
+    };
+
+    if (agree){
+        // bind to the form's submit event
+        $(this_form).submit(function() {
+            // inside event callbacks 'this' is the DOM element so we first
+            // wrap it in a jQuery object and then invoke ajaxSubmit
+            $(this).ajaxSubmit(options);
+
+            // remove the row containing the deleted attachment
+            this_row.replaceWith('');
+
+            // if table is now empty display table properly
+            var rowCount = $(this_table).find('tr').length - 2;
+            if (rowCount == 0) {
+                this_table.find('tr th').eq(0).html('No hay archivos adjuntos');
+                this_table.find('tr').eq(1).replaceWith('');
+
+            }
+            
+
+            // return false to prevent standard browser submit and page navigation
+            return false;
+        });
+    }
+    else
+        return false;
+}
+
+</script>
