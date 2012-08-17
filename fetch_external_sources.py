@@ -44,4 +44,3 @@ def do_all():
 
 if __name__ == '__main__':
     do_all()
-

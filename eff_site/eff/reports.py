@@ -89,13 +89,13 @@ def format_report_data(rep, client, from_date, to_date, detailed=False):
                                or client.currency.ccy_code),
                  }
     reverse_billing = ClientReverseBilling(
-        projects_users = report_list,
-        client_data = client_data,
-        invoice_period = format_invoice_period(from_date, to_date),
-        reference = "%s%s%s" % (client.name.lower(), from_date.year,
+        projects_users=report_list,
+        client_data=client_data,
+        invoice_period=format_invoice_period(from_date, to_date),
+        reference="%s%s%s" % (client.name.lower(), from_date.year,
             from_date.strftime("%m"), ),
-        today = datetime.now().strftime("%A, %d %B %Y"),
-        total = str(total_sum))
+        today=datetime.now().strftime("%A, %d %B %Y"),
+        total=str(total_sum))
     return reverse_billing
 
 
@@ -147,16 +147,16 @@ def format_report_data_user(rep, user, from_date, to_date, detailed=False):
         user_data.update({'total_hs': totalHrs})
 
     reverse_billing = UserReverseBilling(
-            user_hours = report_list,
-            sub_total = sub_total,
-            user_data = user_data,
-            invoice_period = format_invoice_period(from_date, to_date),
-            reference = "%s_%s%s%s" % (
+            user_hours=report_list,
+            sub_total=sub_total,
+            user_data=user_data,
+            invoice_period=format_invoice_period(from_date, to_date),
+            reference="%s_%s%s%s" % (
                     user.first_name.lower(),
                     user.last_name.lower(),
                     from_date.year,
                     from_date.strftime("%m"),
                 ),
-            today = datetime.now().strftime("%A, %d %B %Y")
+            today=datetime.now().strftime("%A, %d %B %Y")
         )
     return reverse_billing

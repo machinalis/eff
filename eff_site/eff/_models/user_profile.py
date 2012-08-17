@@ -16,7 +16,7 @@
 # along with Eff.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.db import models
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User
 from datetime import timedelta, datetime
 from avg_hours import AvgHours
 from client import Client
@@ -131,19 +131,19 @@ class UserProfile(models.Model):
             new_avg_hour.validate_unique()
             new_avg_hour.save()
         else:
-            raise ValueError, "Negative value for hours"
+            raise ValueError("Negative value for hours")
 
     def update_avg_hour(self, udate, hours):
         if hours >= 0:
             try:
                 update_date = self.user.avghours_set.get(date=udate)
             except (AvgHours.DoesNotExist, MultipleObjectsReturned):
-                raise ValueError, "AvgHour inexistent"
+                raise ValueError("AvgHour inexistent")
             else:
                 update_date.hours = hours
                 update_date.save()
         else:
-            raise ValueError, "Negative value for hours"
+            raise ValueError("Negative value for hours")
 
     def is_active(self, from_date, to_date):
         delta = timedelta(days=1)
@@ -180,7 +180,7 @@ class UserProfile(models.Model):
         wh = self.get_worked_hours(from_date, to_date)
         th = self.num_loggable_hours(from_date, to_date)
         if th == 0:
-            raise ValueError, 'No loggable hours'
+            raise ValueError('No loggable hours')
         else:
             # For total values of this, see eff.utils.DataTotal
             # phw must be a Decimal
@@ -191,7 +191,7 @@ class UserProfile(models.Model):
         bh = self.billable_hours(from_date, to_date)
         th = self.num_loggable_hours(from_date, to_date)
         if th == 0:
-            raise ValueError, 'No loggable hours'
+            raise ValueError('No loggable hours')
         else:
             # For total values of this, see eff.utils.DataTotal
             # pbh must be a Decimal
@@ -229,7 +229,7 @@ class UserProfile(models.Model):
 def create_profile_for_user(sender, instance, signal, *args, **kwargs):
     try:
         profile = UserProfile.objects.get(user=instance)
-    except UserProfile.DoesNotExist, e:
+    except UserProfile.DoesNotExist:
         #si no existe, creamos el profile para el usuario
         profile = UserProfile(user=instance)
     if hasattr(instance, "is_client"):

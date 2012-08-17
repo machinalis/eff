@@ -27,14 +27,14 @@ from dateutil.relativedelta import relativedelta
 
 
 class Jira(object):
-    csv_header = ('timetrack_id','timetrack_parentid','timetrack_volume',
-                  'timetrack_start','timetrack_end','timetrack_description',
-                  'timetrack_cph','timetrack_vtime','timetrack_creation',
-                  'person_id','person_loginname','person_isadmin',
-                  'person_isdisabled','person_role','timetrack_projectcph',
-                  'timetrack_costs','timetrack_state','project_name',
-                  'project_departments','project_types',
-                  'project_implementation','project_state','timetrack_origin')
+    csv_header = ('timetrack_id', 'timetrack_parentid', 'timetrack_volume',
+                  'timetrack_start', 'timetrack_end', 'timetrack_description',
+                  'timetrack_cph', 'timetrack_vtime', 'timetrack_creation',
+                  'person_id', 'person_loginname', 'person_isadmin',
+                  'person_isdisabled', 'person_role', 'timetrack_projectcph',
+                  'timetrack_costs', 'timetrack_state', 'project_name',
+                  'project_departments', 'project_types',
+                  'project_implementation', 'project_state', 'timetrack_origin')
 
     def __init__(self, url, username, password,
                  from_date=None, to_date=None, projects=None):

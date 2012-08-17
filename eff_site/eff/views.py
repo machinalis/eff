@@ -466,7 +466,8 @@ def eff_client_projects(request):
 
 
 @login_required
-@user_passes_test(lambda u: __enough_perms_or_client(u), login_url='/accounts/login/')
+@user_passes_test(lambda u: __enough_perms_or_client(u),
+                  login_url='/accounts/login/')
 def eff_client_summary_period(request):
     """
     Renders a period selection to get a client's account summary
@@ -538,7 +539,8 @@ def eff_client_summary_period(request):
 
 
 @login_required
-@user_passes_test(lambda u: __enough_perms_or_client(u), login_url='/accounts/login/')
+@user_passes_test(lambda u: __enough_perms_or_client(u),
+                  login_url='/accounts/login/')
 def eff_client_summary(request, company_slug=None):
     """
     Renders a client's account summary.
@@ -732,7 +734,8 @@ def eff(request):
             # month name
             aux = "durante el mes de %s" % from_date.strftime('%B de %Y')
         elif OVERTIME_FLAG in context:
-            aux = "durante el período de horas extras [%s, %s]" % (from_date, to_date)
+            aux = "durante el período de horas extras [%s, %s]" % (from_date,
+                                                                   to_date)
         else:
             aux = "entre %s y %s" % (from_date, to_date)
         context['title'] = "Horas Logueadas %s" % aux
@@ -1321,7 +1324,7 @@ def eff_admin_users_association(request):
 
     """
 
-    context = {'title' : 'Asociación de usuarios'}
+    context = {'title': 'Asociación de usuarios'}
     if 'log_entries_file' in request.session and 'n_users' in request.session:
         n_users = request.session['n_users']
         log_entries_file = request.session['log_entries_file']

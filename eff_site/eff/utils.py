@@ -123,8 +123,8 @@ class Data (object):
     def __init__(self, profile, from_date, to_date):
         self.username = profile.user.username
         self.name = profile.user.first_name or profile.user.username
-        fancy_name = "%s %s"  % (profile.user.first_name, profile.user.last_name)
-        self.fancy_name = fancy_name.strip() and fancy_name or self.name 
+        fancy_name = "%s %s" % (profile.user.first_name, profile.user.last_name)
+        self.fancy_name = fancy_name.strip() and fancy_name or self.name
         self.url = profile.get_absolute_url()
         self.is_active = profile.is_active(from_date, to_date)
         self.worked_hours = profile.get_worked_hours(from_date, to_date)
@@ -370,7 +370,7 @@ def validate_header(file_obj):
 
     """
 
-    ERROR_FILE_HEADER = "Line %d in file header doesnot start with '#'"
+    ERROR_FILE_HEADER = "Line %d in file header does not start with '#'"
     ERROR_BAD_FORMAT = "No ':' separating the arguments at line: %d"
     ERROR_NO_ARGUMENT = "No argument at line: %d"
 

@@ -189,8 +189,8 @@ class PageTest(HelperTest):
         usr = User.objects.get(username='test1')
         profile_from_db = usr.get_profile()
 
-        self.assertEqual(usr.get_profile().address, profile.address)
-        self.assertEqual(usr.get_profile().phone_number, profile.phone_number)
+        self.assertEqual(profile_from_db.address, profile.address)
+        self.assertEqual(profile_from_db.phone_number, profile.phone_number)
 
     def test_update_hours_requires_login(self):
         response = self.client.post('/updatehours/test1/')
@@ -356,7 +356,8 @@ class PageTest(HelperTest):
         response = self.client.post('/efi/administration/add_user/', context)
         self.assertEqual(response.status_code, 200)
         self.assert_('Invalid Form' in response.context[0]['errors'])
-        self.assert_('User already exists.' in response.context[0]['form'].errors['__all__'])
+        self.assert_('User already exists.' in
+                     response.context[0]['form'].errors['__all__'])
 
     def test_add_user_getparm(self):
         self.assert_(self.client.login(username='test1', password='test1'))
@@ -367,7 +368,6 @@ class PageTest(HelperTest):
             'test2')
 
     def test_client_report_access(self):
-        from eff.models import Client as EffClient
         cli_name = "test client, test.client....;(*&^$#@"
         from django.template.defaultfilters import slugify
         source, is_done = ExternalSource.objects.get_or_create(name='Example')
@@ -494,6 +494,7 @@ class PageTest(HelperTest):
             self._test_prev_next_button('efi/chart/admin/?from_date=2008-03-04'\
                 '&to_date=2008-04-29')
 
+
 class UserCreationTest(TestCase):
 
     def setUp(self):
@@ -514,7 +515,6 @@ class UserCreationTest(TestCase):
         user = User.objects.get(username='test_att')
         self.assertEqual(self.group_attachment, user.groups.get(
                          name='attachments'))
-
 
 
 class UserProfileCreationTest(TestCase):
