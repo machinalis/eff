@@ -50,13 +50,6 @@ If you use a DotProject source, add the credentials to mysql in settings.py::
 Other configurations
 ====================
 
-Sending weekly email with hours report
-----------------------------------------
-A user can now select in his profile to receive an email with a report.
-
-For this to work add this variable in local_settings.py to configure the sender:
-    DEFAULT_FROM_EMAIL = 'from@domain.com'
-
 Sending email when a client user changes
 ----------------------------------------
 When change a client user, the system send mail notifications.
@@ -94,7 +87,11 @@ Weekly reports to users
 ----------------------------
 Eff can send reports by emails weekly to users not clients if they are checked this option in his settings. Your server need to call send_report.py script in the weekday you want to send emails.
 
-You have to configure this script before to use, editing eff_site/scripts/send_report.py:
+For this to work add this variable in local_settings.py to configure the sender:
+
+    DEFAULT_FROM_EMAIL = 'from@domain.com'
+
+You also have to configure this script: eff_site/scripts/send_report.py
 
 The emails are sent the day of the week defined by the variable SEND_DAY (default is set to 0 (Monday)), if your server calls the script on a day other than the set, are not going to send the mails::
 

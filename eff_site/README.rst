@@ -1,11 +1,11 @@
-=======
+﻿=======
 Install
 =======
 Add data base credentials here:
 
 If you are going to use a DotProject source:
 
-* sitio/scripts/dotproject.py::
+* eff_site/scripts/dotproject.py::
 
     class Machinalis(DotProject):
         ...
@@ -14,7 +14,7 @@ If you are going to use a DotProject source:
         PASSWD = ''
         ...
 
-* sitio/settings.py::
+* eff_site/settings.py::
 
    DATABASE_NAME = ''           # Or path to database file if using sqlite3.
    DATABASE_USER = ''           # Not used with sqlite3.
