@@ -16,7 +16,7 @@
 # along with Eff.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.db import models
-#from external_source import ExternalSource
+
 
 class Dump(models.Model):
     date = models.DateField()

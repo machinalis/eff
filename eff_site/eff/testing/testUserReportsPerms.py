@@ -269,7 +269,8 @@ class UserWithoutPermissionsTest(HelperTest):
         response = self.get_response()
         query = PyQuery(response.content)
         query = query('table#queryTable td.name').text()
-        name = self.no_perms_user.user.username
+        name = '%s %s' % (self.no_perms_user.user.first_name,
+                          self.no_perms_user.user.last_name)
         self.assertEqual(query, name)
 
     def test_can_see_his_report(self):

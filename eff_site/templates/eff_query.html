@@ -59,11 +59,11 @@
                 {% if object.is_active %}
                     <tr class="odd {{ object.efficiency_class }}">
                         <td class="name">
-                        {% if perms.eff.view_billable %}
-                            <a title="detalle del profile" href="{% url eff_site.eff.views.eff_check_perms object.username %}">{{ object.name }}</a>
-                        {% else %}
-                            {{ object.name }}
-                        {% endif %}
+                          {% if perms.eff.view_billable %}
+                            <a title="detalle del profile" href="{% url eff_site.eff.views.eff_check_perms object.username %}">{{ object.fancy_name }}</a>
+			  {% else %}
+                            {{ object.fancy_name }}
+			  {% endif %}
                         </td>
                         <td class="logged">
                             <a title="detailed hours report" href="{% url eff_site.eff.views.eff_report object.username %}?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">

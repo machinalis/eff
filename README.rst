@@ -1,4 +1,4 @@
-Dependencies
+﻿Dependencies
 ============
 * django-profiles
 * mysqldb (if you use DotProject as source)
@@ -84,10 +84,14 @@ When you run syncdb (or migrate if you have installed south) the following defau
 * linkedin
 
 Weekly reports to users
------------------------
+----------------------------
 Eff can send reports by emails weekly to users not clients if they are checked this option in his settings. Your server need to call send_report.py script in the weekday you want to send emails.
 
-You have to configure this script before to use, editing eff_site/scripts/send_report.py:
+For this to work add this variable in local_settings.py to configure the sender:
+
+    DEFAULT_FROM_EMAIL = 'from@domain.com'
+
+You also have to configure this script: eff_site/scripts/send_report.py
 
 The emails are sent the day of the week defined by the variable SEND_DAY (default is set to 0 (Monday)), if your server calls the script on a day other than the set, are not going to send the mails::
 
@@ -100,13 +104,12 @@ To customize the email template you need to edit the following files:
 * eff_site/templates/previous_week_report_subject.txt
 
 
-Optional
---------
-This options is for test sending mails::
+Other email configurations
+--------------------------------
+Config this variables in local_settings.py for Eff to be able to send emails regarding different topics, like change/reset password.
 
-    # Config Email for testing
-    EMAIL_HOST = 'localhost'
-    EMAIL_PORT = 1025
+    EMAIL_HOST = 'smtphost'
+    EMAIL_PORT = # smtp port number
 
 Sources
 =======

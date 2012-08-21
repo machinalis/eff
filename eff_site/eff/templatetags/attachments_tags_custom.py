@@ -98,7 +98,8 @@ class BaseAttachmentNode(template.Node):
 
     def render(self, context):
         qs = self.get_query_set(context)
-        context[self.as_varname] = self.get_context_value_from_queryset(context, qs)
+        context[self.as_varname] = self.get_context_value_from_queryset(context,
+                                                                        qs)
         return ''
 
     def get_query_set(self, context):

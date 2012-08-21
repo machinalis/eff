@@ -21,7 +21,6 @@ from os.path import dirname, join, abspath, normpath
 CURRENT_ABS_DIR = dirname(abspath(normpath(__file__)))
 
 DEBUG = True
-DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -32,7 +31,7 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'ENGINE': 'django.db.backends.',  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': '',                      # Or path to database file if using sqlite3.
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.

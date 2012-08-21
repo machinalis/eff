@@ -16,10 +16,10 @@
 # along with Eff.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.contrib import admin
-from eff_site.eff.models import Project, Client, ExternalSource, Wage, BillingEmail
-from eff_site.eff.models import (AvgHours, Currency, ProjectAssoc, TimeLog,
+from eff_site.eff.models import (Project, Client, ExternalSource, Wage, Payment,
+                                 BillingEmail, Currency, ProjectAssoc, TimeLog,
                                  Handle, ClientHandles, Billing, CreditNote,
-                                 Payment, CommercialDocumentBase)
+                                 AvgHours, CommercialDocumentBase)
 from _models.user_profile import UserProfile
 from eff_site.eff.forms import UserAdminForm, UserAdminChangeForm
 from django.contrib.auth.models import User

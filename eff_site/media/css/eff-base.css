@@ -68,7 +68,7 @@ h1, #wrapper, #footer { text-align: center; }
 .graphicsLeft { float: left; text-align: left }
 .graphicsRight { text-align: right }
 
-.main-menu-ul {list-style-image: url(none);list-style-position: outside;list-style-type: none;float: right;}
+.main-menu-ul {list-style-position: outside;list-style-type: none;float: right;}
 #main-menu li {display: inline;float: left;margin: 0;position: relative;width: 120px;text-align: center;background-color: #EEEEEE;height: 22px;}
 #main-menu li a {color: #000000;display: block;padding: 2px 5px;text-decoration: none;width: 120px;background-color: #EEEEEE;}
 #main-menu li ul {display: none;position: absolute;}
