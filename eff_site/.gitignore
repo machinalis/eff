@@ -1,0 +1,10 @@
+*.pyc
+*.*~
+
+updatedb.debug     # this file is created when sources are fetched
+./updatedb.flag      # this file is created when one clicks on updatedb
+../.emacs.desktop.lock
+
+local_settings.py
+scripts/sources_csv/*   # in this directory fetched data is dumped
+!.gitignore

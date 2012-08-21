@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+<!-- Extra js -->
+{% block extrajs %}
+<script type="text/javascript">
+  $(document).ready(function() {
+      $('#id_user').change(function(){
+          selected_val = $(this).val();
+          redirect_to = window.location.pathname;
+          if(selected_val!='')
+              redirect_to += '?user_id=' + selected_val;
+          window.location = redirect_to;
+      });
+  });
+</script>
+{% endblock extrajs %}
+
+{% block content %}
+    <div class="title">
+        <p><b>{{ title }}</b></p>
+    </div>
+    <div id="content">
+    	  <form id="user-admin-form" method="post" action="">
+            <table class="extra-data">
+        	      {{ form.as_table }}
+        	      <tr>
+                		<td colspan="2">
+                		    <input id="update-settings" type="submit" value="Go" />
+                		</td>
+        	      </tr>
+    	      </table>
+    	  </form>
+    </div>
+{% endblock %}

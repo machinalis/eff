@@ -1,0 +1,6 @@
+{% load comments i18n %}
+
+{% with comment.content_object as doc %}
+{% render_comment_list for doc%}
+{% render_comment_form for doc %}
+{% endwith %}

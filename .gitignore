@@ -1,0 +1,13 @@
+*.pyc
+*.*~
+
+eff_site/updatedb.debug
+eff_site/updatedb.flag
+
+.emacs.desktop.lock
+.emacs.desktop
+
+local_settings.py
+scripts/sources_csv/*
+!.gitignore
+tmpvar

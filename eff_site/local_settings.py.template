@@ -1,0 +1,51 @@
+# Copyright 2009 - 2011 Machinalis: http://www.machinalis.com/
+#
+# This file is part of Eff.
+#
+# Eff is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Eff is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Eff.  If not, see <http://www.gnu.org/licenses/>.
+
+#
+# Used in scripts/dotproject.py and eff/migrations/0007_dump_migration.py
+#
+DOTPROJECT_DB_NAME = ''
+DOTPROJECT_DB_USER = ''
+DOTPROJECT_DB_PASSWD = ''
+DOTPROJECT_DB_HOST = 'localhost'
+DOTPROJECT_DB_PORT = 3306
+DOTPROJECT_DB_CHARSET = 'latin1'
+#
+# Database configuration
+#
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': '',                      # Or path to database file if using sqlite3.
+        'USER': '',                      # Not used with sqlite3.
+        'PASSWORD': '',                  # Not used with sqlite3.
+        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+    }
+}
+
+EMAIL_HOST = ''  # Set this as the host to use for sending e-mail
+EMAIL_PORT = 25  # Port to use for the SMTP server defined in EMAIL_HOST
+
+# When change a client user, send mail from
+    CLIENT_CHANGE_FROM = 'from@domain.com'
+    
+# When change a client user, send mail to. This is a tuple of all recipients
+CLIENT_CHANGE_RECIPIENT = (
+    'your_email@domain.com',
+    'another_email@domain.com',
+)

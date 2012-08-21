@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% load workedhours %}
+
+<!-- Extra css -->
+{% block extracss %}{% endblock extracss %}
+
+<!-- Extra js -->
+{% block extrajs %}
+<!-- calendar stylesheet -->
+<script src="/media/addons/js/ui.datepicker.js"></script>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('#id_from_date').datepicker({ dateFormat: 'yy-mm-dd'});
+        $('#id_to_date').datepicker({ dateFormat: 'yy-mm-dd' });
+    });
+</script>
+{% endblock extrajs %}
+
+{% block content %}
+    <div class="title">
+        <b>{{ title }}</b>
+    </div>
+
+    <div id="content" style="width:80%;">
+    {% if navs %}
+	{% include 'nav-links.html' %}
+    {% endif %}
+    {% if object_list %}
+        <form method="get" action="{% url eff_site.eff.views.eff_charts %}">
+            <input type="hidden" name="dates" value={{from_date}},{{to_date}} />
+        {% if monthly_nav %}
+            <input type="hidden" name="monthly_nav" value="{{monthly_nav}}" />
+        {% endif %}
+        {% if overtime_nav %}
+            <input type="hidden" name="overtime_nav" value="{{overtime_nav}}" />
+        {% endif %}
+            <table class="sortable" id="queryTable">
+                <thead>
+                    <tr>
+                        <th class="name"><abbr title="profile detail">Nombre</abbr></th>
+                        <th class="logged"><abbr title="ammount of logged hours">#</abbr></th>
+                    {% if perms.eff.view_billable %}
+                        <th class="billable"><abbr title="ammount of billable hours">#$</abbr></th>
+                    {% endif %}
+                        <th class="loggable"><abbr title="ammount of loggable hours">n</abbr></th>
+                        <th class="percent"><abbr title="percent of logged hours in realtion to loggable"> % </abbr></th>
+                    {% if perms.eff.view_billable %}
+                        <th class="qbill"><abbr title="percentage of billable hours">%$</abbr></th>
+                    {% endif %}
+                        <th style="width:50em;"><abbr title="projects involved">Proyectos</abbr></th>
+                        <th class="graphical unsortable"><abbr title="graphical report">G</abbr></th>
+                        <th class="unsortable"><abbr title="checkbox for cumulative oor multiple graphical report">S</abbr></th>
+                        <th class="delta unsortable"><abbr title="compared to last week">&#8710;</abbr></th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for object in object_list %}
+                {% if object.is_active %}
+                    <tr class="odd {{ object.efficiency_class }}">
+                        <td class="name">
+                          {% if perms.eff.view_billable %}
+                            <a title="detalle del profile" href="{% url eff_site.eff.views.eff_check_perms object.username %}">{{ object.fancy_name }}</a>
+			  {% else %}
+                            {{ object.fancy_name }}
+			  {% endif %}
+                        </td>
+                        <td class="logged">
+                            <a title="detailed hours report" href="{% url eff_site.eff.views.eff_report object.username %}?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}">
+                                {{ object.worked_hours }}
+                            </a>
+                        </td>
+                    {% if perms.eff.view_billable %}
+                        <td class="billable"> {{ object.billable_hours }} </td>
+                    {% endif %}
+                        <td class="loggable"> {{ object.loggable_hours }}  </td>
+                        <td class="percent"> {{ object.percentage_hours_worked }}  </td>
+                    {% if perms.eff.view_billable %}
+                        <td class="qbill"> {{ object.percentage_billable_hours }} </td>
+                    {% endif %}
+                        <td style="width:50em;"> {{ object.projects|join:" | " }} </td>
+                        <td class="graphical">
+                            <a href="{% url eff_site.eff.views.eff_chart object.username %}?from_date={{from_date}}&to_date={{to_date}}{% if monthly_nav %}&monthly_nav={{monthly_nav}}{% endif %}{% if overtime_nav %}&overtime_nav={{overtime_nav}}{% endif %}" title="reporte graphical"><img border=0 src="/media/img/chart.png"/></a>
+                        </td>
+                        <td><input type="checkbox" name={{ object.username }} value=checked></td>
+                        <td class="delta">
+                            {% ifequal object.delta -1 %} &#x25bc; {% endifequal %}
+                            {% ifequal object.delta 0 %} = {% endifequal %}
+                            {% ifequal object.delta 1 %} &#x25b2; {% endifequal %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="total {{ total.efficiency_class }}">
+                        <td> Total </td>
+                        <td class="logged"> {{ total.worked_hours }}  </td>
+                    {% if perms.eff.view_billable %}
+                        <td class="billable"> {{ total.billable_hours }}
+                    {% endif %}
+                        <td class="loggable"> {{ total.loggable_hours }}  </td>
+                        <td class="percent"> {{ total.percentage_hours_worked }}  </td>
+                    {% if perms.eff.view_billable %}
+                        <td class="qbill"> {{ total.percentage_billable_hours }} </td>
+                    {% endif %}
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+            <div class="graphicsLeft">
+                Gráfico acumulativo
+                <input type="image" name="SumGraph" value="sum" border=0 src="/media/img/chart.png"/>
+            </div>
+            <div class="graphicsRight">
+                Gráficos Múltiples
+                <input type="image" name="MultGraph" value="multi" border=0 src="/media/img/chart.png"/>
+            </div>
+        </form>
+    {% else %}
+        <p>No profiles found</p>
+    {% endif %}
+        <form method="get" action="">
+            <table id="dates" class="extra-data">
+                {{ form.as_table }}
+                <tr>
+                    <td colspan="2">
+                        <input type="submit" value="Go!"/>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+{% endblock %}
+
+{% block footer %}
+    Hacete un <i xml:lang="en">bookmark</i> para el reporte de
+    <a href="{% url eff_site.eff.views.eff_current_week %}">la semana en curso</a>, o
+    <a href="{% url eff_site.eff.views.eff_previous_week %}">la semana anterior</a>.
+    <br />
+    También podes consultar el período de <a href="{% url eff_site.eff.views.eff_horas_extras %}">horas extras en curso</a>,
+    <a href="{% url eff_site.eff.views.eff_current_month %}">el mes actual</a>, o <a href="{% url eff_site.eff.views.eff_last_month %}">el mes pasado</a>
+{% endblock footer %}
